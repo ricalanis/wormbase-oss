@@ -1,6 +1,6 @@
 """MCP server presets — one config per official vendor MCP server.
 
-Each preset registers a per-server :class:`MCPConnector` subclass with
+Each preset registers a per-server :class:`MCPSurfaceDriver` subclass with
 the default registry under a prefixed kind:
 
 * ``mcp:notion``      — Notion (official, GA 2026)
@@ -12,7 +12,7 @@ the default registry under a prefixed kind:
 
 Importing this package eagerly imports each preset module; the
 ``make_mcp_preset(...)`` call inside each module fires the
-``register_connector`` decorator. The dashboard's connector picker
+``register_surface_driver`` decorator. The dashboard's connector picker
 (D4) sees them alongside the native connectors.
 
 This is the v1 cut. New presets are added by dropping a 30-LOC file

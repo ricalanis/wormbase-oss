@@ -39,7 +39,7 @@ from uuid import uuid4
 import pytest
 from wormbase_lake_surfaces.snowflake import (
     SNOWFLAKE_TAG_MAPPINGS,
-    SnowflakeConnector,
+    SnowflakeSurfaceDriver,
 )
 from wormbase_lake_surfaces.types import AuthHandle
 from wormbase_governance.policies.masked_column_refusal import (
@@ -140,7 +140,7 @@ def snowflake_mock() -> Any:
 
 
 def test_snowflake_advertises_governance_passthrough_capability() -> None:
-    c = SnowflakeConnector()
+    c = SnowflakeSurfaceDriver()
     assert "governance_passthrough" in c.capability
     assert {"discover", "profile", "sample"}.issubset(c.capability)
 
@@ -163,7 +163,7 @@ def test_snowflake_tag_mapping_covers_canonical_classes() -> None:
 @pytest.mark.asyncio
 async def test_profile_propagates_column_tags(snowflake_mock: Any) -> None:
     """Profile must surface column tags + per-column classification + rollup."""
-    connector = SnowflakeConnector()
+    connector = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",
@@ -220,7 +220,7 @@ async def test_profile_with_no_tags_falls_back_to_internal(
     fake_cur.fetchall = MagicMock(side_effect=_fetchall_no_tags)
     fake_cur.fetchone = MagicMock(return_value=(0,))
 
-    connector = SnowflakeConnector()
+    connector = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",
@@ -242,7 +242,7 @@ async def test_masked_column_query_refused_and_logged(
     snowflake_mock: Any,
 ) -> None:
     """Demo property: query touching a PII-tagged column refuses + traces."""
-    connector = SnowflakeConnector()
+    connector = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",
@@ -308,7 +308,7 @@ async def test_masked_column_query_with_clean_columns_allowed(
     snowflake_mock: Any,
 ) -> None:
     """Queries that don't touch tagged columns pass through cleanly."""
-    connector = SnowflakeConnector()
+    connector = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",
@@ -344,7 +344,7 @@ async def test_masked_column_query_with_clean_columns_allowed(
 @pytest.mark.asyncio
 async def test_regulated_tag_also_refused(snowflake_mock: Any) -> None:
     """Regulated columns (e.g. SSN) refuse independent of pii."""
-    connector = SnowflakeConnector()
+    connector = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",
@@ -386,7 +386,7 @@ async def test_end_to_end_tag_chain_visible_via_ledger(
     /trace can jump to /sources/<id> via the gate_fired payload's
     ``source_id`` + ``resource_id`` + ``tag_chain`` triple.
     """
-    connector = SnowflakeConnector()
+    connector = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",

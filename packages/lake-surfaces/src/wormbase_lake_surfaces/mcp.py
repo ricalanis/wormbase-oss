@@ -1,28 +1,28 @@
-"""MCP-backed Connector — instantiate any MCP server as a WormBase source.
+"""MCP-backed SurfaceDriver — instantiate any MCP server as a WormBase source.
 
-Per `docs/superpowers/specs/2026-04-27-mcp-integration.md` §6 (Connector-vs-MCP):
-``MCPConnector`` implements the standard :class:`Connector` Protocol by
+Per `docs/superpowers/specs/2026-04-27-mcp-integration.md` §6 (SurfaceDriver-vs-MCP):
+``MCPSurfaceDriver`` implements the standard :class:`SurfaceDriver` Protocol by
 speaking MCP under the hood. From the rest of the codebase's
 perspective, an MCP-backed source is indistinguishable from a Postgres
 source — same ``discover/profile/sample/watch``, same registry, same
-flows. This is Option C from §6.1 ("MCP IS ONE Connector
+flows. This is Option C from §6.1 ("MCP IS ONE SurfaceDriver
 implementation"): no parallel substrate, no fork in the source-builder,
 no new flow surface.
 
 Mapping:
 
-* ``Connector.discover``  → MCP ``list_resources()``
-* ``Connector.profile``   → MCP ``read_resource(uri)`` against
+* ``SurfaceDriver.discover``  → MCP ``list_resources()``
+* ``SurfaceDriver.profile``   → MCP ``read_resource(uri)`` against
   metadata URIs (each preset names which resources are "metadata"-style
   vs. "bytes"-style); fallback to a column-less Profile when the
   upstream doesn't expose schemas.
-* ``Connector.sample``    → MCP ``read_resource(uri)`` with byte cap
-* ``Connector.watch``     → not advertised; MCP is request/response in
+* ``SurfaceDriver.sample``    → MCP ``read_resource(uri)`` with byte cap
+* ``SurfaceDriver.watch``     → not advertised; MCP is request/response in
   v1 (per §6.4). Returns an empty async iterator.
 
 Presets configure per-server URLs + auth shape + classification hints
 (``packages/connectors/src/wormbase_lake_surfaces/mcp_presets/``). The
-core ``MCPConnector`` class is preset-agnostic — it accepts a
+core ``MCPSurfaceDriver`` class is preset-agnostic — it accepts a
 :class:`MCPServerConfig` describing where to connect and how.
 
 Auth model:
@@ -58,8 +58,8 @@ from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass, field
 from typing import Any, Callable, ClassVar, Protocol
 
-from .base import Connector
-from .registry import register_connector
+from .base import SurfaceDriver
+from .registry import register_surface_driver
 from .types import (
     AuthHandle,
     Capability,
@@ -131,13 +131,13 @@ inject an in-memory fake."""
 
 
 # ---------------------------------------------------------------------------
-# MCPConnector — the Connector Protocol implementation
+# MCPSurfaceDriver — the SurfaceDriver Protocol implementation
 # ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
 class _MCPHandleExtra:
-    """What ``MCPConnector.authenticate`` stuffs into ``AuthHandle.extra``.
+    """What ``MCPSurfaceDriver.authenticate`` stuffs into ``AuthHandle.extra``.
 
     Frozen + dataclass for documentary clarity; the runtime stores it
     as a plain ``dict[str, Any]`` per the AuthHandle contract.
@@ -148,8 +148,8 @@ class _MCPHandleExtra:
     config_kind: str = ""
 
 
-class MCPConnector(Connector):
-    """Connector backed by an MCP server.
+class MCPSurfaceDriver(SurfaceDriver):
+    """SurfaceDriver backed by an MCP server.
 
     Configured per-instance with a :class:`MCPServerConfig`. The
     canonical ``kind`` is ``"mcp"`` — presets register themselves as
@@ -175,7 +175,7 @@ class MCPConnector(Connector):
     # ----- Class-level binding to a concrete server config -------------
 
     server_config: ClassVar[MCPServerConfig | None] = None
-    """Set by per-server preset subclasses. Generic ``MCPConnector`` is
+    """Set by per-server preset subclasses. Generic ``MCPSurfaceDriver`` is
     not directly registrable — you instantiate it with a config-bound
     subclass produced by :func:`make_mcp_preset`."""
 
@@ -188,7 +188,7 @@ class MCPConnector(Connector):
         cfg = config or self.server_config
         if cfg is None:
             raise ValueError(
-                "MCPConnector requires a MCPServerConfig (pass `config=` or "
+                "MCPSurfaceDriver requires a MCPServerConfig (pass `config=` or "
                 "use a preset subclass produced by make_mcp_preset)"
             )
         self._config = cfg
@@ -198,7 +198,7 @@ class MCPConnector(Connector):
     def config(self) -> MCPServerConfig:
         return self._config
 
-    # ----- Connector Protocol methods ----------------------------------
+    # ----- SurfaceDriver Protocol methods ----------------------------------
 
     async def authenticate(self, secrets: SecretBundle) -> AuthHandle:
         """Validate the secret shape; return a stable handle.
@@ -353,23 +353,23 @@ def make_mcp_preset(
     status: ConnectorStatus = "preview",
     status_note: str | None = None,
     register: bool = True,
-) -> type[MCPConnector]:
-    """Build a per-server MCPConnector subclass and (optionally) register it.
+) -> type[MCPSurfaceDriver]:
+    """Build a per-server MCPSurfaceDriver subclass and (optionally) register it.
 
     Each preset module calls ``make_mcp_preset(MY_CFG)`` once at import
-    time; the returned class self-registers via ``register_connector``
+    time; the returned class self-registers via ``register_surface_driver``
     so the dashboard's connector picker sees it alongside the native
     connectors. Skipping registration is supported for tests that want
     to assert the class shape without polluting the default registry.
     """
-    cls_name = "MCPConnector_" + _safe_class_suffix(config.kind)
+    cls_name = "MCPSurfaceDriver_" + _safe_class_suffix(config.kind)
     note = status_note or (
         f"MCP-backed connector for {config.kind!s}. {config.description}".strip()
     )
 
     cls = type(
         cls_name,
-        (MCPConnector,),
+        (MCPSurfaceDriver,),
         {
             "__doc__": f"MCP preset for {config.kind} ({config.server_url}).",
             "kind": config.kind,
@@ -380,7 +380,7 @@ def make_mcp_preset(
         },
     )
     if register:
-        register_connector(cls)  # type: ignore[arg-type]
+        register_surface_driver(cls)  # type: ignore[arg-type]
     return cls  # type: ignore[return-value]
 
 
@@ -526,7 +526,7 @@ def _extract_body(
 
 
 __all__ = [
-    "MCPConnector",
+    "MCPSurfaceDriver",
     "MCPServerConfig",
     "MCPSessionLike",
     "SessionFactory",

@@ -1,4 +1,4 @@
-"""Tests for SnowflakeConnector — uses an in-process mock cursor.
+"""Tests for SnowflakeSurfaceDriver — uses an in-process mock cursor.
 
 snowflake-connector-python is sync-only. The connector bridges to
 async via asyncio.to_thread, so these tests patch the underlying
@@ -13,8 +13,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from wormbase_lake_surfaces.base import Connector
-from wormbase_lake_surfaces.snowflake import SnowflakeConnector, _connect_kwargs
+from wormbase_lake_surfaces.base import SurfaceDriver
+from wormbase_lake_surfaces.snowflake import SnowflakeSurfaceDriver, _connect_kwargs
 from wormbase_lake_surfaces.types import AuthHandle, SecretBundle
 
 _KWARGS = {
@@ -27,8 +27,8 @@ _KWARGS = {
 
 
 def test_snowflake_implements_protocol() -> None:
-    c = SnowflakeConnector()
-    assert isinstance(c, Connector)
+    c = SnowflakeSurfaceDriver()
+    assert isinstance(c, SurfaceDriver)
     assert c.kind == "snowflake"
 
 
@@ -85,7 +85,7 @@ def fake_connect() -> Any:
 @pytest.mark.asyncio
 async def test_snowflake_authenticate(fake_connect: Any) -> None:
     _, _, cur = fake_connect
-    c = SnowflakeConnector()
+    c = SnowflakeSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload=dict(_KWARGS)))
     assert handle.connector_kind == "snowflake"
     assert handle.extra["connect_kwargs"]["account"] == "abc.us-east-1"
@@ -94,7 +94,7 @@ async def test_snowflake_authenticate(fake_connect: Any) -> None:
 
 @pytest.mark.asyncio
 async def test_snowflake_authenticate_missing_creds() -> None:
-    c = SnowflakeConnector()
+    c = SnowflakeSurfaceDriver()
     bad = dict(_KWARGS)
     bad.pop("password")
     with pytest.raises(ValueError):
@@ -108,7 +108,7 @@ async def test_snowflake_discover(fake_connect: Any) -> None:
         ("PUBLIC", "USERS", 1234, "BASE TABLE"),
         ("PUBLIC", "ORDERS", 999, "BASE TABLE"),
     ]
-    c = SnowflakeConnector()
+    c = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",
@@ -132,7 +132,7 @@ async def test_snowflake_profile(fake_connect: Any) -> None:
         ("EMAIL", "VARCHAR", "Y", None),
     ]
     cur.fetchone.return_value = (4242,)
-    c = SnowflakeConnector()
+    c = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",
@@ -152,7 +152,7 @@ async def test_snowflake_profile(fake_connect: Any) -> None:
 async def test_snowflake_profile_rejects_unqualified_id(
     fake_connect: Any,
 ) -> None:
-    c = SnowflakeConnector()
+    c = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",
@@ -170,7 +170,7 @@ async def test_snowflake_sample(fake_connect: Any) -> None:
         (1, "alice@example.com"),
         (2, None),
     ]
-    c = SnowflakeConnector()
+    c = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",
@@ -188,7 +188,7 @@ async def test_snowflake_sample_empty_returns_empty(fake_connect: Any) -> None:
     _, _, cur = fake_connect
     cur.description = []
     cur.fetchall.return_value = []
-    c = SnowflakeConnector()
+    c = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",
@@ -199,7 +199,7 @@ async def test_snowflake_sample_empty_returns_empty(fake_connect: Any) -> None:
 
 @pytest.mark.asyncio
 async def test_snowflake_watch_yields_nothing() -> None:
-    c = SnowflakeConnector()
+    c = SnowflakeSurfaceDriver()
     handle = AuthHandle(
         connector_kind="snowflake",
         handle_id="x",

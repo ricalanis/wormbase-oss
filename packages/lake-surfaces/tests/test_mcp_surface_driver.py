@@ -1,4 +1,4 @@
-"""Tests for MCPConnector — mocked-transport unit tests.
+"""Tests for MCPSurfaceDriver — mocked-transport unit tests.
 
 The session factory is the seam: production binds it to the SDK's
 Streamable-HTTP transport; tests inject a fake that records calls
@@ -13,9 +13,9 @@ from typing import Any
 
 import pytest
 
-from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.base import SurfaceDriver
 from wormbase_lake_surfaces.mcp import (
-    MCPConnector,
+    MCPSurfaceDriver,
     MCPServerConfig,
     make_mcp_preset,
 )
@@ -24,7 +24,7 @@ from wormbase_lake_surfaces.types import SecretBundle
 
 
 # ---------------------------------------------------------------------------
-# Fake MCP types — shaped like the SDK so Connector code paths exercise
+# Fake MCP types — shaped like the SDK so SurfaceDriver code paths exercise
 # the same attribute reads. We don't import from `mcp` here so the test
 # stays cheap to run (and provably exercises only our code).
 # ---------------------------------------------------------------------------
@@ -111,27 +111,27 @@ _TEST_CFG = MCPServerConfig(
 
 
 def test_mcp_connector_implements_connector_protocol() -> None:
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(_FakeSession()))
-    assert isinstance(c, Connector)
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(_FakeSession()))
+    assert isinstance(c, SurfaceDriver)
     assert c.kind == "mcp"
     assert c.capability == {"discover", "profile", "sample"}
 
 
 def test_mcp_connector_requires_config() -> None:
     with pytest.raises(ValueError, match="MCPServerConfig"):
-        MCPConnector()  # type: ignore[call-arg]
+        MCPSurfaceDriver()  # type: ignore[call-arg]
 
 
 @pytest.mark.asyncio
 async def test_authenticate_rejects_missing_required_secret() -> None:
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(_FakeSession()))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(_FakeSession()))
     with pytest.raises(ValueError, match="bearer_token"):
         await c.authenticate(SecretBundle(payload={}))
 
 
 @pytest.mark.asyncio
 async def test_authenticate_returns_stable_handle() -> None:
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(_FakeSession()))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(_FakeSession()))
     handle = await c.authenticate(
         SecretBundle(payload={"bearer_token": "abc-123"})
     )
@@ -143,7 +143,7 @@ async def test_authenticate_returns_stable_handle() -> None:
 
 @pytest.mark.asyncio
 async def test_authenticate_handle_id_is_deterministic() -> None:
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(_FakeSession()))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(_FakeSession()))
     h1 = await c.authenticate(SecretBundle(payload={"bearer_token": "tok"}))
     h2 = await c.authenticate(SecretBundle(payload={"bearer_token": "tok"}))
     assert h1.handle_id == h2.handle_id
@@ -173,7 +173,7 @@ async def test_discover_maps_mcp_resources_to_proposals() -> None:
             ),
         ]
     )
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(session))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(session))
     handle = await c.authenticate(SecretBundle(payload={"bearer_token": "tok"}))
     proposals = await c.discover(handle)
 
@@ -197,7 +197,7 @@ async def test_discover_skips_resources_without_uri() -> None:
     )
     # Force the `uri` to None on the second to mimic an SDK quirk.
     session.resources[1].uri = None  # type: ignore[assignment]
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(session))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(session))
     handle = await c.authenticate(SecretBundle(payload={"bearer_token": "tok"}))
     proposals = await c.discover(handle)
     assert len(proposals) == 1
@@ -207,7 +207,7 @@ async def test_discover_skips_resources_without_uri() -> None:
 @pytest.mark.asyncio
 async def test_discover_returns_empty_when_no_resources() -> None:
     session = _FakeSession(resources=[])
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(session))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(session))
     handle = await c.authenticate(SecretBundle(payload={"bearer_token": "tok"}))
     assert await c.discover(handle) == []
 
@@ -230,7 +230,7 @@ async def test_profile_extracts_text_size_and_line_count() -> None:
             ]
         }
     )
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(session))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(session))
     handle = await c.authenticate(SecretBundle(payload={"bearer_token": "tok"}))
     profile = await c.profile(handle, "mcp://test/page1")
 
@@ -246,7 +246,7 @@ async def test_profile_extracts_text_size_and_line_count() -> None:
 @pytest.mark.asyncio
 async def test_profile_handles_empty_contents() -> None:
     session = _FakeSession(contents_by_uri={"mcp://test/blank": []})
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(session))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(session))
     handle = await c.authenticate(SecretBundle(payload={"bearer_token": "tok"}))
     profile = await c.profile(handle, "mcp://test/blank")
     assert profile.extra["bytes"] == 0
@@ -272,7 +272,7 @@ async def test_sample_returns_first_n_bytes() -> None:
             ]
         }
     )
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(session))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(session))
     handle = await c.authenticate(SecretBundle(payload={"bearer_token": "tok"}))
     sample = await c.sample(handle, "mcp://test/x", 4)
     assert sample == b"abcd"
@@ -287,7 +287,7 @@ async def test_sample_zero_n_returns_empty_bytes() -> None:
             ]
         }
     )
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(session))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(session))
     handle = await c.authenticate(SecretBundle(payload={"bearer_token": "tok"}))
     assert await c.sample(handle, "mcp://test/x", 0) == b""
 
@@ -299,7 +299,7 @@ async def test_sample_zero_n_returns_empty_bytes() -> None:
 
 @pytest.mark.asyncio
 async def test_watch_yields_nothing_in_v1() -> None:
-    c = MCPConnector(config=_TEST_CFG, session_factory=_factory_yielding(_FakeSession()))
+    c = MCPSurfaceDriver(config=_TEST_CFG, session_factory=_factory_yielding(_FakeSession()))
     handle = await c.authenticate(SecretBundle(payload={"bearer_token": "tok"}))
     items = [item async for item in c.watch(handle, "mcp://test/x")]
     assert items == []
@@ -318,7 +318,7 @@ def test_make_mcp_preset_produces_registrable_subclass() -> None:
     )
     cls = make_mcp_preset(cfg, register=False)
     try:
-        assert issubclass(cls, MCPConnector)
+        assert issubclass(cls, MCPSurfaceDriver)
         assert cls.kind == "mcp:_test_preset_unique"
         assert cls.server_config is cfg
         assert cls.status == "preview"

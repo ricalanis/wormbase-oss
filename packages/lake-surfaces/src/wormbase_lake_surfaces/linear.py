@@ -9,18 +9,18 @@ Profile via Linear's introspection schema. Sample via paginated
 
 from __future__ import annotations
 
-from ._skeletal import SkeletalConnector
-from .registry import register_connector
+from ._skeletal import SkeletalSurfaceDriver
+from .registry import register_surface_driver
 
 
-@register_connector
-class LinearConnector(SkeletalConnector):
+@register_surface_driver
+class LinearSurfaceDriver(SkeletalSurfaceDriver):
     kind = "linear"
     capability = {"discover"}
     classification_hints = []
     status = "coming_soon"
     status_note = (
-        "Connector skeleton — Linear GraphQL API integration lands in v1.5 (on-thesis priority)."
+        "SurfaceDriver skeleton — Linear GraphQL API integration lands in v1.5 (on-thesis priority)."
     )
     required_secrets = ("api_key",)
     optional_secrets = ("workspace_id",)
@@ -29,4 +29,4 @@ class LinearConnector(SkeletalConnector):
     )
 
 
-__all__ = ["LinearConnector"]
+__all__ = ["LinearSurfaceDriver"]

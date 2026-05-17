@@ -268,7 +268,7 @@ def test_csv_local_extractor_auto_registered_on_module_import() -> None:
     ],
 )
 def test_honest_empty_connectors_return_empty(kind: str) -> None:
-    """Connector kinds without registered extractors return ``[]`` honestly.
+    """SurfaceDriver kinds without registered extractors return ``[]`` honestly.
 
     Per the per-connector extractor bundle (2026-06-10) the wired
     extractors are: csv_local, postgres, s3_csv, http_csv. The
@@ -427,12 +427,12 @@ def test_extract_columns_postgres_dispatches_through_registry(
 
 
 # ---------------------------------------------------------------------------
-# s3_csv extractor — uses Connector.sample mock.
+# s3_csv extractor — uses SurfaceDriver.sample mock.
 # ---------------------------------------------------------------------------
 
 
 def _make_sampler_mock(payload: bytes | Exception) -> Any:
-    """Build a fake Connector-like object whose .sample returns/raises."""
+    """Build a fake SurfaceDriver-like object whose .sample returns/raises."""
     connector = MagicMock()
     if isinstance(payload, Exception):
         connector.sample = AsyncMock(side_effect=payload)

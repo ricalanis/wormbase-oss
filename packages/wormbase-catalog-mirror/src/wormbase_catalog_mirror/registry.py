@@ -1,6 +1,6 @@
 """CatalogSource registry — kind → class lookup.
 
-Mirrors the registration pattern of ``Connector`` / ``ChannelAdapter``:
+Mirrors the registration pattern of ``SurfaceDriver`` / ``ChannelAdapter``:
 adding a CatalogSource is a class + registry entry. No core-code change.
 
 Day-one impls:

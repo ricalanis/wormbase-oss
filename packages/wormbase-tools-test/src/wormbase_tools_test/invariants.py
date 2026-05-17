@@ -1,4 +1,4 @@
-"""Six conformance invariants for the WormBase Connector Protocol.
+"""Six conformance invariants for the WormBase SurfaceDriver Protocol.
 
 These are the public, monorepo-independent equivalents of the
 parametrized cases in
@@ -93,7 +93,7 @@ async def assert_authenticate_invalid_raises(
         return
     raise AssertionError(
         "authenticate(invalid_secrets) did not raise ValueError/KeyError; "
-        "the Connector Protocol requires malformed bundles to be rejected"
+        "the SurfaceDriver Protocol requires malformed bundles to be rejected"
     )
 
 

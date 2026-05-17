@@ -2,7 +2,7 @@
 
 Mirrors structure (not data) from an upstream lake. Day-one implementations:
 DbtManifestCatalogSource, SnowflakeNativeCatalogSource. Future technologies
-add as a class + registry entry — no core-code change (per Connector / ChannelAdapter
+add as a class + registry entry — no core-code change (per SurfaceDriver / ChannelAdapter
 extensibility pattern).
 """
 from __future__ import annotations

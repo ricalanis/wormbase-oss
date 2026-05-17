@@ -5,7 +5,7 @@ Usage:
     pytest --connector my_pkg.my_module:MyConnector
 
 The plugin imports ``MyConnector`` from ``my_pkg.my_module``, builds
-six tests (one per Connector Protocol invariant), and runs them. To
+six tests (one per SurfaceDriver Protocol invariant), and runs them. To
 override the secrets shape or the known resource id, declare fixtures
 in your ``conftest.py``:
 
@@ -76,7 +76,7 @@ def pytest_collection(session: pytest.Session) -> None:
 def pytest_addoption(parser: pytest.Parser) -> None:
     group = parser.getgroup(
         "wormbase-tools-test",
-        "WormBase Connector Protocol conformance harness",
+        "WormBase SurfaceDriver Protocol conformance harness",
     )
     group.addoption(
         "--connector",
@@ -85,7 +85,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default=None,
         metavar="MODULE:CLASS",
         help=(
-            "Connector class to test, given as 'module.path:ClassName'. "
+            "SurfaceDriver class to test, given as 'module.path:ClassName'. "
             "When set, the harness runs six invariant tests against the "
             "named class. Override secrets/resource via the "
             "connector_valid_secrets, connector_invalid_secrets, and "
@@ -242,7 +242,7 @@ def _resolve_secret_bundle(connector_instance: Any) -> Any:
 
 
 class TestConnectorProtocolConformance:
-    """Six tests asserting the Connector Protocol contract.
+    """Six tests asserting the SurfaceDriver Protocol contract.
 
     Each method maps 1:1 to an invariant in
     :mod:`wormbase_tools_test.invariants`. The pytest plugin ensures

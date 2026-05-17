@@ -1,6 +1,6 @@
-"""parquet_local — the canonical reference Connector implementation.
+"""parquet_local — the canonical reference SurfaceDriver implementation.
 
-This file is the ground truth for "what does a WormBase Connector look like?".
+This file is the ground truth for "what does a WormBase SurfaceDriver look like?".
 It is intentionally:
 
   * Self-contained — only ``pyarrow`` + the Python standard library.
@@ -11,7 +11,7 @@ It is intentionally:
     ``profile``, ``sample``, and ``watch``. Every other connector
     in the catalog can be read against this file as a worked example.
 
-  * Duck-typed against the Connector Protocol — the file defines its
+  * Duck-typed against the SurfaceDriver Protocol — the file defines its
     own ``AuthHandle`` / ``ResourceProposal`` / ``Profile`` / ``Change``
     dataclasses with the exact field names the Protocol specifies.
     The conformance harness ``wormbase-tools-test`` checks attribute
@@ -51,7 +51,7 @@ from typing import Any
 import pyarrow.parquet as pq
 
 # ---------------------------------------------------------------------------
-# Local Connector-Protocol-shaped dataclasses
+# Local SurfaceDriver-Protocol-shaped dataclasses
 #
 # These mirror ``wormbase_lake_surfaces.types`` field-for-field but live in this
 # file so the reference has zero internal-package dependencies. The
@@ -68,7 +68,7 @@ class SecretBundle:
 
 @dataclass(frozen=True)
 class AuthHandle:
-    """Returned by :meth:`Connector.authenticate`. Used in subsequent calls."""
+    """Returned by :meth:`SurfaceDriver.authenticate`. Used in subsequent calls."""
 
     connector_kind: str
     handle_id: str
@@ -77,7 +77,7 @@ class AuthHandle:
 
 @dataclass(frozen=True)
 class ResourceProposal:
-    """A resource discovered by :meth:`Connector.discover`."""
+    """A resource discovered by :meth:`SurfaceDriver.discover`."""
 
     resource_id: str
     name: str
@@ -88,7 +88,7 @@ class ResourceProposal:
 
 @dataclass(frozen=True)
 class Profile:
-    """Result of :meth:`Connector.profile`."""
+    """Result of :meth:`SurfaceDriver.profile`."""
 
     row_count: int | None
     column_count: int | None
@@ -99,7 +99,7 @@ class Profile:
 
 @dataclass(frozen=True)
 class Change:
-    """Streaming change record from :meth:`Connector.watch`."""
+    """Streaming change record from :meth:`SurfaceDriver.watch`."""
 
     resource_id: str
     seq: int
@@ -113,7 +113,7 @@ class Change:
 
 
 class ParquetLocalConnector:
-    """Connector for local Parquet files — discover, profile, sample."""
+    """SurfaceDriver for local Parquet files — discover, profile, sample."""
 
     kind: str = "parquet_local"
     capability: set[str] = {"discover", "profile", "sample"}

@@ -1,6 +1,6 @@
 """Snowflake connector — discover/profile/sample via snowflake-connector-python.
 
-snowflake-connector-python is sync-only. We bridge to the async Connector
+snowflake-connector-python is sync-only. We bridge to the async SurfaceDriver
 contract by running the blocking calls in a thread executor — Snowflake
 discover/profile/sample are low-frequency operations (per-source, not
 per-row) so the executor cost is negligible.
@@ -47,8 +47,8 @@ import hashlib
 from collections.abc import AsyncIterator
 from typing import Any
 
-from .base import Connector
-from .registry import register_connector
+from .base import SurfaceDriver
+from .registry import register_surface_driver
 from .types import (
     AuthHandle,
     Capability,
@@ -165,8 +165,8 @@ def _connect_kwargs(payload: dict[str, Any]) -> dict[str, Any]:
     return kwargs
 
 
-@register_connector
-class SnowflakeConnector(Connector):
+@register_surface_driver
+class SnowflakeSurfaceDriver(SurfaceDriver):
     """Snowflake connector via snowflake-connector-python (sync, executor-bridged)."""
 
     kind = "snowflake"
@@ -443,5 +443,5 @@ class SnowflakeConnector(Connector):
 
 __all__ = [
     "SNOWFLAKE_TAG_MAPPINGS",
-    "SnowflakeConnector",
+    "SnowflakeSurfaceDriver",
 ]

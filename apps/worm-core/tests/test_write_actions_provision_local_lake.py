@@ -127,7 +127,7 @@ async def test_provision_local_lake_confirms_with_installer() -> None:
 async def test_provision_local_lake_writes_connection_ref() -> None:
     """The connect entry's connection_ref is the canonical
     ``local-lake://{tenant_id}`` uri so the dashboard's connector
-    registry resolves it back to the LocalLakeConnector."""
+    registry resolves it back to the LocalLakeSurfaceDriver."""
     ledger = InMemoryLedger()
     company_id = tenant_to_uuid(TENANT_SLUG)
     installer_person_id = uuid4()

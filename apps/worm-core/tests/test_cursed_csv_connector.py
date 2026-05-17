@@ -1,4 +1,4 @@
-"""Connector-level coverage for ``fixtures/cursed_finance_export.csv`` (P4).
+"""SurfaceDriver-level coverage for ``fixtures/cursed_finance_export.csv`` (P4).
 
 The cursed CSV is the demo's worst-case-realistic finance export — see
 ``scripts/generate_cursed_csv.py`` for the full curse list. This module
@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from wormbase_lake_surfaces.csv_local import CsvLocalConnector, detect_encoding
+from wormbase_lake_surfaces.csv_local import CsvLocalSurfaceDriver, detect_encoding
 from wormbase_lake_surfaces.types import SecretBundle
 
 
@@ -68,7 +68,7 @@ async def test_csv_local_profiles_cursed_file_without_crashing() -> None:
     (byte 0xe9 in cp1252). The connector must complete a profile call
     and return a populated :class:`Profile`.
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )
@@ -85,7 +85,7 @@ async def test_cursed_csv_profile_reports_windows_1252_encoding() -> None:
     Downstream silver needs the original encoding so re-emit /
     re-export round-trips bytes correctly.
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )
@@ -103,7 +103,7 @@ async def test_cursed_csv_surfaces_duplicate_header_rows() -> None:
     on ``profile.extra['duplicate_header_rows']``. A clean file would
     return 0; the cursed export returns ≥1.
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )
@@ -123,7 +123,7 @@ async def test_cursed_csv_includes_q3_revenue_column_with_literal_label() -> Non
     well-meaning rename ("normalize whitespace") would silently break
     Beat 6. Pin the label here.
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )
@@ -143,7 +143,7 @@ async def test_cursed_csv_flags_minus_9999_sentinel() -> None:
     null before downstream stats. Without this flag, a naive mean()
     over ``customer_count`` would skew dramatically negative.
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )
@@ -168,7 +168,7 @@ async def test_cursed_csv_flags_excel_error_strings() -> None:
     so silver can null-out the bad cells without dropping the whole
     column to ``str`` dtype.
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )
@@ -199,7 +199,7 @@ async def test_cursed_csv_classifies_pii_column_by_name() -> None:
     the email column as PII so the policy gate defaults the source to
     confidential-PII before any human confirms.
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )
@@ -222,7 +222,7 @@ async def test_cursed_csv_has_at_least_200_data_rows() -> None:
     install-arc Beat 3 KPI fires from this file, and it fires from
     silver row count.
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )
@@ -241,7 +241,7 @@ async def test_cursed_csv_carries_both_naive_and_tz_aware_datetime_columns() -> 
     explicit. We just assert the columns coexist here — silver's choice
     is asserted in the integration test.
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )
@@ -258,7 +258,7 @@ async def test_cursed_csv_profile_is_idempotent() -> None:
     The cursed file must not break the W6.A4 conformance harness's
     idempotency invariant.
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )

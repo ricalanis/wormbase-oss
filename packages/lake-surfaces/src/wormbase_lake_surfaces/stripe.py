@@ -35,8 +35,8 @@ from typing import Any
 
 import httpx
 
-from .base import Connector
-from .registry import register_connector
+from .base import SurfaceDriver
+from .registry import register_surface_driver
 from .types import (
     AuthHandle,
     Capability,
@@ -69,8 +69,8 @@ def _basic_auth_header(api_key: str) -> str:
     return f"Basic {base64.b64encode(raw).decode()}"
 
 
-@register_connector
-class StripeConnector(Connector):
+@register_surface_driver
+class StripeSurfaceDriver(SurfaceDriver):
     """Stripe REST connector via httpx."""
 
     kind = "stripe"
@@ -213,4 +213,4 @@ def _truncate_repr(v: Any, max_len: int = 80) -> str:
     return s if len(s) <= max_len else s[: max_len - 3] + "..."
 
 
-__all__ = ["StripeConnector", "STRIPE_OBJECTS"]
+__all__ = ["StripeSurfaceDriver", "STRIPE_OBJECTS"]

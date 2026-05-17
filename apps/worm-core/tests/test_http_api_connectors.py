@@ -3,7 +3,7 @@
 Covers:
 - GET /api/v1/connectors → catalog payload (kind, status, capabilities,
   config_schema, classification_hints) — no auth required.
-- POST /api/v1/connectors/{kind}/test → real Connector.authenticate
+- POST /api/v1/connectors/{kind}/test → real SurfaceDriver.authenticate
   invocation. Bearer-auth required. Honest failures surface the
   upstream error message verbatim; coming_soon kinds 409.
 """

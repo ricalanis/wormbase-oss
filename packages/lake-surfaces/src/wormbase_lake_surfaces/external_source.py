@@ -1,7 +1,7 @@
 """AcquirableSourceImpl — shared wrapper for external + filedrop families.
 
 Per spike §8 C3, external + filedrop collapse to one acquisition impl.
-The Connector driver (kind="postgres" / "csv_local" / "stripe" / etc.)
+The SurfaceDriver driver (kind="postgres" / "csv_local" / "stripe" / etc.)
 provides discover/profile/sample; this class adds per-instance metadata
 (id, family, classification, domain, owner) and a stored auth handle.
 
@@ -16,7 +16,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 from uuid import UUID
 
-from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.base import SurfaceDriver
 from wormbase_lake_surfaces.types import Profile, ResourceProposal
 
 from wormbase_lake_surfaces.types import (
@@ -32,7 +32,7 @@ from wormbase_lake_surfaces.types import (
 class AcquirableSourceImpl:
     """Concrete ``AcquirableSource`` for external + filedrop families.
 
-    Holds a Connector driver + the auth handle returned by
+    Holds a SurfaceDriver driver + the auth handle returned by
     ``connector.authenticate(secrets)``. discover/profile/sample
     delegate verbatim. ``family`` is metadata; it does not change
     behaviour (per spike C3).
@@ -48,7 +48,7 @@ class AcquirableSourceImpl:
     classification: Classification
     domain: UUID | None
     owner: UUID | None
-    connector: Connector
+    connector: SurfaceDriver
     auth_handle: Any
     baseline_schema_hash: str | None = None
     last_seen: datetime | None = None

@@ -336,7 +336,7 @@ def test_source_candidate_proposed_accepts_future_strategy_plugin() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Connector-kind runtime validator
+# SurfaceDriver-kind runtime validator
 # ---------------------------------------------------------------------------
 
 

@@ -8,18 +8,18 @@ the configured project. Profile via ``Client.get_table()``. Sample via
 
 from __future__ import annotations
 
-from ._skeletal import SkeletalConnector
-from .registry import register_connector
+from ._skeletal import SkeletalSurfaceDriver
+from .registry import register_surface_driver
 
 
-@register_connector
-class BigQueryConnector(SkeletalConnector):
+@register_surface_driver
+class BigQuerySurfaceDriver(SkeletalSurfaceDriver):
     kind = "bigquery"
     capability = {"discover"}
     classification_hints = []
     status = "coming_soon"
     status_note = (
-        "Connector skeleton — google-cloud-bigquery integration lands in v1.5."
+        "SurfaceDriver skeleton — google-cloud-bigquery integration lands in v1.5."
     )
     required_secrets = ("project", "service_account_json")
     optional_secrets = ("dataset",)
@@ -28,4 +28,4 @@ class BigQueryConnector(SkeletalConnector):
     )
 
 
-__all__ = ["BigQueryConnector"]
+__all__ = ["BigQuerySurfaceDriver"]

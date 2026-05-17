@@ -1,4 +1,4 @@
-"""Capability-honesty: every registered Connector exposes status + status_note.
+"""Capability-honesty: every registered SurfaceDriver exposes status + status_note.
 
 The dashboard's connector picker (D4) renders these fields verbatim.
 This test is the single enforcement point: if a new connector lands

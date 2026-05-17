@@ -50,8 +50,8 @@ from io import StringIO
 from pathlib import Path
 from typing import Any
 
-from .base import Connector
-from .registry import register_connector
+from .base import SurfaceDriver
+from .registry import register_surface_driver
 from .types import (
     AuthHandle,
     Capability,
@@ -124,9 +124,9 @@ def detect_encoding(raw: bytes) -> str:
     return "latin-1"
 
 
-@register_connector
-class CsvLocalConnector(Connector):
-    """Connector for CSV files on local disk."""
+@register_surface_driver
+class CsvLocalSurfaceDriver(SurfaceDriver):
+    """SurfaceDriver for CSV files on local disk."""
 
     kind = "csv_local"
     capability: set[Capability] = {"discover", "profile", "sample"}
@@ -355,4 +355,4 @@ def _is_bool(v: str) -> bool:
     return v.lower() in {"true", "false", "yes", "no", "0", "1"}
 
 
-__all__ = ["CsvLocalConnector", "detect_encoding"]
+__all__ = ["CsvLocalSurfaceDriver", "detect_encoding"]

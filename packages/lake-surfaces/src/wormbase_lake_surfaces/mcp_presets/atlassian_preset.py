@@ -28,6 +28,6 @@ ATLASSIAN_CONFIG = MCPServerConfig(
     ),
 )
 
-AtlassianMCPConnector = make_mcp_preset(ATLASSIAN_CONFIG, status="preview")
+AtlassianMCPSurfaceDriver = make_mcp_preset(ATLASSIAN_CONFIG, status="preview")
 
-__all__ = ["ATLASSIAN_CONFIG", "AtlassianMCPConnector"]
+__all__ = ["ATLASSIAN_CONFIG", "AtlassianMCPSurfaceDriver"]

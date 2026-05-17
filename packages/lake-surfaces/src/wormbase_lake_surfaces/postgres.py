@@ -27,8 +27,8 @@ import hashlib
 from collections.abc import AsyncIterator
 from typing import Any
 
-from .base import Connector
-from .registry import register_connector
+from .base import SurfaceDriver
+from .registry import register_surface_driver
 from .types import (
     AuthHandle,
     Capability,
@@ -63,8 +63,8 @@ def _dsn_from_secrets(payload: dict[str, Any]) -> str:
     return f"postgresql://{auth}{host}:{port}/{database}"
 
 
-@register_connector
-class PostgresConnector(Connector):
+@register_surface_driver
+class PostgresSurfaceDriver(SurfaceDriver):
     """Postgres connector via asyncpg."""
 
     kind = "postgres"
@@ -226,4 +226,4 @@ class PostgresConnector(Connector):
             yield  # type: ignore[unreachable]
 
 
-__all__ = ["PostgresConnector"]
+__all__ = ["PostgresSurfaceDriver"]

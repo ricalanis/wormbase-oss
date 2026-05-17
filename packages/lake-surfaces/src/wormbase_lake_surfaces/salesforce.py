@@ -7,18 +7,18 @@ via ``/services/data/vXX.X/sobjects/`` (describe). Profile via
 
 from __future__ import annotations
 
-from ._skeletal import SkeletalConnector
-from .registry import register_connector
+from ._skeletal import SkeletalSurfaceDriver
+from .registry import register_surface_driver
 
 
-@register_connector
-class SalesforceConnector(SkeletalConnector):
+@register_surface_driver
+class SalesforceSurfaceDriver(SkeletalSurfaceDriver):
     kind = "salesforce"
     capability = {"discover"}
     classification_hints = ["pii", "regulated"]
     status = "coming_soon"
     status_note = (
-        "Connector skeleton — Connected App OAuth + describeSObject lands in v1.5."
+        "SurfaceDriver skeleton — Connected App OAuth + describeSObject lands in v1.5."
     )
     required_secrets = ("instance_url", "access_token")
     optional_secrets = ("refresh_token", "api_version")
@@ -27,4 +27,4 @@ class SalesforceConnector(SkeletalConnector):
     )
 
 
-__all__ = ["SalesforceConnector"]
+__all__ = ["SalesforceSurfaceDriver"]

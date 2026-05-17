@@ -51,7 +51,7 @@ class _FakeConnector:
 
 
 class _FakeRegistry:
-    """Test ConnectorRegistry — fixture-friendly."""
+    """Test SurfaceDriverRegistry — fixture-friendly."""
 
     def __init__(
         self, *, kinds: dict[str, type[Any]] | None = None,
@@ -204,7 +204,7 @@ async def test_sample_column_returns_empty_when_connector_kind_unknown() -> None
 
 @pytest.mark.asyncio
 async def test_sample_column_returns_empty_when_connector_raises() -> None:
-    """Connector exception is logged + swallowed; sampler returns empty."""
+    """SurfaceDriver exception is logged + swallowed; sampler returns empty."""
     record = SourceHandleRecord(
         source_id="src-1",
         connector_kind="fake",
@@ -354,7 +354,7 @@ async def test_sample_column_caches_handle_lookup_per_source_id() -> None:
 
 
 # ---------------------------------------------------------------------------
-# estimate_table_size — always 0 today (Connector Protocol lacks a size method)
+# estimate_table_size — always 0 today (SurfaceDriver Protocol lacks a size method)
 # ---------------------------------------------------------------------------
 
 

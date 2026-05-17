@@ -1,12 +1,12 @@
-"""The :class:`Connector` Protocol.
+"""The :class:`SurfaceDriver` Protocol.
 
 Every data-source kind WormBase knows about implements this Protocol.
-The registry binds a ``kind`` string to a Connector class; the
+The registry binds a ``kind`` string to a SurfaceDriver class; the
 source-builder flows look connectors up by kind and call the methods
 declared here.
 
 The Protocol is ``runtime_checkable`` — tests use ``isinstance(c,
-Connector)`` to assert structural conformance.
+SurfaceDriver)`` to assert structural conformance.
 """
 
 from __future__ import annotations
@@ -27,16 +27,16 @@ from .types import (
 
 
 @runtime_checkable
-class Connector(Protocol):
+class SurfaceDriver(Protocol):
     """A pluggable data-source connector.
 
-    Implementations register themselves via :func:`register_connector`
+    Implementations register themselves via :func:`register_surface_driver`
     and live in :mod:`wormbase_lake_surfaces.<kind>`. The four operational
     methods are all async; capabilities not supported by a given
     connector should raise ``NotImplementedError`` (skeletal stubs) or
     return an empty result (e.g. ``watch`` for pull-only connectors).
 
-    Capability-honesty: every Connector declares ``status`` and
+    Capability-honesty: every SurfaceDriver declares ``status`` and
     ``status_note`` so the dashboard's connector picker can render an
     accurate badge ("production" / "preview" / "coming_soon") + a short
     user-facing note explaining what works and what doesn't. Skeletal
@@ -67,4 +67,4 @@ class Connector(Protocol):
     ) -> AsyncIterator[Change]: ...
 
 
-__all__ = ["Connector"]
+__all__ = ["SurfaceDriver"]

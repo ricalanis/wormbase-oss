@@ -1,6 +1,6 @@
 """Local lake connector — the default lake every tenant gets at install.
 
-Every tenant gets a ``LocalLakeConnector`` auto-provisioned on install
+Every tenant gets a ``LocalLakeSurfaceDriver`` auto-provisioned on install
 (see ``wormbase_core.write_actions.provision_local_lake``). The lake
 plays all three medallion layers from minute zero, backed by the
 tenant's ledger projections plus a tenant-scoped local filesystem
@@ -36,8 +36,8 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 
-from .base import Connector
-from .registry import register_connector
+from .base import SurfaceDriver
+from .registry import register_surface_driver
 from .types import (
     AuthHandle,
     Capability,
@@ -218,8 +218,8 @@ RowCountQuery = Any  # callable: async (tenant_id, resource_id) -> int
 SampleQuery = Any  # callable: async (tenant_id, resource_id, n) -> list[dict]
 
 
-@register_connector
-class LocalLakeConnector(Connector):
+@register_surface_driver
+class LocalLakeSurfaceDriver(SurfaceDriver):
     """Default lake — every tenant gets one at install."""
 
     kind = "local_lake"
@@ -354,5 +354,5 @@ class LocalLakeConnector(Connector):
 
 __all__ = [
     "LOCAL_LAKE_RESOURCE_IDS",
-    "LocalLakeConnector",
+    "LocalLakeSurfaceDriver",
 ]

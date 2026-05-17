@@ -441,7 +441,7 @@ class RegisterMcpPresetBody(_Body):
     Registers an inbound MCP preset (an external MCP server the worm
     consumes from). The preset is recorded as a ``source_proposed``
     ledger entry with ``source_kind=mcp:<kind>`` and provenance tagged
-    ``dashboard_form``. The actual ``MCPConnector`` preset class lives
+    ``dashboard_form``. The actual ``MCPSurfaceDriver`` preset class lives
     in code (``packages/connectors/src/wormbase_lake_surfaces/mcp_presets``)
     and self-registers at import; this endpoint surfaces the operator's
     intent so it's audited, multi-tenant scoped, and visible in /sources.
@@ -2873,7 +2873,7 @@ async def post_mcp_preset(request: web.Request) -> web.Response:
 
     Records an inbound-MCP preset registration as a ``source_proposed``
     ledger entry tagged ``mcp:<kind>``. Preset registration is twofold:
-    the in-process ``MCPConnector`` class self-registers at import time
+    the in-process ``MCPSurfaceDriver`` class self-registers at import time
     (the connectors package ships per-server presets), and this endpoint
     materialises the operator's ledger-side proposal so it's auditable,
     tenant-scoped, and surfaces in /sources alongside native sources.
@@ -3247,7 +3247,7 @@ async def get_ledger_stream(request: web.Request) -> web.StreamResponse:
 
 
 # ---------------------------------------------------------------------------
-# W2.A5 — Connector registry read endpoint + test-connection
+# W2.A5 — SurfaceDriver registry read endpoint + test-connection
 # ---------------------------------------------------------------------------
 
 
@@ -3425,10 +3425,10 @@ async def get_connectors(request: web.Request) -> web.Response:
     dashboard's ``/api/v1/connectors/list`` server route forwards this
     JSON unchanged to the ``/sources/new`` picker. Honest status badges
     (production / preview / coming_soon) come straight from each
-    Connector class declaration.
+    SurfaceDriver class declaration.
 
     Subpath ``/api/v1/connectors/{kind}/test`` runs the same
-    ``Connector.authenticate`` the source-builder uses at runtime so
+    ``SurfaceDriver.authenticate`` the source-builder uses at runtime so
     the dashboard's "test connection" affordance exercises the real
     path, not a stub. Bearer-auth required for the test variant.
     """
@@ -3464,7 +3464,7 @@ class TestConnectionBody(_Body):
 
     ``config`` is the connector-specific dict the picker form produces
     (e.g. ``{"dsn": "postgres://..."}``). The route hands it straight
-    into ``Connector.authenticate`` via a ``SecretBundle`` so the test
+    into ``SurfaceDriver.authenticate`` via a ``SecretBundle`` so the test
     follows the exact same code path the source-builder uses at runtime.
     No connector-specific shortcuts.
     """
@@ -3473,7 +3473,7 @@ class TestConnectionBody(_Body):
 
 
 async def post_connector_test(request: web.Request) -> web.Response:
-    """Run ``Connector.authenticate`` against the supplied config.
+    """Run ``SurfaceDriver.authenticate`` against the supplied config.
 
     Returns a small envelope with a content-addressed hash receipt:
 
@@ -6381,7 +6381,7 @@ async def post_source_candidate_promote(
         # The source-builder's propose requires a domain string + a
         # classification. Wave 1 thread defaults that the admin
         # confirms in the next source-builder stage: "internal" is the
-        # safe default for unclassified candidates (per Connector
+        # safe default for unclassified candidates (per SurfaceDriver
         # contract in CLAUDE.md §2).
         proposal = SourceProposal(
             proposed_uri=proposed_identifier or proposed_kind,
@@ -7483,7 +7483,7 @@ def build_app(
     # /sources/new picker + drawer test-connection. The list endpoint
     # is read-only and unauthenticated (parallel to /mcp/catalog) so
     # the dashboard can render the picker without a token round-trip;
-    # the test-connection variant calls Connector.authenticate against
+    # the test-connection variant calls SurfaceDriver.authenticate against
     # the supplied config — same code path the source-builder uses at
     # runtime, no stub.
     app.router.add_get("/api/v1/connectors", get_connectors)

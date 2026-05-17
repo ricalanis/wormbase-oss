@@ -8,18 +8,18 @@ lists the spreadsheet's sheets. Profile via
 
 from __future__ import annotations
 
-from ._skeletal import SkeletalConnector
-from .registry import register_connector
+from ._skeletal import SkeletalSurfaceDriver
+from .registry import register_surface_driver
 
 
-@register_connector
-class GsheetsConnector(SkeletalConnector):
+@register_surface_driver
+class GsheetsSurfaceDriver(SkeletalSurfaceDriver):
     kind = "gsheets"
     capability = {"discover"}
     classification_hints = []
     status = "coming_soon"
     status_note = (
-        "Connector skeleton — Google Sheets API v4 integration lands in v1.5."
+        "SurfaceDriver skeleton — Google Sheets API v4 integration lands in v1.5."
     )
     required_secrets = ("service_account_json",)
     optional_secrets = ("spreadsheet_id",)
@@ -28,4 +28,4 @@ class GsheetsConnector(SkeletalConnector):
     )
 
 
-__all__ = ["GsheetsConnector"]
+__all__ = ["GsheetsSurfaceDriver"]

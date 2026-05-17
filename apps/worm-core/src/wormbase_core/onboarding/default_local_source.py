@@ -11,12 +11,12 @@ problem, not a contrived toy.
 This module is the integration hook between the install flow and the
 medallion cascade for that fixture. The companion ``provision_local_lake``
 in :mod:`wormbase_core.write_actions` is responsible for the
-``LocalLakeConnector`` (the always-on medallion shell); this module is
+``LocalLakeSurfaceDriver`` (the always-on medallion shell); this module is
 responsible for the *content* of the lake's bronze tier — the cursed
 CSV, profiled and cascaded into bronze + silver + gold ledger entries.
 
 The split exists so other workstreams (P2 ramp gauges, P9 lessons) can
-extend ``LocalLakeConnector`` independently from the cursed-CSV content
+extend ``LocalLakeSurfaceDriver`` independently from the cursed-CSV content
 question. Calling :func:`run_default_local_cascade` after
 ``provision_local_lake`` produces an additional bronze→silver→gold
 cascade rooted at the cursed CSV.
@@ -160,7 +160,7 @@ async def run_default_local_cascade(
     """Run bronze → silver → gold on the cursed CSV for ``company_id``.
 
     Intended to be invoked from the install flow once the
-    ``LocalLakeConnector`` has been provisioned. Reads the fixture
+    ``LocalLakeSurfaceDriver`` has been provisioned. Reads the fixture
     bytes, applies silver normalization, and pushes them through
     :class:`wormbase_core.medallion.MedallionCascade`. Returns the
     cascade's summary dict (bronze profile + silver columns + gold
@@ -195,7 +195,7 @@ async def run_default_local_cascade(
     # csv_local extractor so the L2 TableSet / L8 SchemaShape lake-axis
     # strategies see populated columns for this source. The extractor
     # reads the CSV header row; resource_id == file path (the
-    # CsvLocalConnector convention). The snapshot_hash leg uses the
+    # CsvLocalSurfaceDriver convention). The snapshot_hash leg uses the
     # silver bytes digest so the per-table row joins back to the
     # cascade's bronze profile across replays.
     import hashlib as _hashlib

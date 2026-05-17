@@ -23,6 +23,6 @@ GITHUB_CONFIG = MCPServerConfig(
     ),
 )
 
-GithubMCPConnector = make_mcp_preset(GITHUB_CONFIG, status="preview")
+GithubMCPSurfaceDriver = make_mcp_preset(GITHUB_CONFIG, status="preview")
 
-__all__ = ["GITHUB_CONFIG", "GithubMCPConnector"]
+__all__ = ["GITHUB_CONFIG", "GithubMCPSurfaceDriver"]

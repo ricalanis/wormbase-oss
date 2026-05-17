@@ -6,7 +6,7 @@ faces of the lake. The lake-maintainer package consumes them; it does
 NOT define them.
 
 Per spike §8 C1: split the Source contract in two. AcquirableSource is
-the existing Connector-style Protocol lifted to a per-instance object;
+the existing SurfaceDriver-style Protocol lifted to a per-instance object;
 only external + filedrop families implement it. MaintainableSource
 carries the four maintenance methods and is implemented by all four
 families. LakeMaintainer iterates the union typed as MaintainableSource.

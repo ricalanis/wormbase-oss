@@ -1,7 +1,7 @@
-"""Smoke test the public invariants against a hand-rolled stub Connector.
+"""Smoke test the public invariants against a hand-rolled stub SurfaceDriver.
 
 This test runs without any optional dependency (no pyarrow, no monorepo).
-It builds a minimum-viable Connector class in-line and asserts every
+It builds a minimum-viable SurfaceDriver class in-line and asserts every
 public ``assert_*`` function passes. A negative-path test asserts a
 broken connector raises ``AssertionError`` from the right invariant.
 """
@@ -61,7 +61,7 @@ class _Profile:
 
 
 class GoodConnector:
-    """A minimum-viable Connector that passes all six invariants."""
+    """A minimum-viable SurfaceDriver that passes all six invariants."""
 
     kind = "good"
     capability: set[str] = {"discover", "profile", "sample"}

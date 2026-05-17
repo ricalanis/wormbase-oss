@@ -1,7 +1,7 @@
 """Conformance test for the reference parquet_local connector.
 
 Asserts the reference passes all six W6.A4 invariants — the same
-suite a third-party Connector author would run against their own
+suite a third-party SurfaceDriver author would run against their own
 class via ``wormbase-tools-test``. We invoke the public assertions
 directly (rather than the pytest plugin) so this test runs in CI
 even when the harness package isn't installed.

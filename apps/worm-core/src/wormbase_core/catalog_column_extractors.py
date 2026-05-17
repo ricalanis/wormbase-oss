@@ -1,10 +1,10 @@
 """Catalog-mirror Wave 2 Sub-wave B — connector-kind column extraction registry.
 
-Connectors implement the canonical ``Connector`` Protocol (discover /
+Connectors implement the canonical ``SurfaceDriver`` Protocol (discover /
 profile / sample), but their native catalog metadata varies wildly:
 csv_local exposes a flat header row, postgres exposes
 ``information_schema.columns``, snowflake exposes ``DESCRIBE TABLE``,
-etc. Rather than churn the Connector Protocol surface with a new
+etc. Rather than churn the SurfaceDriver Protocol surface with a new
 ``catalog_columns`` method (which would force every connector — including
 opaque-secret ones like Stripe / HubSpot — to implement an unused
 method), we maintain a small worm-core-side dispatch registry that maps
@@ -12,10 +12,10 @@ method), we maintain a small worm-core-side dispatch registry that maps
 
 Each extractor function takes the same three inputs:
 
-  * ``connector`` — the registered ``Connector`` instance
+  * ``connector`` — the registered ``SurfaceDriver`` instance
   * ``handle`` — the authenticated AuthHandle
   * ``resource_id`` — the per-table identifier (matches the
-    ``ResourceProposal.resource_id`` returned by ``Connector.discover``)
+    ``ResourceProposal.resource_id`` returned by ``SurfaceDriver.discover``)
 
 and returns ``list[CatalogColumnSpec]`` — the per-column metadata as
 typed by the Sub-wave A ledger payload. Extractors that lack column-
@@ -120,7 +120,7 @@ def _run_async(coro: Any) -> Any:
 
     Extractors are called from sync code paths (write_actions wraps the
     emit with no async boundary). The async connector methods (e.g.
-    ``Connector.sample()``) need a fresh event loop here. If a loop is
+    ``SurfaceDriver.sample()``) need a fresh event loop here. If a loop is
     already running (e.g. an async caller eventually wires this), fall
     back to ``asyncio.new_event_loop()`` + run-on-thread so we don't
     block the parent loop. For the current sync emission path this
@@ -160,7 +160,7 @@ def csv_local_extractor(
     """Extract column specs for a csv_local resource.
 
     The CSV ``resource_id`` is the absolute file path (per
-    :meth:`CsvLocalConnector.discover` which sets
+    :meth:`CsvLocalSurfaceDriver.discover` which sets
     ``ResourceProposal.resource_id = str(path)``). We read the first
     line as the header, split via :mod:`csv`, and emit one
     :class:`CatalogColumnSpec` per header field.
@@ -182,7 +182,7 @@ def csv_local_extractor(
         log; the emit path falls back to ``columns=()`` and remains
         honest about empty-upstream signal.
 
-    Connector / handle args accepted for the dispatch signature;
+    SurfaceDriver / handle args accepted for the dispatch signature;
     csv_local resolves everything from ``resource_id`` (the path).
     """
     del connector, handle  # csv_local needs only the path
@@ -243,10 +243,10 @@ def postgres_extractor(
     """Extract column specs for a postgres table.
 
     The postgres ``resource_id`` is the qualified ``schema.table`` name
-    (per :meth:`PostgresConnector.discover` which sets
+    (per :meth:`PostgresSurfaceDriver.discover` which sets
     ``ResourceProposal.resource_id = f"{schema}.{name}"``).
 
-    Implementation mirrors :meth:`PostgresConnector.profile`'s
+    Implementation mirrors :meth:`PostgresSurfaceDriver.profile`'s
     information_schema.columns query — but takes only the (name,
     data_type) pair the catalog substrate cares about. The profile
     path additionally carries nullability + ordinal_position for L5/L7
@@ -331,11 +331,11 @@ def s3_csv_extractor(
     """Extract column specs for an s3_csv resource.
 
     The s3_csv ``resource_id`` is the S3 object key (per
-    :meth:`S3CsvConnector.discover`). We use the connector's existing
+    :meth:`S3CsvSurfaceDriver.discover`). We use the connector's existing
     sample() path (Range-bounded GetObject) to pull the first ~4KB of
     bytes, then parse the first line as the CSV header.
 
-    Reuses :meth:`Connector.sample` rather than re-implementing the
+    Reuses :meth:`SurfaceDriver.sample` rather than re-implementing the
     aioboto3 session lifecycle — keeps the AWS auth + region + custom
     endpoint logic on the connector and uses the extractor as a thin
     adapter that just asks for the head bytes.
@@ -372,12 +372,12 @@ def http_csv_extractor(
     """Extract column specs for an http_csv resource.
 
     The http_csv ``resource_id`` is the HTTPS URL (per
-    :meth:`HttpCsvConnector.discover` which uses one URL == one
-    resource). The extractor calls :meth:`Connector.sample` to fetch
+    :meth:`HttpCsvSurfaceDriver.discover` which uses one URL == one
+    resource). The extractor calls :meth:`SurfaceDriver.sample` to fetch
     the first ~4KB via a Range request, then parses the first line as
     the CSV header.
 
-    Reuses :meth:`Connector.sample` so we inherit the connector's
+    Reuses :meth:`SurfaceDriver.sample` so we inherit the connector's
     httpx timeout + auth header + custom-headers logic without
     duplicating it. Servers that don't honor Range requests still
     return data; csv parsing happily takes whatever first line lands.
@@ -417,7 +417,7 @@ def http_csv_extractor(
 # future polish bundles know what graduating each one would entail.
 #
 # bigquery
-#   ``BigQueryConnector`` is skeletal (``status = "coming_soon"``).
+#   ``BigQuerySurfaceDriver`` is skeletal (``status = "coming_soon"``).
 #   ``google-cloud-bigquery`` integration lands in v1.5. Once wired,
 #   the extractor will read ``table.schema`` directly — BigQuery
 #   schema objects expose ``SchemaField`` records with ``name`` +
@@ -426,7 +426,7 @@ def http_csv_extractor(
 #   extractor to write once the underlying client lands.
 #
 # gsheets
-#   ``GsheetsConnector`` is skeletal (``status = "coming_soon"``).
+#   ``GsheetsSurfaceDriver`` is skeletal (``status = "coming_soon"``).
 #   Google Sheets API v4 integration lands in v1.5. The extractor
 #   will use ``sheets.values.get(range='1:1')`` to fetch row 1 of
 #   each sheet and parse cells as column names. Sheets carries no
@@ -434,7 +434,7 @@ def http_csv_extractor(
 #   will emit ``type=None`` exactly like the csv_local extractor.
 #
 # stripe
-#   ``StripeConnector`` IS production-grade, but the catalog is
+#   ``StripeSurfaceDriver`` IS production-grade, but the catalog is
 #   special: it's a fixed enum of 6 Stripe object types
 #   (``charges``, ``customers``, ``payouts``, ``subscriptions``,
 #   ``invoices``, ``balance_transactions``) and each object's
@@ -448,7 +448,7 @@ def http_csv_extractor(
 #   substrate populated in L2 ColumnSet / L8 SchemaShape.
 #
 # salesforce
-#   ``SalesforceConnector`` is skeletal (``status = "coming_soon"``).
+#   ``SalesforceSurfaceDriver`` is skeletal (``status = "coming_soon"``).
 #   Salesforce describe APIs (``SObject.describe()``) ARE the
 #   canonical column-metadata surface, but the SDK + OAuth flow is
 #   substantial work. When the connector graduates to production
@@ -457,7 +457,7 @@ def http_csv_extractor(
 #   types.
 #
 # hubspot
-#   ``HubspotConnector`` is skeletal (``status = "coming_soon"``).
+#   ``HubspotSurfaceDriver`` is skeletal (``status = "coming_soon"``).
 #   HubSpot's CRM API exposes a ``GET /crm/v3/properties/{objectType}``
 #   endpoint that returns per-property type strings (``string``,
 #   ``number``, ``datetime``, etc.). Wiring is straightforward

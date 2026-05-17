@@ -6,14 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from wormbase_lake_surfaces.base import Connector
-from wormbase_lake_surfaces.csv_local import CsvLocalConnector
+from wormbase_lake_surfaces.base import SurfaceDriver
+from wormbase_lake_surfaces.csv_local import CsvLocalSurfaceDriver
 from wormbase_lake_surfaces.types import SecretBundle
 
 
 def test_csv_local_implements_connector_protocol() -> None:
-    c = CsvLocalConnector()
-    assert isinstance(c, Connector)
+    c = CsvLocalSurfaceDriver()
+    assert isinstance(c, SurfaceDriver)
     assert c.kind == "csv_local"
     assert "discover" in c.capability
     assert "profile" in c.capability
@@ -22,7 +22,7 @@ def test_csv_local_implements_connector_protocol() -> None:
 
 @pytest.mark.asyncio
 async def test_csv_authenticate_returns_handle() -> None:
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"path": "/tmp/x.csv"}))
     assert handle.connector_kind == "csv_local"
     assert handle.handle_id == "/tmp/x.csv"
@@ -31,7 +31,7 @@ async def test_csv_authenticate_returns_handle() -> None:
 
 @pytest.mark.asyncio
 async def test_csv_authenticate_rejects_missing_path() -> None:
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     with pytest.raises(ValueError, match="path"):
         await c.authenticate(SecretBundle(payload={}))
 
@@ -40,7 +40,7 @@ async def test_csv_authenticate_rejects_missing_path() -> None:
 async def test_csv_discover_returns_one_resource(tmp_path: Path) -> None:
     p = tmp_path / "x.csv"
     p.write_text("a,b\n1,2\n3,4\n")
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"path": str(p)}))
     resources = await c.discover(handle)
     assert len(resources) == 1
@@ -52,7 +52,7 @@ async def test_csv_discover_returns_one_resource(tmp_path: Path) -> None:
 
 @pytest.mark.asyncio
 async def test_csv_discover_missing_file_returns_empty(tmp_path: Path) -> None:
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(payload={"path": str(tmp_path / "nope.csv")}),
     )
@@ -63,7 +63,7 @@ async def test_csv_discover_missing_file_returns_empty(tmp_path: Path) -> None:
 async def test_csv_profile_returns_columns(tmp_path: Path) -> None:
     p = tmp_path / "y.csv"
     p.write_text("name,age\nAlice,30\nBob,25\n")
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"path": str(p)}))
     profile = await c.profile(handle, str(p))
     assert profile.row_count == 2
@@ -78,7 +78,7 @@ async def test_csv_profile_returns_columns(tmp_path: Path) -> None:
 async def test_csv_profile_handles_empty_file(tmp_path: Path) -> None:
     p = tmp_path / "empty.csv"
     p.write_text("")
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"path": str(p)}))
     profile = await c.profile(handle, str(p))
     assert profile.row_count == 0
@@ -89,7 +89,7 @@ async def test_csv_profile_handles_empty_file(tmp_path: Path) -> None:
 async def test_csv_sample_returns_n_rows(tmp_path: Path) -> None:
     p = tmp_path / "z.csv"
     p.write_text("a,b\n" + "\n".join(f"{i},{i*2}" for i in range(10)) + "\n")
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"path": str(p)}))
     sample = await c.sample(handle, str(p), 3)
     # header + 3 rows = 4 lines (newlines)
@@ -100,7 +100,7 @@ async def test_csv_sample_returns_n_rows(tmp_path: Path) -> None:
 async def test_csv_pii_filename_classification(tmp_path: Path) -> None:
     p = tmp_path / "customers_with_ssn.csv"
     p.write_text("name,ssn\nAlice,123\n")
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"path": str(p)}))
     [resource] = await c.discover(handle)
     assert resource.classification_hint == "pii"
@@ -110,7 +110,7 @@ async def test_csv_pii_filename_classification(tmp_path: Path) -> None:
 async def test_csv_confidential_filename_classification(tmp_path: Path) -> None:
     p = tmp_path / "q3_payroll.csv"
     p.write_text("name,salary\nAlice,100\n")
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"path": str(p)}))
     [resource] = await c.discover(handle)
     assert resource.classification_hint == "confidential"
@@ -120,7 +120,7 @@ async def test_csv_confidential_filename_classification(tmp_path: Path) -> None:
 async def test_csv_unclassified_filename(tmp_path: Path) -> None:
     p = tmp_path / "sales_q3.csv"
     p.write_text("region,amount\nEU,100\n")
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"path": str(p)}))
     [resource] = await c.discover(handle)
     assert resource.classification_hint is None
@@ -130,7 +130,7 @@ async def test_csv_unclassified_filename(tmp_path: Path) -> None:
 async def test_csv_dtype_inference_floats(tmp_path: Path) -> None:
     p = tmp_path / "metrics.csv"
     p.write_text("ratio,count\n0.5,10\n0.7,20\n")
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"path": str(p)}))
     profile = await c.profile(handle, str(p))
     by_name = {col["name"]: col for col in profile.columns}
@@ -142,7 +142,7 @@ async def test_csv_dtype_inference_floats(tmp_path: Path) -> None:
 async def test_csv_watch_yields_nothing(tmp_path: Path) -> None:
     p = tmp_path / "x.csv"
     p.write_text("a,b\n1,2\n")
-    c = CsvLocalConnector()
+    c = CsvLocalSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"path": str(p)}))
     items = [item async for item in c.watch(handle, str(p))]
     assert items == []

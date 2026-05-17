@@ -21,8 +21,8 @@ from typing import Any
 
 import httpx
 
-from .base import Connector
-from .registry import register_connector
+from .base import SurfaceDriver
+from .registry import register_surface_driver
 from .types import (
     AuthHandle,
     Capability,
@@ -45,8 +45,8 @@ def _request_headers(extra: dict[str, Any]) -> dict[str, str]:
     return headers
 
 
-@register_connector
-class HttpCsvConnector(Connector):
+@register_surface_driver
+class HttpCsvSurfaceDriver(SurfaceDriver):
     """HTTP CSV connector via httpx."""
 
     kind = "http_csv"
@@ -179,4 +179,4 @@ def _is_float(v: str) -> bool:
         return False
 
 
-__all__ = ["HttpCsvConnector"]
+__all__ = ["HttpCsvSurfaceDriver"]

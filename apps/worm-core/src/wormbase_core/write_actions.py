@@ -1121,7 +1121,7 @@ async def complete_install(
     }
 
     # Step 7: provision the default local lake. Every tenant gets a
-    # LocalLakeConnector auto-provisioned at install — bronze + silver +
+    # LocalLakeSurfaceDriver auto-provisioned at install — bronze + silver +
     # gold visible from minute zero, before any external source connects.
     # See docs/superpowers/specs/2026-04-26-production-dashboard-and-identity.md
     # §17 (REVISED 2026-04-27 banner: minimal-friction onboarding).
@@ -1152,7 +1152,7 @@ async def provision_local_lake(
 ) -> dict[str, Any]:
     """Provision the default local lake — bronze + silver + gold from minute zero.
 
-    Every tenant gets a ``LocalLakeConnector`` (see
+    Every tenant gets a ``LocalLakeSurfaceDriver`` (see
     :mod:`wormbase_lake_surfaces.local_lake`) auto-provisioned at install.
     The lake plays all three medallion layers backed by the tenant's
     own ledger projections + a tenant-scoped local filesystem; no
@@ -1197,7 +1197,7 @@ async def provision_local_lake(
     # Local imports keep the write_actions surface free of connector +
     # source-builder cycles. The connector is pure-Python so import is
     # cheap; the source-builder pulls in the canonical PEVR primitive.
-    from wormbase_lake_surfaces.local_lake import LocalLakeConnector
+    from wormbase_lake_surfaces.local_lake import LocalLakeSurfaceDriver
     from wormbase_lake_surfaces.types import SecretBundle
 
     from wormbase_core.source_builder import (
@@ -1207,7 +1207,7 @@ async def provision_local_lake(
 
     # Discover + profile the canonical resource catalog so the
     # source_profiled entry carries an honest schema_hash + column_count.
-    connector = LocalLakeConnector()
+    connector = LocalLakeSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"tenant_id": str(tenant_id)}),
     )
@@ -1259,7 +1259,7 @@ async def provision_local_lake(
 
     # Stage 3: connected. The connection_ref is the lake's stable
     # tenant-scoped uri — the dashboard / cli inspectors resolve it back
-    # to the LocalLakeConnector via the registry.
+    # to the LocalLakeSurfaceDriver via the registry.
     await builder.connect(cid_str, connection_ref=f"local-lake://{tenant_id}")
 
     # Stage 4: profiled. row_count is 0 at install time (the lake is
@@ -2666,9 +2666,9 @@ async def emit_catalog_table_imported_for_resource(
     :mod:`wormbase_core.catalog_column_extractors`) to resolve the
     column list before writing.
 
-    Connector-driven flows (csv_local + future postgres / stripe / etc.)
+    SurfaceDriver-driven flows (csv_local + future postgres / stripe / etc.)
     call this after a successful profile so the per-table catalog row
-    lands alongside the source-lifecycle entries. Connector kinds
+    lands alongside the source-lifecycle entries. SurfaceDriver kinds
     without a registered extractor fall through to ``columns=()`` —
     the honest-empty-upstream posture (the entry still lands so the
     reader fold returns a CatalogTable for it).

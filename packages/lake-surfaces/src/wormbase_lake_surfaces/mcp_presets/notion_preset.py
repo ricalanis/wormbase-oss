@@ -23,6 +23,6 @@ NOTION_CONFIG = MCPServerConfig(
     ),
 )
 
-NotionMCPConnector = make_mcp_preset(NOTION_CONFIG, status="preview")
+NotionMCPSurfaceDriver = make_mcp_preset(NOTION_CONFIG, status="preview")
 
-__all__ = ["NOTION_CONFIG", "NotionMCPConnector"]
+__all__ = ["NOTION_CONFIG", "NotionMCPSurfaceDriver"]

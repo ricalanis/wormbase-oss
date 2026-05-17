@@ -1,33 +1,33 @@
-"""Tests for HttpCsvConnector — uses pytest-httpx for HTTP-level fakes."""
+"""Tests for HttpCsvSurfaceDriver — uses pytest-httpx for HTTP-level fakes."""
 
 from __future__ import annotations
 
 import pytest
 from pytest_httpx import HTTPXMock
 
-from wormbase_lake_surfaces.base import Connector
-from wormbase_lake_surfaces.http_csv import HttpCsvConnector
+from wormbase_lake_surfaces.base import SurfaceDriver
+from wormbase_lake_surfaces.http_csv import HttpCsvSurfaceDriver
 from wormbase_lake_surfaces.types import SecretBundle
 
 _URL = "https://data.example.com/sales.csv"
 
 
 def test_http_csv_implements_protocol() -> None:
-    c = HttpCsvConnector()
-    assert isinstance(c, Connector)
+    c = HttpCsvSurfaceDriver()
+    assert isinstance(c, SurfaceDriver)
     assert c.kind == "http_csv"
 
 
 @pytest.mark.asyncio
 async def test_http_authenticate_requires_url() -> None:
-    c = HttpCsvConnector()
+    c = HttpCsvSurfaceDriver()
     with pytest.raises(ValueError, match="url"):
         await c.authenticate(SecretBundle(payload={}))
 
 
 @pytest.mark.asyncio
 async def test_http_authenticate_returns_handle() -> None:
-    c = HttpCsvConnector()
+    c = HttpCsvSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(payload={"url": _URL, "auth_header": "Bearer XYZ"}),
     )
@@ -41,7 +41,7 @@ async def test_http_discover_returns_one_resource(httpx_mock: HTTPXMock) -> None
     httpx_mock.add_response(
         method="HEAD", url=_URL, headers={"content-length": "1234"},
     )
-    c = HttpCsvConnector()
+    c = HttpCsvSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"url": _URL}))
     resources = await c.discover(handle)
     assert len(resources) == 1
@@ -57,7 +57,7 @@ async def test_http_discover_handles_no_head_support(
     httpx_mock: HTTPXMock,
 ) -> None:
     httpx_mock.add_response(method="HEAD", url=_URL, status_code=405)
-    c = HttpCsvConnector()
+    c = HttpCsvSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"url": _URL}))
     [resource] = await c.discover(handle)
     assert resource.metadata["size_bytes"] is None
@@ -67,7 +67,7 @@ async def test_http_discover_handles_no_head_support(
 async def test_http_profile_infers_columns(httpx_mock: HTTPXMock) -> None:
     body = b"region,amount\nEU,100\nUS,250\nAPAC,80\n"
     httpx_mock.add_response(method="GET", url=_URL, content=body)
-    c = HttpCsvConnector()
+    c = HttpCsvSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"url": _URL}))
     profile = await c.profile(handle, _URL)
     assert profile.column_count == 2
@@ -80,7 +80,7 @@ async def test_http_profile_infers_columns(httpx_mock: HTTPXMock) -> None:
 @pytest.mark.asyncio
 async def test_http_profile_sends_auth_header(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(method="GET", url=_URL, content=b"a,b\n1,2\n")
-    c = HttpCsvConnector()
+    c = HttpCsvSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(payload={"url": _URL, "auth_header": "Bearer XYZ"}),
     )
@@ -95,7 +95,7 @@ async def test_http_profile_sends_auth_header(httpx_mock: HTTPXMock) -> None:
 async def test_http_sample_returns_n_bytes(httpx_mock: HTTPXMock) -> None:
     body = b"a,b\n1,2\n3,4\n"
     httpx_mock.add_response(method="GET", url=_URL, content=body)
-    c = HttpCsvConnector()
+    c = HttpCsvSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"url": _URL}))
     sample = await c.sample(handle, _URL, 5)
     assert sample == body
@@ -107,7 +107,7 @@ async def test_http_sample_returns_n_bytes(httpx_mock: HTTPXMock) -> None:
 @pytest.mark.asyncio
 async def test_http_sample_propagates_http_error(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_response(method="GET", url=_URL, status_code=500)
-    c = HttpCsvConnector()
+    c = HttpCsvSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"url": _URL}))
     with pytest.raises(Exception):
         await c.sample(handle, _URL, 100)
@@ -115,7 +115,7 @@ async def test_http_sample_propagates_http_error(httpx_mock: HTTPXMock) -> None:
 
 @pytest.mark.asyncio
 async def test_http_watch_yields_nothing() -> None:
-    c = HttpCsvConnector()
+    c = HttpCsvSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"url": _URL}))
     items = [item async for item in c.watch(handle, _URL)]
     assert items == []

@@ -19,7 +19,7 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from wormbase_lake_surfaces.csv_local import CsvLocalConnector, detect_encoding
+from wormbase_lake_surfaces.csv_local import CsvLocalSurfaceDriver, detect_encoding
 from wormbase_lake_surfaces.types import SecretBundle
 from wormbase_core.medallion import MedallionCascade, infer_columns, profile_bronze
 from wormbase_ledger import InMemoryLedger
@@ -265,13 +265,13 @@ async def test_cursed_csv_pipeline_completes_under_30s() -> None:
 async def test_csv_local_connector_pipes_into_cascade_end_to_end() -> None:
     """End-to-end: the connector profiles, the cascade writes, the ledger holds.
 
-    This test exercises the production path: ``CsvLocalConnector`` does
+    This test exercises the production path: ``CsvLocalSurfaceDriver`` does
     the encoding-aware read, then the cascade re-runs its own profiler
     over the bytes (the two paths are intentionally redundant — the
     connector's profile is the source-builder's contract; the cascade
     re-derives bronze/silver/gold deterministically).
     """
-    connector = CsvLocalConnector()
+    connector = CsvLocalSurfaceDriver()
     handle = await connector.authenticate(
         SecretBundle(payload={"path": str(_FIXTURE_PATH)})
     )

@@ -114,7 +114,7 @@ async def test_csv_local_end_to_end_roundtrip(tmp_path: Path) -> None:
     # Phase 3 — construct the bridge with PRODUCTION provider + registry
     # ------------------------------------------------------------------
     # NB: must import csv_local connector module so its
-    # @register_connector decorator runs.
+    # @register_surface_driver decorator runs.
     from wormbase_lake_surfaces import csv_local  # noqa: F401
 
     provider = LedgerSourceHandleProvider(ledger=ledger)

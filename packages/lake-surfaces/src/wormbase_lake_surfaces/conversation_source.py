@@ -1,7 +1,7 @@
 """ConversationSource — Maintainer-facing wrapper over projection_conversations.
 
 Per spike §8 C4: conversation gets its own introspection methods, NOT
-discover/profile/sample. The Connector Protocol's tabular shape is
+discover/profile/sample. The SurfaceDriver Protocol's tabular shape is
 degenerate for chat — we expose channel enumeration, recent windowing,
 and per-classification summaries instead. The Reactivities in Block F
 read from these methods to detect drift / staleness / lineage.

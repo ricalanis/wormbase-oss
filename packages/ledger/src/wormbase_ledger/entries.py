@@ -1844,7 +1844,7 @@ class NotebookArchivedPayload(EntryPayload):
 # ---------------------------------------------------------------------------
 # === Setup mode + progress (Block G of the production-dashboard PRD §17) ===
 #
-# Connector-first onboarding lands the installer on a connector grid, not on
+# SurfaceDriver-first onboarding lands the installer on a connector grid, not on
 # a chat-platform OAuth button. After the first source connects and the
 # medallion cascade fires, the installer chooses how to complete setup —
 # wizard (dashboard GUI) or bot (worm DM-driven conversation). Both paths
@@ -2808,7 +2808,7 @@ class TenantSignupCompletedPayload(EntryPayload):
 # the data-plane Protocol that imports upstream-lake structure
 # (schemas, lineage, policies, semantic-layer metrics) into the
 # ledger. ``CatalogSource`` (the 4th durable Protocol after
-# ``Connector``, ``ChannelAdapter``, ``MaintainableSource``) emits:
+# ``SurfaceDriver``, ``ChannelAdapter``, ``MaintainableSource``) emits:
 #
 #   * external_catalog_imported        — full snapshot import; the
 #                                        ``snapshot_hash`` is the drift
@@ -4762,7 +4762,7 @@ class EntityStitchRejectedPayload(EntryPayload):
 #   ``proposed_kind`` connector-registry string (runtime-validated
 #   against ``wormbase_lake_surfaces.registry.default_registry()`` — NOT
 #   a ``Literal[...]`` so connector registry growth does NOT churn the
-#   ledger schema, per spec §4.2 and Addendum 4 §B "Connector registry
+#   ledger schema, per spec §4.2 and Addendum 4 §B "SurfaceDriver registry
 #   kinds are NOT KIND_REGISTRY entries; they are configuration."),
 #   plus the proposed identifier, optional domain hint, confidence,
 #   reasoning, and strategy-specific evidence.

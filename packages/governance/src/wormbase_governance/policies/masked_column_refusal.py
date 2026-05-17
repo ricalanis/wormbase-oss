@@ -67,7 +67,7 @@ class MaskedColumnQuery:
     structured query payload).
 
     ``column_tags`` is the column-tag map produced at profile time
-    by :class:`SnowflakeConnector` — keyed by column name, value is
+    by :class:`SnowflakeSurfaceDriver` — keyed by column name, value is
     the WormBase classification the Snowflake tag mapped to.
 
     ``source_id`` and ``resource_id`` thread the trace-back so the

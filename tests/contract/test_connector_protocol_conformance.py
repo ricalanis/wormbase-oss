@@ -1,6 +1,6 @@
-"""Connector Protocol conformance suite (W6.A4).
+"""SurfaceDriver Protocol conformance suite (W6.A4).
 
-Every Connector implementation in :mod:`wormbase_lake_surfaces` is the
+Every SurfaceDriver implementation in :mod:`wormbase_lake_surfaces` is the
 extensibility surface of the source-building flows. Adding one is a
 class + registry entry; nothing forces it to pass the same battery of
 tests as its peers. This module is that battery.
@@ -51,7 +51,7 @@ import httpx
 import pytest
 
 from wormbase_lake_surfaces import default_registry
-from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.base import SurfaceDriver
 from wormbase_lake_surfaces.types import (
     AuthHandle,
     Profile,
@@ -82,7 +82,7 @@ class ConnectorFixture:
     """
 
     kind: str
-    factory: Callable[[], Awaitable[tuple[Connector, Any]]]
+    factory: Callable[[], Awaitable[tuple[SurfaceDriver, Any]]]
     valid_secrets: SecretBundle
     invalid_secrets: SecretBundle
     known_resource_id: str | None
@@ -95,17 +95,17 @@ class ConnectorFixture:
 
 
 # csv_local — local-file connector, no network.
-async def _csv_local_fixture(tmp_path) -> tuple[Connector, Any]:
-    from wormbase_lake_surfaces.csv_local import CsvLocalConnector
+async def _csv_local_fixture(tmp_path) -> tuple[SurfaceDriver, Any]:
+    from wormbase_lake_surfaces.csv_local import CsvLocalSurfaceDriver
 
     csv_path = tmp_path / "fixture.csv"
     csv_path.write_text("id,name\n1,Alice\n2,Bob\n")
-    return CsvLocalConnector(), {"path": str(csv_path)}
+    return CsvLocalSurfaceDriver(), {"path": str(csv_path)}
 
 
 # postgres — asyncpg.connect mocked at module level.
-async def _postgres_fixture() -> tuple[Connector, Any]:
-    from wormbase_lake_surfaces.postgres import PostgresConnector
+async def _postgres_fixture() -> tuple[SurfaceDriver, Any]:
+    from wormbase_lake_surfaces.postgres import PostgresSurfaceDriver
 
     _DISCOVER_ROWS = [
         {
@@ -166,12 +166,12 @@ async def _postgres_fixture() -> tuple[Connector, Any]:
 
     patcher = patch("asyncpg.connect", new=AsyncMock(return_value=fake_conn))
     patcher.start()
-    return PostgresConnector(), (patcher, fake_conn)
+    return PostgresSurfaceDriver(), (patcher, fake_conn)
 
 
 # snowflake — patches snowflake.connector.connect.
-async def _snowflake_fixture() -> tuple[Connector, Any]:
-    from wormbase_lake_surfaces.snowflake import SnowflakeConnector
+async def _snowflake_fixture() -> tuple[SurfaceDriver, Any]:
+    from wormbase_lake_surfaces.snowflake import SnowflakeSurfaceDriver
 
     fake_cursor = MagicMock()
     fake_cursor.execute = MagicMock()
@@ -197,12 +197,12 @@ async def _snowflake_fixture() -> tuple[Connector, Any]:
     fake_sf_pkg.connector = fake_module
     patcher = patch.dict(sys.modules, {"snowflake": fake_sf_pkg, "snowflake.connector": fake_module})
     patcher.start()
-    return SnowflakeConnector(), (patcher, fake_module, fake_cursor)
+    return SnowflakeSurfaceDriver(), (patcher, fake_module, fake_cursor)
 
 
 # s3_csv — patches aioboto3 Session.client.
-async def _s3_csv_fixture() -> tuple[Connector, Any]:
-    from wormbase_lake_surfaces.s3_csv import S3CsvConnector
+async def _s3_csv_fixture() -> tuple[SurfaceDriver, Any]:
+    from wormbase_lake_surfaces.s3_csv import S3CsvSurfaceDriver
     from datetime import datetime, timezone
 
     csv_body = b"id,name\n1,A\n2,B\n"
@@ -246,7 +246,7 @@ async def _s3_csv_fixture() -> tuple[Connector, Any]:
             return _FakeS3()
 
     # Inject session by subclassing the connector for the test instance.
-    class _Patched(S3CsvConnector):
+    class _Patched(S3CsvSurfaceDriver):
         async def _session(self, handle: AuthHandle) -> Any:
             return _FakeSession()
 
@@ -254,8 +254,8 @@ async def _s3_csv_fixture() -> tuple[Connector, Any]:
 
 
 # stripe — patches httpx.AsyncClient via MockTransport.
-async def _stripe_fixture() -> tuple[Connector, Any]:
-    from wormbase_lake_surfaces.stripe import StripeConnector
+async def _stripe_fixture() -> tuple[SurfaceDriver, Any]:
+    from wormbase_lake_surfaces.stripe import StripeSurfaceDriver
 
     canned_data = {
         "data": [
@@ -287,12 +287,12 @@ async def _stripe_fixture() -> tuple[Connector, Any]:
         "wormbase_lake_surfaces.stripe.httpx.AsyncClient", new=_wrapped
     )
     patcher.start()
-    return StripeConnector(), patcher
+    return StripeSurfaceDriver(), patcher
 
 
 # http_csv — same MockTransport pattern.
-async def _http_csv_fixture() -> tuple[Connector, Any]:
-    from wormbase_lake_surfaces.http_csv import HttpCsvConnector
+async def _http_csv_fixture() -> tuple[SurfaceDriver, Any]:
+    from wormbase_lake_surfaces.http_csv import HttpCsvSurfaceDriver
 
     csv_body = b"id,name\n1,Alice\n2,Bob\n3,Carol\n"
 
@@ -321,20 +321,20 @@ async def _http_csv_fixture() -> tuple[Connector, Any]:
         "wormbase_lake_surfaces.http_csv.httpx.AsyncClient", new=_wrapped
     )
     patcher.start()
-    return HttpCsvConnector(), patcher
+    return HttpCsvSurfaceDriver(), patcher
 
 
 # Skeletal connectors share a fixture builder.
-async def _skeletal_fixture(kind: str) -> tuple[Connector, Any]:
+async def _skeletal_fixture(kind: str) -> tuple[SurfaceDriver, Any]:
     cls = default_registry().get(kind)
     assert cls is not None, f"connector {kind!r} not registered"
     return cls(), None
 
 
 # MCP preset — uses the same fake-session pattern as packages/connectors tests.
-async def _mcp_notion_fixture() -> tuple[Connector, Any]:
-    from wormbase_lake_surfaces.mcp import MCPConnector
-    from wormbase_lake_surfaces.mcp_presets.notion_preset import NotionMCPConnector
+async def _mcp_notion_fixture() -> tuple[SurfaceDriver, Any]:
+    from wormbase_lake_surfaces.mcp import MCPSurfaceDriver
+    from wormbase_lake_surfaces.mcp_presets.notion_preset import NotionMCPSurfaceDriver
 
     @dataclass
     class _Res:
@@ -387,7 +387,7 @@ async def _mcp_notion_fixture() -> tuple[Connector, Any]:
     async def _factory(_cfg: Any, _secrets: SecretBundle) -> AsyncIterator[Any]:
         yield _FakeSession()
 
-    instance = NotionMCPConnector(session_factory=_factory)
+    instance = NotionMCPSurfaceDriver(session_factory=_factory)
     return instance, None
 
 
@@ -576,7 +576,7 @@ async def connector_fixture(
 # Helper: invoke factory + register a teardown that stops any patcher.
 async def _instantiate(
     fx: ConnectorFixture,
-) -> tuple[Connector, Callable[[], None]]:
+) -> tuple[SurfaceDriver, Callable[[], None]]:
     instance, control = await fx.factory()
 
     def _cleanup() -> None:
@@ -634,8 +634,8 @@ class TestConnectorProtocolConformance:
             assert isinstance(handle.connector_kind, str) and handle.connector_kind
             assert isinstance(handle.handle_id, str) and handle.handle_id
             # Protocol structural check.
-            assert isinstance(instance, Connector), (
-                f"{type(instance).__name__} must implement Connector Protocol"
+            assert isinstance(instance, SurfaceDriver), (
+                f"{type(instance).__name__} must implement SurfaceDriver Protocol"
             )
         finally:
             cleanup()
@@ -647,7 +647,7 @@ class TestConnectorProtocolConformance:
         """Invariant: malformed secrets → ValueError (the day-one auth-error contract).
 
         We accept either ValueError directly or any subclass — the
-        Connector contract uses ValueError for malformed bundles.
+        SurfaceDriver contract uses ValueError for malformed bundles.
         """
         instance, cleanup = await _instantiate(connector_fixture)
         try:
@@ -841,10 +841,10 @@ def test_conformance_covers_every_required_connector() -> None:
 
 
 def test_every_registered_connector_is_protocol_compliant() -> None:
-    """Invariant: every class in the default registry implements Connector.
+    """Invariant: every class in the default registry implements SurfaceDriver.
 
     A drift gate — adding a new connector that fails ``isinstance(c,
-    Connector)`` (e.g. forgot ``async def discover``) fails this test
+    SurfaceDriver)`` (e.g. forgot ``async def discover``) fails this test
     immediately, even before the conformance suite parametrizes over it.
     """
     reg = default_registry()
@@ -853,11 +853,11 @@ def test_every_registered_connector_is_protocol_compliant() -> None:
         assert cls is not None
         # MCP presets need a config to instantiate; skip the
         # `isinstance` check on those (the underlying class is a
-        # subclass of MCPConnector which is structurally Connector-
+        # subclass of MCPSurfaceDriver which is structurally SurfaceDriver-
         # compliant; verified at class definition).
         if kind.startswith("mcp:"):
             continue
         instance = cls()
-        assert isinstance(instance, Connector), (
-            f"{kind}: {cls.__name__} does not implement Connector Protocol"
+        assert isinstance(instance, SurfaceDriver), (
+            f"{kind}: {cls.__name__} does not implement SurfaceDriver Protocol"
         )

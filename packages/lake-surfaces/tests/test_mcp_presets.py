@@ -8,48 +8,48 @@ contract the dashboard's connector picker depends on:
 * Each preset declares ``required_secrets`` (so the credential form
   knows what fields to render).
 * Each preset's ``server_url`` is non-empty + an HTTPS URL.
-* Each preset is a Connector-Protocol implementation.
+* Each preset is a SurfaceDriver-Protocol implementation.
 """
 
 from __future__ import annotations
 
 import pytest
 
-from wormbase_lake_surfaces.base import Connector
-from wormbase_lake_surfaces.mcp import MCPConnector, MCPServerConfig
+from wormbase_lake_surfaces.base import SurfaceDriver
+from wormbase_lake_surfaces.mcp import MCPSurfaceDriver, MCPServerConfig
 from wormbase_lake_surfaces.mcp_presets.atlassian_preset import (
     ATLASSIAN_CONFIG,
-    AtlassianMCPConnector,
+    AtlassianMCPSurfaceDriver,
 )
 from wormbase_lake_surfaces.mcp_presets.github_preset import (
     GITHUB_CONFIG,
-    GithubMCPConnector,
+    GithubMCPSurfaceDriver,
 )
 from wormbase_lake_surfaces.mcp_presets.gworkspace_preset import (
     GWORKSPACE_CONFIG,
-    GworkspaceMCPConnector,
+    GworkspaceMCPSurfaceDriver,
 )
 from wormbase_lake_surfaces.mcp_presets.hubspot_preset import (
     HUBSPOT_CONFIG,
-    HubspotMCPConnector,
+    HubspotMCPSurfaceDriver,
 )
 from wormbase_lake_surfaces.mcp_presets.linear_preset import (
     LINEAR_CONFIG,
-    LinearMCPConnector,
+    LinearMCPSurfaceDriver,
 )
 from wormbase_lake_surfaces.mcp_presets.notion_preset import (
     NOTION_CONFIG,
-    NotionMCPConnector,
+    NotionMCPSurfaceDriver,
 )
 from wormbase_lake_surfaces.registry import default_registry
 
-PRESETS: list[tuple[MCPServerConfig, type[MCPConnector]]] = [
-    (NOTION_CONFIG, NotionMCPConnector),
-    (ATLASSIAN_CONFIG, AtlassianMCPConnector),
-    (LINEAR_CONFIG, LinearMCPConnector),
-    (GITHUB_CONFIG, GithubMCPConnector),
-    (GWORKSPACE_CONFIG, GworkspaceMCPConnector),
-    (HUBSPOT_CONFIG, HubspotMCPConnector),
+PRESETS: list[tuple[MCPServerConfig, type[MCPSurfaceDriver]]] = [
+    (NOTION_CONFIG, NotionMCPSurfaceDriver),
+    (ATLASSIAN_CONFIG, AtlassianMCPSurfaceDriver),
+    (LINEAR_CONFIG, LinearMCPSurfaceDriver),
+    (GITHUB_CONFIG, GithubMCPSurfaceDriver),
+    (GWORKSPACE_CONFIG, GworkspaceMCPSurfaceDriver),
+    (HUBSPOT_CONFIG, HubspotMCPSurfaceDriver),
 ]
 
 EXPECTED_KINDS = {
@@ -77,18 +77,18 @@ def test_each_preset_registers_a_unique_mcp_kind() -> None:
     ids=lambda v: getattr(v, "kind", str(v)),
 )
 def test_preset_class_is_a_connector(
-    config: MCPServerConfig, cls: type[MCPConnector]
+    config: MCPServerConfig, cls: type[MCPSurfaceDriver]
 ) -> None:
-    assert issubclass(cls, MCPConnector)
+    assert issubclass(cls, MCPSurfaceDriver)
     instance = cls()  # config bound at class level
-    assert isinstance(instance, Connector)
+    assert isinstance(instance, SurfaceDriver)
     assert instance.kind == config.kind
     assert instance.kind.startswith("mcp:")
 
 
 @pytest.mark.parametrize("config, cls", PRESETS, ids=lambda v: getattr(v, "kind", str(v)))
 def test_preset_config_shape(
-    config: MCPServerConfig, cls: type[MCPConnector]
+    config: MCPServerConfig, cls: type[MCPSurfaceDriver]
 ) -> None:
     """Each preset declares the dashboard-renderable shape."""
     assert config.kind == cls.kind
@@ -108,7 +108,7 @@ def test_preset_config_shape(
 
 @pytest.mark.parametrize("config, cls", PRESETS, ids=lambda v: getattr(v, "kind", str(v)))
 def test_preset_class_binds_to_registry(
-    config: MCPServerConfig, cls: type[MCPConnector]
+    config: MCPServerConfig, cls: type[MCPSurfaceDriver]
 ) -> None:
     reg = default_registry()
     assert reg.get(config.kind) is cls
@@ -116,7 +116,7 @@ def test_preset_class_binds_to_registry(
 
 @pytest.mark.parametrize("config, cls", PRESETS, ids=lambda v: getattr(v, "kind", str(v)))
 def test_preset_capabilities_are_complete(
-    config: MCPServerConfig, cls: type[MCPConnector]
+    config: MCPServerConfig, cls: type[MCPSurfaceDriver]
 ) -> None:
     """All presets advertise discover/profile/sample (watch is v2)."""
     instance = cls()
@@ -127,7 +127,7 @@ def test_preset_capabilities_are_complete(
 
 @pytest.mark.parametrize("config, cls", PRESETS, ids=lambda v: getattr(v, "kind", str(v)))
 def test_preset_status_and_note(
-    config: MCPServerConfig, cls: type[MCPConnector]
+    config: MCPServerConfig, cls: type[MCPSurfaceDriver]
 ) -> None:
     """Honest status: presets are ``preview`` (vendor-maintained external surface)."""
     assert cls.status in ("preview", "production"), (

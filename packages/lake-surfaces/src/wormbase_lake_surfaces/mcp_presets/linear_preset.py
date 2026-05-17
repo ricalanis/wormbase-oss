@@ -23,6 +23,6 @@ LINEAR_CONFIG = MCPServerConfig(
     ),
 )
 
-LinearMCPConnector = make_mcp_preset(LINEAR_CONFIG, status="preview")
+LinearMCPSurfaceDriver = make_mcp_preset(LINEAR_CONFIG, status="preview")
 
-__all__ = ["LINEAR_CONFIG", "LinearMCPConnector"]
+__all__ = ["LINEAR_CONFIG", "LinearMCPSurfaceDriver"]

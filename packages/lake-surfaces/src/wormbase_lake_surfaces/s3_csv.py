@@ -27,8 +27,8 @@ from collections.abc import AsyncIterator
 from io import StringIO
 from typing import Any
 
-from .base import Connector
-from .registry import register_connector
+from .base import SurfaceDriver
+from .registry import register_surface_driver
 from .types import (
     AuthHandle,
     Capability,
@@ -57,8 +57,8 @@ def _client_kwargs(payload: dict[str, Any]) -> dict[str, Any]:
     return kwargs
 
 
-@register_connector
-class S3CsvConnector(Connector):
+@register_surface_driver
+class S3CsvSurfaceDriver(SurfaceDriver):
     """S3 CSV connector via aioboto3."""
 
     kind = "s3_csv"
@@ -218,4 +218,4 @@ def _is_float(v: str) -> bool:
         return False
 
 
-__all__ = ["S3CsvConnector"]
+__all__ = ["S3CsvSurfaceDriver"]

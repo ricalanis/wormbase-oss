@@ -15,7 +15,7 @@ _HASH_B = "0x" + "02" * 64
 
 
 class _FakeConnectorWithProfile:
-    """Connector whose profile() returns a deterministic schema_hash (str)."""
+    """SurfaceDriver whose profile() returns a deterministic schema_hash (str)."""
 
     kind = "csv_local"
     capability = {"discover", "profile", "sample"}

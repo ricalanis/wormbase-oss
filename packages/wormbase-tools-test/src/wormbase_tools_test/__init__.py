@@ -1,4 +1,4 @@
-"""wormbase-tools-test — Connector Protocol conformance harness.
+"""wormbase-tools-test — SurfaceDriver Protocol conformance harness.
 
 Public API:
 

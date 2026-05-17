@@ -1,7 +1,7 @@
 """Shared base for skeletal SaaS connectors.
 
 A skeletal connector exists to:
-1. Prove the Connector abstraction is platform-agnostic.
+1. Prove the SurfaceDriver abstraction is platform-agnostic.
 2. Render in the dashboard /sources/new picker (D4) at the same fidelity
    as a fully-implemented connector — JSON-schema config, capability
    chips, classification hints.
@@ -33,7 +33,7 @@ import hashlib
 from collections.abc import AsyncIterator
 from typing import Any, ClassVar
 
-from .base import Connector
+from .base import SurfaceDriver
 from .types import (
     AuthHandle,
     Capability,
@@ -46,7 +46,7 @@ from .types import (
 )
 
 
-class SkeletalConnector(Connector):
+class SkeletalSurfaceDriver(SurfaceDriver):
     """Base for connectors whose discover/profile/sample land post-day-one.
 
     Concrete subclasses set the class attributes; this base provides the
@@ -63,7 +63,7 @@ class SkeletalConnector(Connector):
     classification_hints: ClassVar[list[ClassificationHint]] = []
     status: ClassVar[ConnectorStatus] = "coming_soon"
     status_note: ClassVar[str] = (
-        "Connector skeleton — discovery returns empty, "
+        "SurfaceDriver skeleton — discovery returns empty, "
         "full implementation lands post-day-one."
     )
     required_secrets: ClassVar[tuple[str, ...]] = ()
@@ -137,4 +137,4 @@ class SkeletalConnector(Connector):
             yield  # type: ignore[unreachable]
 
 
-__all__ = ["SkeletalConnector"]
+__all__ = ["SkeletalSurfaceDriver"]

@@ -10,7 +10,7 @@ Protocol:
     isolation via ``company_id`` argument).
   * Full ``proposed → connected`` cycle for a known connector kind →
     :class:`SourceHandleRecord` with reconstructed AuthHandle.
-  * Connector kind unknown to the reconstructor (opaque secret) →
+  * SurfaceDriver kind unknown to the reconstructor (opaque secret) →
     None (honest stub).
   * Multi-source isolation in same tenant.
   * Multi-tenant isolation: source_id collision across tenants does

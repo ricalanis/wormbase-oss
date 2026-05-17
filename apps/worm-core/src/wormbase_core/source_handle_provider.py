@@ -1,7 +1,7 @@
 """Sampler activation Wave — ``SourceHandleProvider`` Protocol + ledger impl.
 
 Bridges the L3 / L5 / L8 lake-side strategies' ``SamplerProtocol`` to the
-production ``Connector.sample()`` surface. The provider answers
+production ``SurfaceDriver.sample()`` surface. The provider answers
 "for ``(company_id, source_id)``, what's the ``(connector_kind, auth_handle,
 resource_map)`` I need to call the right connector?"
 
@@ -84,7 +84,7 @@ class SourceHandleRecord:
     :meth:`SourceHandleProvider.get_handle` lookup.
 
     Carries everything :class:`wormbase_core.connector_sampler.ConnectorSampler`
-    needs to drive a per-source ``Connector.sample()`` call:
+    needs to drive a per-source ``SurfaceDriver.sample()`` call:
 
       * ``source_id`` — the tenant-scoped source UUID.
       * ``connector_kind`` — registry key (``"csv_local"`` / ``"postgres"``
@@ -97,10 +97,10 @@ class SourceHandleRecord:
         secret payload assembled per connector kind. Never logged.
       * ``resource_map`` — ``{table_id: resource_id}`` mapping the
         L3/L5/L8 callers' ``table_id`` to the connector-internal
-        ``resource_id`` understood by ``Connector.sample``. Today's
+        ``resource_id`` understood by ``SurfaceDriver.sample``. Today's
         single-table connectors (csv_local) map their lone resource
         under the ``uri`` key, mirroring how
-        :meth:`wormbase_lake_surfaces.csv_local.CsvLocalConnector.discover`
+        :meth:`wormbase_lake_surfaces.csv_local.CsvLocalSurfaceDriver.discover`
         returns ``resource_id = str(path)``.
     """
 
@@ -154,11 +154,11 @@ def _execute_args(entry: dict[str, Any]) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Connector classification — opaque-secret vs URI-shaped
+# SurfaceDriver classification — opaque-secret vs URI-shaped
 # ---------------------------------------------------------------------------
 
 
-#: Connector kinds whose authentication is fully reconstructable from the
+#: SurfaceDriver kinds whose authentication is fully reconstructable from the
 #: ``source_proposed.uri`` alone (path-shaped, DSN-shaped, URL-shaped). These
 #: never require :class:`CredentialBroker` resolution; pre-existing csv_local
 #: / postgres / snowflake / bigquery / s3_csv / http_csv handle paths route
@@ -230,7 +230,7 @@ def _assemble_stripe_handle(
 ) -> object | None:
     """Assemble a stripe AuthHandle from broker-resolved secrets.
 
-    Matches :meth:`wormbase_lake_surfaces.stripe.StripeConnector.authenticate`
+    Matches :meth:`wormbase_lake_surfaces.stripe.StripeSurfaceDriver.authenticate`
     output shape: ``handle.extra`` carries ``api_key``, optional
     ``api_version``, and the precomputed ``auth_header`` so the
     connector's HTTP path runs verbatim.
@@ -263,9 +263,9 @@ def _assemble_salesforce_handle(
 ) -> object | None:
     """Assemble a salesforce AuthHandle from broker-resolved secrets.
 
-    Matches :class:`wormbase_lake_surfaces.salesforce.SalesforceConnector`'s
+    Matches :class:`wormbase_lake_surfaces.salesforce.SalesforceSurfaceDriver`'s
     ``required_secrets = ("instance_url", "access_token")`` contract.
-    Since SalesforceConnector is :class:`SkeletalConnector`, its
+    Since SalesforceSurfaceDriver is :class:`SkeletalSurfaceDriver`, its
     ``sample()`` raises ``NotImplementedError`` today — the handle is
     still assembled so when the production impl lands, the broker path
     is already wired.
@@ -301,7 +301,7 @@ def _assemble_hubspot_handle(
 ) -> object | None:
     """Assemble a hubspot AuthHandle from broker-resolved secrets.
 
-    Matches :class:`wormbase_lake_surfaces.hubspot.HubspotConnector`'s
+    Matches :class:`wormbase_lake_surfaces.hubspot.HubspotSurfaceDriver`'s
     ``required_secrets = ("access_token",)`` contract.
     """
     try:
@@ -326,7 +326,7 @@ def _assemble_gsheets_handle(
 ) -> object | None:
     """Assemble a gsheets AuthHandle from broker-resolved secrets.
 
-    Matches :class:`wormbase_lake_surfaces.gsheets.GsheetsConnector`'s
+    Matches :class:`wormbase_lake_surfaces.gsheets.GsheetsSurfaceDriver`'s
     ``required_secrets = ("service_account_json",)`` contract.
     """
     try:
@@ -381,7 +381,7 @@ def _resource_map_for_kind(
     same path token). For multi-resource connectors (postgres, snowflake,
     bigquery) the catalog mirror's ``external_lineage_imported`` edges
     expand to fully-qualified ``schema.table`` ids that the connector's
-    own ``Connector.sample`` call accepts as ``resource_id`` verbatim —
+    own ``SurfaceDriver.sample`` call accepts as ``resource_id`` verbatim —
     so the identity map suffices.
 
     The map is consulted by :class:`ConnectorSampler.sample_column`; a

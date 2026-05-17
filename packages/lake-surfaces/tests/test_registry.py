@@ -6,8 +6,8 @@ from collections.abc import AsyncIterator
 
 import pytest
 
-from wormbase_lake_surfaces.base import Connector
-from wormbase_lake_surfaces.registry import ConnectorRegistry, register_connector
+from wormbase_lake_surfaces.base import SurfaceDriver
+from wormbase_lake_surfaces.registry import SurfaceDriverRegistry, register_surface_driver
 from wormbase_lake_surfaces.types import (
     AuthHandle,
     Change,
@@ -48,21 +48,21 @@ class _FakeConnector:
 
 
 def test_registry_lookup() -> None:
-    reg = ConnectorRegistry()
+    reg = SurfaceDriverRegistry()
     reg.register(_FakeConnector)
     cls = reg.get("fake")
     assert cls is _FakeConnector
 
 
 def test_registry_rejects_duplicates() -> None:
-    reg = ConnectorRegistry()
+    reg = SurfaceDriverRegistry()
     reg.register(_FakeConnector)
     with pytest.raises(ValueError):
         reg.register(_FakeConnector)
 
 
 def test_registry_unknown_returns_none() -> None:
-    reg = ConnectorRegistry()
+    reg = SurfaceDriverRegistry()
     assert reg.get("does-not-exist") is None
 
 
@@ -71,13 +71,13 @@ def test_registry_rejects_class_with_no_kind() -> None:
         capability: set[str] = set()
         classification_hints: list[str] = []
 
-    reg = ConnectorRegistry()
+    reg = SurfaceDriverRegistry()
     with pytest.raises(ValueError):
         reg.register(_NoKind)
 
 
 def test_registry_all_kinds_sorted() -> None:
-    reg = ConnectorRegistry()
+    reg = SurfaceDriverRegistry()
     reg.register(_FakeConnector)
 
     class _Other(_FakeConnector):
@@ -88,7 +88,7 @@ def test_registry_all_kinds_sorted() -> None:
 
 
 def test_registry_membership() -> None:
-    reg = ConnectorRegistry()
+    reg = SurfaceDriverRegistry()
     reg.register(_FakeConnector)
     assert "fake" in reg
     assert "missing" not in reg
@@ -96,7 +96,7 @@ def test_registry_membership() -> None:
 
 
 def test_registry_unregister() -> None:
-    reg = ConnectorRegistry()
+    reg = SurfaceDriverRegistry()
     reg.register(_FakeConnector)
     reg.unregister("fake")
     assert reg.get("fake") is None
@@ -104,14 +104,14 @@ def test_registry_unregister() -> None:
 
 def test_fake_satisfies_connector_protocol() -> None:
     c = _FakeConnector()
-    assert isinstance(c, Connector)
+    assert isinstance(c, SurfaceDriver)
 
 
 def test_register_connector_decorator() -> None:
     """The decorator returns the class and registers in default_registry."""
     from wormbase_lake_surfaces.registry import default_registry
 
-    @register_connector
+    @register_surface_driver
     class _DecoratedConnector(_FakeConnector):
         kind = "decorated_test_unique"
 

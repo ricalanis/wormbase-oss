@@ -7,18 +7,18 @@ Sample via ``/crm/v3/objects/<type>?limit=n``.
 
 from __future__ import annotations
 
-from ._skeletal import SkeletalConnector
-from .registry import register_connector
+from ._skeletal import SkeletalSurfaceDriver
+from .registry import register_surface_driver
 
 
-@register_connector
-class HubspotConnector(SkeletalConnector):
+@register_surface_driver
+class HubspotSurfaceDriver(SkeletalSurfaceDriver):
     kind = "hubspot"
     capability = {"discover"}
     classification_hints = ["pii"]
     status = "coming_soon"
     status_note = (
-        "Connector skeleton — HubSpot CRM API integration lands in v1.5."
+        "SurfaceDriver skeleton — HubSpot CRM API integration lands in v1.5."
     )
     required_secrets = ("access_token",)
     optional_secrets = ("portal_id",)
@@ -27,4 +27,4 @@ class HubspotConnector(SkeletalConnector):
     )
 
 
-__all__ = ["HubspotConnector"]
+__all__ = ["HubspotSurfaceDriver"]

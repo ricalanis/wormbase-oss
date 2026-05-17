@@ -44,7 +44,7 @@ class SecretBundle:
 
     The ``payload`` dict is connector-specific: a Postgres connector may
     expect ``{"dsn": ...}`` while a Stripe connector may expect
-    ``{"api_key": ...}``. The `Connector.authenticate` method validates
+    ``{"api_key": ...}``. The `SurfaceDriver.authenticate` method validates
     the shape and raises ValueError if the bundle is malformed.
 
     Secrets are NEVER logged. The registry, the HTTP write-API, and the
@@ -56,7 +56,7 @@ class SecretBundle:
 
 @dataclass(frozen=True)
 class AuthHandle:
-    """Returned by :meth:`Connector.authenticate`. Used in subsequent calls.
+    """Returned by :meth:`SurfaceDriver.authenticate`. Used in subsequent calls.
 
     ``handle_id`` is a stable, non-secret identifier the connector can
     use to resolve runtime state (e.g. a connection-pool key, a session
@@ -72,7 +72,7 @@ class AuthHandle:
 
 @dataclass(frozen=True)
 class ResourceProposal:
-    """A resource discovered by :meth:`Connector.discover`.
+    """A resource discovered by :meth:`SurfaceDriver.discover`.
 
     ``resource_id`` is connector-internal but stable across calls —
     e.g. a fully-qualified Postgres `schema.table`, an S3 object key,
@@ -89,7 +89,7 @@ class ResourceProposal:
 
 @dataclass(frozen=True)
 class Profile:
-    """Result of :meth:`Connector.profile`.
+    """Result of :meth:`SurfaceDriver.profile`.
 
     ``schema_hash`` is a short stable digest of the ordered (column,
     dtype) pairs — used by the lake-builder to detect schema drift
@@ -105,7 +105,7 @@ class Profile:
 
 @dataclass(frozen=True)
 class Change:
-    """Streaming change record from :meth:`Connector.watch`.
+    """Streaming change record from :meth:`SurfaceDriver.watch`.
 
     Most day-one connectors do not implement watch; those that do
     yield ``Change`` records for the lake-builder's CDC ingestion.

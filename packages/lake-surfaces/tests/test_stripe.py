@@ -1,4 +1,4 @@
-"""Tests for StripeConnector — uses pytest-httpx for the Stripe REST API."""
+"""Tests for StripeSurfaceDriver — uses pytest-httpx for the Stripe REST API."""
 
 from __future__ import annotations
 
@@ -8,10 +8,10 @@ import json
 import pytest
 from pytest_httpx import HTTPXMock
 
-from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.base import SurfaceDriver
 from wormbase_lake_surfaces.stripe import (
     STRIPE_OBJECTS,
-    StripeConnector,
+    StripeSurfaceDriver,
     _basic_auth_header,
 )
 from wormbase_lake_surfaces.types import SecretBundle
@@ -20,8 +20,8 @@ _API_KEY = "sk_test_abc123"
 
 
 def test_stripe_implements_protocol() -> None:
-    c = StripeConnector()
-    assert isinstance(c, Connector)
+    c = StripeSurfaceDriver()
+    assert isinstance(c, SurfaceDriver)
     assert c.kind == "stripe"
     assert "discover" in c.capability
 
@@ -34,14 +34,14 @@ def test_stripe_basic_auth_header() -> None:
 
 @pytest.mark.asyncio
 async def test_stripe_authenticate_requires_api_key() -> None:
-    c = StripeConnector()
+    c = StripeSurfaceDriver()
     with pytest.raises(ValueError, match="api_key"):
         await c.authenticate(SecretBundle(payload={}))
 
 
 @pytest.mark.asyncio
 async def test_stripe_authenticate_returns_handle() -> None:
-    c = StripeConnector()
+    c = StripeSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"api_key": _API_KEY}))
     assert handle.connector_kind == "stripe"
     assert handle.extra["api_key"] == _API_KEY
@@ -50,7 +50,7 @@ async def test_stripe_authenticate_returns_handle() -> None:
 
 @pytest.mark.asyncio
 async def test_stripe_discover_returns_canonical_objects() -> None:
-    c = StripeConnector()
+    c = StripeSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"api_key": _API_KEY}))
     resources = await c.discover(handle)
     names = {r.name for r in resources}
@@ -85,7 +85,7 @@ async def test_stripe_profile_introspects_first_record(
             "has_more": True,
         },
     )
-    c = StripeConnector()
+    c = StripeSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"api_key": _API_KEY}))
     profile = await c.profile(handle, "charges")
     assert profile.column_count == 5
@@ -104,7 +104,7 @@ async def test_stripe_profile_sends_basic_auth(httpx_mock: HTTPXMock) -> None:
         url="https://api.stripe.com/v1/customers?limit=1",
         json={"data": []},
     )
-    c = StripeConnector()
+    c = StripeSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"api_key": _API_KEY}))
     await c.profile(handle, "customers")
     request = httpx_mock.get_request()
@@ -117,7 +117,7 @@ async def test_stripe_profile_sends_basic_auth(httpx_mock: HTTPXMock) -> None:
 
 @pytest.mark.asyncio
 async def test_stripe_profile_rejects_unknown_object() -> None:
-    c = StripeConnector()
+    c = StripeSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"api_key": _API_KEY}))
     with pytest.raises(ValueError, match="unknown stripe object"):
         await c.profile(handle, "not_a_thing")
@@ -135,7 +135,7 @@ async def test_stripe_sample_returns_jsonl_bytes(httpx_mock: HTTPXMock) -> None:
             ],
         },
     )
-    c = StripeConnector()
+    c = StripeSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"api_key": _API_KEY}))
     sample = await c.sample(handle, "payouts", 2)
     lines = sample.decode().rstrip("\n").split("\n")
@@ -151,14 +151,14 @@ async def test_stripe_sample_caps_limit_at_100(httpx_mock: HTTPXMock) -> None:
         url="https://api.stripe.com/v1/charges?limit=100",
         json={"data": []},
     )
-    c = StripeConnector()
+    c = StripeSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"api_key": _API_KEY}))
     await c.sample(handle, "charges", 5000)
 
 
 @pytest.mark.asyncio
 async def test_stripe_watch_yields_nothing() -> None:
-    c = StripeConnector()
+    c = StripeSurfaceDriver()
     handle = await c.authenticate(SecretBundle(payload={"api_key": _API_KEY}))
     items = [item async for item in c.watch(handle, "charges")]
     assert items == []
@@ -173,7 +173,7 @@ async def test_stripe_authenticate_propagates_api_version(
         url="https://api.stripe.com/v1/charges?limit=1",
         json={"data": []},
     )
-    c = StripeConnector()
+    c = StripeSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(
             payload={"api_key": _API_KEY, "api_version": "2024-04-10"},

@@ -813,7 +813,7 @@ def test_active_sampler_no_broker_when_knob_unset() -> None:
 class _FakeOpaqueConnector:
     """A tiny opaque-secret connector for the e2e test.
 
-    Mirrors StripeConnector's shape just enough that ConnectorSampler can
+    Mirrors StripeSurfaceDriver's shape just enough that ConnectorSampler can
     drive it: ``authenticate`` is bypassed (the provider hand-assembled
     the handle), and ``sample`` returns CSV bytes built from the handle's
     extra.api_key — proving the broker-resolved secret reached the
@@ -847,7 +847,7 @@ async def test_e2e_opaque_secret_connector_productive_when_wired() -> None:
       4. sample_column → returns the api_key-encoded values.
 
     Pins the entire chain: ledger fold → broker resolve → per-kind
-    assembler → AuthHandle → Connector.sample → CSV parse → set[str].
+    assembler → AuthHandle → SurfaceDriver.sample → CSV parse → set[str].
     """
     from wormbase_core.connector_sampler import ConnectorSampler
 

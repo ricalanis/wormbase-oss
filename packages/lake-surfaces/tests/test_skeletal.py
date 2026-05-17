@@ -14,22 +14,22 @@ from __future__ import annotations
 
 import pytest
 
-from wormbase_lake_surfaces.base import Connector
-from wormbase_lake_surfaces.bigquery import BigQueryConnector
-from wormbase_lake_surfaces.gsheets import GsheetsConnector
-from wormbase_lake_surfaces.hubspot import HubspotConnector
-from wormbase_lake_surfaces.linear import LinearConnector
-from wormbase_lake_surfaces.notion import NotionConnector
-from wormbase_lake_surfaces.salesforce import SalesforceConnector
+from wormbase_lake_surfaces.base import SurfaceDriver
+from wormbase_lake_surfaces.bigquery import BigQuerySurfaceDriver
+from wormbase_lake_surfaces.gsheets import GsheetsSurfaceDriver
+from wormbase_lake_surfaces.hubspot import HubspotSurfaceDriver
+from wormbase_lake_surfaces.linear import LinearSurfaceDriver
+from wormbase_lake_surfaces.notion import NotionSurfaceDriver
+from wormbase_lake_surfaces.salesforce import SalesforceSurfaceDriver
 from wormbase_lake_surfaces.types import SecretBundle
 
 ALL_SKELETAL = [
-    BigQueryConnector,
-    SalesforceConnector,
-    HubspotConnector,
-    GsheetsConnector,
-    NotionConnector,
-    LinearConnector,
+    BigQuerySurfaceDriver,
+    SalesforceSurfaceDriver,
+    HubspotSurfaceDriver,
+    GsheetsSurfaceDriver,
+    NotionSurfaceDriver,
+    LinearSurfaceDriver,
 ]
 
 # Minimum-viable secret bundle per skeleton — must include every
@@ -50,7 +50,7 @@ _MINIMAL_SECRETS: dict[str, dict[str, str]] = {
 @pytest.mark.parametrize("cls", ALL_SKELETAL)
 def test_skeletal_implements_protocol(cls: type) -> None:
     c = cls()
-    assert isinstance(c, Connector)
+    assert isinstance(c, SurfaceDriver)
     assert isinstance(c.kind, str) and c.kind != ""
     assert "discover" in c.capability
 

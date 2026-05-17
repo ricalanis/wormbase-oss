@@ -35,6 +35,6 @@ HUBSPOT_CONFIG = MCPServerConfig(
     ),
 )
 
-HubspotMCPConnector = make_mcp_preset(HUBSPOT_CONFIG, status="preview")
+HubspotMCPSurfaceDriver = make_mcp_preset(HUBSPOT_CONFIG, status="preview")
 
-__all__ = ["HUBSPOT_CONFIG", "HubspotMCPConnector"]
+__all__ = ["HUBSPOT_CONFIG", "HubspotMCPSurfaceDriver"]

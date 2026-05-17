@@ -28,6 +28,6 @@ GWORKSPACE_CONFIG = MCPServerConfig(
     ),
 )
 
-GworkspaceMCPConnector = make_mcp_preset(GWORKSPACE_CONFIG, status="preview")
+GworkspaceMCPSurfaceDriver = make_mcp_preset(GWORKSPACE_CONFIG, status="preview")
 
-__all__ = ["GWORKSPACE_CONFIG", "GworkspaceMCPConnector"]
+__all__ = ["GWORKSPACE_CONFIG", "GworkspaceMCPSurfaceDriver"]

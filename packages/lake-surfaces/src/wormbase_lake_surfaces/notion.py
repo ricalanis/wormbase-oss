@@ -9,18 +9,18 @@ schema. Sample via ``POST /v1/databases/<id>/query?page_size=n``.
 
 from __future__ import annotations
 
-from ._skeletal import SkeletalConnector
-from .registry import register_connector
+from ._skeletal import SkeletalSurfaceDriver
+from .registry import register_surface_driver
 
 
-@register_connector
-class NotionConnector(SkeletalConnector):
+@register_surface_driver
+class NotionSurfaceDriver(SkeletalSurfaceDriver):
     kind = "notion"
     capability = {"discover"}
     classification_hints = []
     status = "coming_soon"
     status_note = (
-        "Connector skeleton — Notion API integration lands in v1.5 (on-thesis priority)."
+        "SurfaceDriver skeleton — Notion API integration lands in v1.5 (on-thesis priority)."
     )
     required_secrets = ("integration_token",)
     optional_secrets = ("workspace_id",)
@@ -29,4 +29,4 @@ class NotionConnector(SkeletalConnector):
     )
 
 
-__all__ = ["NotionConnector"]
+__all__ = ["NotionSurfaceDriver"]

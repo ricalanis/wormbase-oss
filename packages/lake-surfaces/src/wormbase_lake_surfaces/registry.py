@@ -1,8 +1,8 @@
-"""Connector registry.
+"""SurfaceDriver registry.
 
 Single global registry plus a decorator for self-registration:
 
-    @register_connector
+    @register_surface_driver
     class MyConnector:
         kind = "my_thing"
         ...
@@ -19,7 +19,7 @@ Naming convention:
   ``mcp:`` namespace: ``mcp:notion``, ``mcp:atlassian``,
   ``mcp:linear``, etc. The ``mcp:`` prefix is reserved — do not
   register native connectors with that prefix. The base
-  :class:`wormbase_lake_surfaces.mcp.MCPConnector` declares
+  :class:`wormbase_lake_surfaces.mcp.MCPSurfaceDriver` declares
   ``kind = "mcp"`` for documentation but is not directly
   registered (it requires per-server config); presets register
   per-server subclasses instead.
@@ -29,23 +29,23 @@ from __future__ import annotations
 
 from typing import TypeVar
 
-from .base import Connector
+from .base import SurfaceDriver
 
 C = TypeVar("C", bound=type)
 
 
-class ConnectorRegistry:
-    """Holds the (kind -> Connector class) map.
+class SurfaceDriverRegistry:
+    """Holds the (kind -> SurfaceDriver class) map.
 
     Tests construct fresh registries to avoid contaminating the global
     one. Production code reads :func:`default_registry`.
     """
 
     def __init__(self) -> None:
-        self._by_kind: dict[str, type[Connector]] = {}
+        self._by_kind: dict[str, type[SurfaceDriver]] = {}
 
-    def register(self, cls: type[Connector]) -> None:
-        """Register a Connector class. Raises ValueError on duplicates.
+    def register(self, cls: type[SurfaceDriver]) -> None:
+        """Register a SurfaceDriver class. Raises ValueError on duplicates.
 
         Duplicate-detection prevents a silent shadow when two modules
         define a connector with the same `kind`. The caller can call
@@ -64,7 +64,7 @@ class ConnectorRegistry:
     def unregister(self, kind: str) -> None:
         self._by_kind.pop(kind, None)
 
-    def get(self, kind: str) -> type[Connector] | None:
+    def get(self, kind: str) -> type[SurfaceDriver] | None:
         return self._by_kind.get(kind)
 
     def all_kinds(self) -> list[str]:
@@ -77,11 +77,11 @@ class ConnectorRegistry:
         return isinstance(kind, str) and kind in self._by_kind
 
 
-_default = ConnectorRegistry()
+_default = SurfaceDriverRegistry()
 
 
-def register_connector(cls: C) -> C:
-    """Decorator: ``@register_connector`` on a class adds it to the default registry.
+def register_surface_driver(cls: C) -> C:
+    """Decorator: ``@register_surface_driver`` on a class adds it to the default registry.
 
     Idempotent across import cycles is NOT a goal — duplicate
     registration raises. Modules should be imported exactly once.
@@ -90,9 +90,9 @@ def register_connector(cls: C) -> C:
     return cls
 
 
-def default_registry() -> ConnectorRegistry:
+def default_registry() -> SurfaceDriverRegistry:
     """Return the process-wide default registry."""
     return _default
 
 
-__all__ = ["ConnectorRegistry", "default_registry", "register_connector"]
+__all__ = ["SurfaceDriverRegistry", "default_registry", "register_surface_driver"]

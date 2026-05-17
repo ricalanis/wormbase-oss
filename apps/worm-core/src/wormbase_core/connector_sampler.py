@@ -4,7 +4,7 @@ Bridges the :class:`wormbase_agent_gateway.lineage.SamplerProtocol`
 shape — called by L3 ``SampleOverlapStrategy``, L5
 ``ValuePatternFingerprintStrategy``, and L8
 ``SampleOverlapEntityStrategy`` — to the
-:meth:`wormbase_lake_surfaces.Connector.sample` surface.
+:meth:`wormbase_lake_surfaces.SurfaceDriver.sample` surface.
 
 The bridge is default-OFF: instantiation only happens in
 ``agent_gateway_construction.compose_*_reactivity_if_enabled`` when
@@ -105,7 +105,7 @@ def _parse_csv_column(raw: bytes, column: str, *, n: int) -> set[str]:
 
 @dataclass
 class ConnectorSampler:
-    """SamplerProtocol-compatible bridge to ``Connector.sample()``.
+    """SamplerProtocol-compatible bridge to ``SurfaceDriver.sample()``.
 
     Constructed per install (tenant-scoped via bound ``company_id``).
     The L3 / L5 / L8 strategies call :meth:`sample_column` /
@@ -224,7 +224,7 @@ class ConnectorSampler:
             )
         except Exception:  # noqa: BLE001
             logger.exception(
-                "Connector.sample raised for kind=%s resource_id=%s "
+                "SurfaceDriver.sample raised for kind=%s resource_id=%s "
                 "tenant=%s; returning empty samples.",
                 record.connector_kind, resource_id, self.company_id,
             )
@@ -232,7 +232,7 @@ class ConnectorSampler:
 
         if not isinstance(raw, (bytes, bytearray)):
             logger.debug(
-                "Connector.sample returned non-bytes (%s) for kind=%s; "
+                "SurfaceDriver.sample returned non-bytes (%s) for kind=%s; "
                 "returning empty.", type(raw).__name__, record.connector_kind,
             )
             return set()
@@ -246,8 +246,8 @@ class ConnectorSampler:
         (skip when size > ``max_table_size``); returning ``0`` is the
         honest "I don't know" answer that always passes the cap.
 
-        Today's :class:`Connector` Protocol does not expose a size
-        method; a future wave can grow ``Connector.size()`` and wire it
+        Today's :class:`SurfaceDriver` Protocol does not expose a size
+        method; a future wave can grow ``SurfaceDriver.size()`` and wire it
         here. For Wave 1 we always return 0 — strategies treat it as
         "unsampled" and proceed with per-column sampling.
         """

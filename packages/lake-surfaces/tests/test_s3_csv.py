@@ -1,4 +1,4 @@
-"""Tests for S3CsvConnector — uses an aioboto3 client mock.
+"""Tests for S3CsvSurfaceDriver — uses an aioboto3 client mock.
 
 Why not moto: moto's `mock_aws` patches the synchronous `botocore`
 endpoint, but aioboto3 routes through `aiobotocore` whose response
@@ -15,8 +15,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from wormbase_lake_surfaces.base import Connector
-from wormbase_lake_surfaces.s3_csv import S3CsvConnector
+from wormbase_lake_surfaces.base import SurfaceDriver
+from wormbase_lake_surfaces.s3_csv import S3CsvSurfaceDriver
 from wormbase_lake_surfaces.types import SecretBundle
 
 _BUCKET = "wb-test-bucket"
@@ -24,21 +24,21 @@ _REGION = "us-east-1"
 
 
 def test_s3_csv_implements_protocol() -> None:
-    c = S3CsvConnector()
-    assert isinstance(c, Connector)
+    c = S3CsvSurfaceDriver()
+    assert isinstance(c, SurfaceDriver)
     assert c.kind == "s3_csv"
 
 
 @pytest.mark.asyncio
 async def test_s3_authenticate_requires_bucket() -> None:
-    c = S3CsvConnector()
+    c = S3CsvSurfaceDriver()
     with pytest.raises(ValueError, match="bucket"):
         await c.authenticate(SecretBundle(payload={}))
 
 
 @pytest.mark.asyncio
 async def test_s3_authenticate_returns_handle() -> None:
-    c = S3CsvConnector()
+    c = S3CsvSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(
             payload={
@@ -110,7 +110,7 @@ async def test_s3_discover_lists_csv_keys() -> None:
         }
     )
 
-    c = S3CsvConnector()
+    c = S3CsvSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(
             payload={
@@ -137,7 +137,7 @@ async def test_s3_discover_lists_csv_keys() -> None:
 async def test_s3_profile_infers_columns() -> None:
     body = b"name,age\nAlice,30\nBob,25\nCarol,42\n"
     fake_session = _make_mock_s3_client({"get_object": body})
-    c = S3CsvConnector()
+    c = S3CsvSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(
             payload={
@@ -163,7 +163,7 @@ async def test_s3_profile_infers_columns() -> None:
 async def test_s3_sample_returns_n_bytes() -> None:
     body = b"a,b\n1,2\n3,4\n"
     fake_session = _make_mock_s3_client({"get_object": body})
-    c = S3CsvConnector()
+    c = S3CsvSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(
             payload={
@@ -181,7 +181,7 @@ async def test_s3_sample_returns_n_bytes() -> None:
 
 @pytest.mark.asyncio
 async def test_s3_watch_yields_nothing() -> None:
-    c = S3CsvConnector()
+    c = S3CsvSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(
             payload={

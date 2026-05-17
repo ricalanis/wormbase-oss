@@ -1,4 +1,4 @@
-"""Tests for PostgresConnector — uses an asyncpg mock so CI doesn't need pg."""
+"""Tests for PostgresSurfaceDriver — uses an asyncpg mock so CI doesn't need pg."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.base import SurfaceDriver
 from wormbase_lake_surfaces.postgres import (
-    PostgresConnector,
+    PostgresSurfaceDriver,
     _dsn_from_secrets,
     _normalize_dsn,
 )
@@ -17,8 +17,8 @@ from wormbase_lake_surfaces.types import AuthHandle, SecretBundle
 
 
 def test_postgres_implements_protocol() -> None:
-    c = PostgresConnector()
-    assert isinstance(c, Connector)
+    c = PostgresSurfaceDriver()
+    assert isinstance(c, SurfaceDriver)
     assert c.kind == "postgres"
 
 
@@ -69,7 +69,7 @@ def mock_asyncpg() -> Any:
 @pytest.mark.asyncio
 async def test_postgres_authenticate_returns_handle(mock_asyncpg: Any) -> None:
     mock_asyncpg.fetchval.return_value = "PostgreSQL 16.0"
-    c = PostgresConnector()
+    c = PostgresSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(payload={"dsn": "postgresql://wb:wb@db/wb"}),
     )
@@ -82,7 +82,7 @@ async def test_postgres_authenticate_returns_handle(mock_asyncpg: Any) -> None:
 @pytest.mark.asyncio
 async def test_postgres_authenticate_normalizes_sa_dsn(mock_asyncpg: Any) -> None:
     mock_asyncpg.fetchval.return_value = "PG"
-    c = PostgresConnector()
+    c = PostgresSurfaceDriver()
     handle = await c.authenticate(
         SecretBundle(payload={"dsn": "postgresql+asyncpg://wb:wb@db/wb"}),
     )
@@ -103,7 +103,7 @@ async def test_postgres_discover_lists_user_tables(mock_asyncpg: Any) -> None:
             "table_type": "BASE TABLE",
         },
     ]
-    c = PostgresConnector()
+    c = PostgresSurfaceDriver()
     handle = AuthHandle(
         connector_kind="postgres",
         handle_id="x",
@@ -136,7 +136,7 @@ async def test_postgres_profile_returns_columns(mock_asyncpg: Any) -> None:
         },
     ]
     mock_asyncpg.fetchval.return_value = 1234
-    c = PostgresConnector()
+    c = PostgresSurfaceDriver()
     handle = AuthHandle(
         connector_kind="postgres",
         handle_id="x",
@@ -153,7 +153,7 @@ async def test_postgres_profile_returns_columns(mock_asyncpg: Any) -> None:
 
 @pytest.mark.asyncio
 async def test_postgres_profile_rejects_unqualified_id(mock_asyncpg: Any) -> None:
-    c = PostgresConnector()
+    c = PostgresSurfaceDriver()
     handle = AuthHandle(
         connector_kind="postgres",
         handle_id="x",
@@ -180,7 +180,7 @@ async def test_postgres_sample_returns_tsv_bytes(mock_asyncpg: Any) -> None:
         _FakeRecord({"id": 1, "name": "Alice"}),
         _FakeRecord({"id": 2, "name": None}),
     ]
-    c = PostgresConnector()
+    c = PostgresSurfaceDriver()
     handle = AuthHandle(
         connector_kind="postgres",
         handle_id="x",
@@ -198,7 +198,7 @@ async def test_postgres_sample_empty_returns_empty_bytes(
     mock_asyncpg: Any,
 ) -> None:
     mock_asyncpg.fetch.return_value = []
-    c = PostgresConnector()
+    c = PostgresSurfaceDriver()
     handle = AuthHandle(
         connector_kind="postgres",
         handle_id="x",
@@ -209,7 +209,7 @@ async def test_postgres_sample_empty_returns_empty_bytes(
 
 @pytest.mark.asyncio
 async def test_postgres_watch_yields_nothing() -> None:
-    c = PostgresConnector()
+    c = PostgresSurfaceDriver()
     handle = AuthHandle(
         connector_kind="postgres",
         handle_id="x",
