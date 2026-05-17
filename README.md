@@ -1,19 +1,48 @@
 # WormBase
 
-**Institutional AI for the data function.** WormBase is a multi-tenant agent that
-installs into your company's chat platform, builds a hash-chained ledger of every
-event it observes, grows a medallion data lake from conversations and connected
-sources, and runs a per-user autoresearch loop that sharpens each seat over time.
-The product surface is **deterministic, auditable, and unprompted** (a16z
-Institutional AI), backed by a **compounding wiki of organizational truth**
-(Karpathy LLM-Wiki), driven by a **metric-governed self-improvement loop**
-(Karpathy autoresearch). The conversational edge is probabilistic; the writes to
-the ledger are gated and replayable.
+**WormBase is the agent-installable continuous lake.** It is **two
+installations** — one into your chat platform (Slack / Discord / Teams),
+one into your data lake — and the lake install has two paths:
+**build or connect**. Build bootstraps a fresh local lake (csv / sqlite /
+parquet under `~/.wormbase/lake/`) for prospects who don't yet have a
+warehouse; connect installs into your existing Postgres, Snowflake,
+BigQuery, S3 lakehouse, or MCP-bridged surface (Notion, HubSpot, Linear,
+Atlassian). Both paths end at the same state: a continuous, governed,
+agent-tended lake.
 
-This repository ships the worm itself, the dashboard, every channel adapter, every
-connector, the ledger, the autoresearch loop, the voice agent, the simulation
-harness, and an MCP server that exposes the worm's institutional knowledge to
-external AI clients (Claude Desktop, Cursor, Cline, custom agents).
+From the moment of install, the lake is continuous and agent-operated.
+The agent and the lake **co-emerge** — there is no pre-existing lake
+that the agent then arrives to operate. The lake exists because the
+agent is tending it. Eight lake-side loops (L1–L8) continuously tend
+its state; four source families (`external`, `filedrop`,
+`conversation`, `evidence`) are equally lake-resident; every action is
+hash-chained from an append-only Postgres **ledger** — the substrate
+every projection (KPIs, decisions, processes, sources, people, data
+products, MCP audit) folds from.
+
+The chat install is the install channel and the audit channel. It is
+where humans onboard, ask questions, and hear what changed. The lake
+install is where the worm acquires its first non-conversation surface.
+Both fire the same `propose → execute → verify → resolve → trace`
+ledger sequence; both activate the same eight lake-side loops; both
+become equally tended.
+
+The product surface is **deterministic, auditable, and unprompted**
+(a16z Institutional AI), backed by a **compounding wiki of
+organizational truth** (Karpathy LLM-Wiki), driven by a
+**metric-governed self-improvement loop** (Karpathy autoresearch). The
+conversational edge is probabilistic; the writes to the ledger are
+gated and replayable.
+
+For the full thesis, read
+[`docs/architecture/continuous-lake.md`](docs/architecture/continuous-lake.md)
+and [ADR-0013](docs/architecture/decisions/ADR-0013-continuous-lake-philosophy.md).
+
+This repository ships the worm itself, the dashboard, every channel
+adapter, every lake surface, the ledger, the autoresearch loop, the
+voice agent, the simulation harness, and an MCP server that exposes
+the worm's institutional knowledge to external AI clients (Claude
+Desktop, Cursor, Cline, custom agents).
 
 ---
 
@@ -71,32 +100,43 @@ need to run the live OAuth flow.
 
 ## Architecture at a glance
 
-WormBase is **three real subsystems** sharing one ledger substrate. Every write
-is hash-chained; every projection (KPIs, decisions, processes, sources, people,
-data products, MCP audit) is a fold of the ledger.
+The **continuous lake is at the center**. Surfaces are the four equal
+faces of the lake (`conversation`, `external`, `filedrop`, `evidence`).
+**Worm-core sits inside the lake** as the tender — operator, not
+consumer. Chat platforms are a tending channel into the lake, not a
+separate input feeding a separate pipeline. The Postgres ledger is the
+substrate below; every write is hash-chained; every projection (KPIs,
+decisions, processes, sources, people, data products, MCP audit) is a
+fold of the ledger.
 
 ```mermaid
-flowchart LR
-    subgraph Channels[Chat platforms]
+flowchart TB
+    subgraph Chat[Chat platforms]
         Slack[Slack]
         Discord[Discord]
         Teams[Teams]
     end
 
-    subgraph WB[WormBase tenancy]
-        ADAPT[channel-adapter<br/>normalizes wire events]
-        WORM[worm-core<br/>brain + autoresearch + MCP server]
-        LEDGER[(Postgres ledger<br/>hash-chained)]
-        DASH[dashboard<br/>Next.js 15]
-        MCP[MCP server<br/>:9911 Streamable HTTP]
-        VOICE[voice-agent]
+    ADAPT[channel-adapter<br/>normalizes wire events]
+
+    subgraph Lake[The continuous lake]
+        direction TB
+        subgraph Surfaces[Four source families - equal faces of the lake]
+            direction LR
+            CONV[conversation<br/>threads · mentions<br/>decisions]
+            EXT[external<br/>Postgres · Snowflake · BigQuery<br/>S3 · Stripe · Notion MCP]
+            FD[filedrop<br/>dropped CSVs<br/>evidence PDFs]
+            EV[evidence<br/>notebooks<br/>data products]
+        end
+        WORM[worm-core - the tender<br/>8 lake-side loops L1–L8<br/>lake-maintainer · catalog-mirror<br/>autoresearch · MCP]
     end
 
-    subgraph Sources[Connector sources]
-        LOCAL[default local lake]
-        STRIPE[Stripe]
-        PG[Postgres]
-        NOTION[Notion via MCP]
+    LEDGER[(Postgres ledger<br/>append-only · hash-chained)]
+
+    subgraph Consumers[Ledger consumers]
+        DASH[dashboard<br/>Next.js 15]
+        MCP[MCP server<br/>:9911 FastMCP]
+        VOICE[voice-agent]
     end
 
     subgraph Clients[External AI]
@@ -108,16 +148,26 @@ flowchart LR
     Slack <--> ADAPT
     Discord -.-> ADAPT
     Teams -.-> ADAPT
-    ADAPT --> LEDGER
-    WORM <--> LEDGER
-    DASH --> LEDGER
-    WORM --> ADAPT
-    Sources --> WORM
-    WORM --> MCP
+    ADAPT -- writes --> CONV
+    WORM -- tends --> CONV
+    WORM -- tends --> EXT
+    WORM -- tends --> FD
+    WORM -- tends --> EV
+    Lake --> LEDGER
+    LEDGER --> DASH
+    LEDGER --> MCP
+    LEDGER --> VOICE
     Clients --> MCP
-    MCP --> LEDGER
-    VOICE <--> WORM
+    WORM --> ADAPT
 ```
+
+Key visual properties:
+
+- **Lake at the center**, not at the bottom of a pipe.
+- **Surfaces as faces**, four equal families — none privileged.
+- **Worm-core inside the lake** as the tender — operator, not consumer.
+- **Ledger below the lake** as the substrate every action chains from.
+- **Chat platforms as a tending channel**, not a separate input source.
 
 The two non-negotiable properties:
 
@@ -131,6 +181,45 @@ The two non-negotiable properties:
    channel-adapter.
 
 Full design: [`docs/architecture-overview.md`](docs/architecture-overview.md).
+Continuous-lake thesis:
+[`docs/architecture/continuous-lake.md`](docs/architecture/continuous-lake.md).
+
+---
+
+## Tending the continuous lake
+
+The lake doesn't stay still after install. Eight **lake-side loops**
+continuously tend its state, each one a named axis along which the
+agent is keeping the lake honest from t=0:
+
+| Loop | Tending behavior |
+|---|---|
+| **L1** | Triages candidate sources mentioned in conversation → proposes new surfaces |
+| **L2** | Detects catalog drift in connected surfaces → acknowledges or flags |
+| **L3** | Discovers lineage edges between tables and columns → confirms or revises |
+| **L4** | Computes schema-impact when surfaces change → elevates governance |
+| **L5** | Fingerprints columns → identifies semantic types across the lake |
+| **L6** | Classifies columns (PII / confidential / regulated) → confirms or escalates |
+| **L7** | Runs quality checks → emits findings to the ledger |
+| **L8** | Stitches entities across surfaces → resolves identity |
+
+All eight run concurrently from t=0 of install. Cross-axis chains
+(L5 → L7, L6 → L4, L5 → L4, L4 ↦ L2) compose individual loops into
+multi-step inferences without coupling them. The **lake-maintainer**
+dispatches `MaintainableSource` Protocol calls (drift detection,
+classification refresh, staleness signals, lineage health) across
+every surface family; the **catalog-mirror** keeps every external
+surface's catalog imported into ledger entries the loops can read
+from.
+
+The mental model: **tending is the verb; the lake is the noun; the
+eight loops are the grammar.** Where a vendor in this space says
+"self-healing pipeline" or "active metadata," translate to "one of our
+eight lake-side loops, expressed in their vocabulary."
+
+See [`docs/architecture/lake-side-loops.md`](docs/architecture/lake-side-loops.md)
+for the full L1–L8 reference, the cross-axis chains, and how loops
+compose via the `LakeLoopComposite[T]` pattern.
 
 ---
 
@@ -191,22 +280,38 @@ canonical phase of the product, mapped to the architectural principles in
 [`ARCHITECTURE.md`](ARCHITECTURE.md) and to ledger entries that fire when the
 step happens.
 
-1. **CONNECT.** One tap. The worm joins your chat platform and starts
-   lurking. The default local lake is pre-provisioned during install — bronze
-   + silver + gold playable from minute zero, before any external source
-   connects. Persons auto-discover from the first wire event.
-2. **GROW THE LAKE.** Bronze → silver → gold cascades on every dropped file,
-   pasted credential, or mentioned source. Six source-building flows
-   (`drop_and_profile`, `credential_in_dm`, `mentioned_in_conversation`,
-   `dashboard_form`, `kpi_gap_triggered`, `lake_discovery`) all funnel into
-   the same `propose → confirm → connect → profile → cascade` ledger
-   sequence.
-3. **BUILD CONCURRENTLY.** KPIs in a tree, governance over every resource,
-   processes retrieved from conversation history. All three grow at the
-   same time, from the same substrate.
+1. **INSTALL.** Two installations, one product. The chat install
+   (`@connect slack` / `discord` / `teams`) wires a channel adapter to
+   worm-core and the worm begins lurking — every message is bronze
+   ingestion on the conversation surface from the first wire event. The
+   lake install is **build or connect**: build bootstraps the default
+   local lake at `~/.wormbase/lake/{bronze,silver,gold}/` (for prospects
+   without an existing warehouse); connect installs into an existing
+   Postgres, Snowflake, BigQuery, S3, Stripe, or MCP-bridged surface
+   (Notion, HubSpot, Linear, Atlassian). Both paths fire
+   `propose → execute → verify → resolve → trace`; persons auto-discover
+   from the first wire event.
+2. **TEND.** Eight lake-side loops (L1–L8) tend the lake continuously
+   from t=0 of install — drift detection, lineage discovery,
+   schema-impact, semantic typing, governance classification, quality
+   checks, entity stitching, candidate-source triage. The
+   lake-maintainer dispatches the `MaintainableSource` Protocol across
+   every surface family; the catalog-mirror keeps every external
+   surface's catalog hash-chained into the ledger. Six source-building
+   flows (`drop_and_profile`, `credential_in_dm`,
+   `mentioned_in_conversation`, `dashboard_form`, `kpi_gap_triggered`,
+   `lake_discovery`) all funnel into the same `source_proposed →
+   source_confirmed → source_connected → source_profiled` lifecycle.
+3. **COMPOUND.** Knowledge accumulates per `[[ledger]]` entry and per
+   axis. KPIs in a tree, governance over every resource, processes
+   retrieved from conversation history all grow concurrently from the
+   same substrate. Cross-axis chains (L5 → L7, L6 → L4, L5 → L4, L4 ↦ L2)
+   compose individual lake-side loops into multi-step inferences without
+   coupling them. Every loop's confirmed-state output is available as a
+   Reader Protocol for any other loop to chain off.
 4. **PRODUCE + CONVERSE.** Data products generated from the lake. Text
    (Slack mentions) and voice (ElevenLabs + Kimi). Every answer is
-   receipt-backed and replayable.
+   receipt-backed and replayable from the ledger.
 5. **SELF-IMPROVE PER USER.** Karpathy-style autoresearch loop, parameterized
    by each user's role/position. Each Person gets their own analyst seat
    that gets sharper over time.
@@ -286,9 +391,10 @@ with no host-level installs other than Docker / Docker Compose.
 Two governing documents shape every contribution:
 
 1. **[`ARCHITECTURE.md`](ARCHITECTURE.md)** — durable architectural pins:
-   substrate (PEVR + ledger + projections), worm decomposition, Connector +
-   ChannelAdapter contracts, identity model, role facets, install lifecycle,
-   cleanup invariants (the always-on "no demo seams" list).
+   substrate (PEVR + ledger + projections), worm decomposition,
+   SurfaceDriver + ChannelAdapter contracts, identity model, role
+   facets, install lifecycle, cleanup invariants (the always-on "no
+   demo seams" list).
 2. **[`DEVELOPERS.md`](DEVELOPERS.md)** — agent-orchestrated contribution
    patterns: the dispatch primitive, attention-handoff posture,
    parallel-worktree discipline, close-out as compounding state.
@@ -299,19 +405,32 @@ design specs (PRD-grade) in `docs/superpowers/specs/`. If a spec conflicts
 with an older one, the newer spec wins; update the older one in the same
 commit.
 
-### Adding a new connector
+### Adding a new lake surface
 
-1. Create `packages/connectors/src/wormbase_connectors/<your_kind>.py`
-   implementing the `Connector` Protocol (`authenticate`, `discover`,
-   `profile`, `sample`, `watch`).
-2. Add a registry entry to
-   `packages/connectors/src/wormbase_connectors/registry.py`.
-3. Provide a JSON-schema config so the dashboard's `/sources/new` connector
-   picker can render a form (the schema lives next to your connector class).
+A lake surface is a managed face of the continuous lake. To add one,
+implement the `SurfaceDriver` Protocol and register it. (Paths and
+class names below reflect post-Wave-D state — see
+[ADR-0013](docs/architecture/decisions/ADR-0013-continuous-lake-philosophy.md)
+and the rename plan in
+[`docs/superpowers/specs/2026-05-17-continuous-lake-philosophy-design.md`](docs/superpowers/specs/2026-05-17-continuous-lake-philosophy-design.md)
+§10.)
+
+1. Create `packages/lake-surfaces/src/wormbase_lake_surfaces/<your_kind>.py`
+   implementing the `SurfaceDriver` Protocol (`authenticate`, `discover`,
+   `profile`, `sample`, `watch`). External and filedrop surfaces also
+   implement `AcquirableSource`; every family implements
+   `MaintainableSource` (drift / classification / staleness / lineage).
+2. Add a registry entry via `register_surface_driver` in
+   `packages/lake-surfaces/src/wormbase_lake_surfaces/registry.py`.
+3. Provide a JSON-schema config so the dashboard's `/sources/new` lake
+   surface picker can render a form (the schema lives next to your
+   surface driver class).
 4. Add an integration test against a recorded fixture in
-   `tests/connectors/test_<your_kind>.py`.
+   `tests/lake-surfaces/test_<your_kind>.py`.
 5. **No core code ever changes** — that's the invariant. If you find yourself
-   editing source-builder flows, you're doing it wrong.
+   editing source-builder flows or lake-maintainer dispatch logic, you're
+   doing it wrong. The eight lake-side loops will pick the new surface
+   up automatically once it lands in the registry.
 
 ### Adding a new channel adapter
 
@@ -371,6 +490,9 @@ non-trivial change.
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Durable architectural pins — substrate, worm decomposition, contracts, identity, roles, install lifecycle |
 | [`DEVELOPERS.md`](DEVELOPERS.md) | Agent-orchestrated contribution patterns — dispatch primitive, attention handoff, parallel-worktree discipline |
 | [`docs/architecture-overview.md`](docs/architecture-overview.md) | The Triad → EDITABLE/LOOP/HARNESS/TRACE → service architecture |
+| [`docs/architecture/continuous-lake.md`](docs/architecture/continuous-lake.md) | The agent-installable continuous lake — umbrella thesis, two installations, four source families, positioning vs industry |
+| [`docs/architecture/lake-side-loops.md`](docs/architecture/lake-side-loops.md) | Public-friendly L1–L8 reference for the eight tending behaviors + cross-axis chains |
+| [`docs/architecture/decisions/ADR-0013-continuous-lake-philosophy.md`](docs/architecture/decisions/ADR-0013-continuous-lake-philosophy.md) | The architectural commitment behind co-emergent agent + lake |
 | [`docs/architecture/decisions/`](docs/architecture/decisions/) | Architecture Decision Records (ADRs) — every load-bearing decision captured |
 | [`docs/architecture/`](docs/architecture/) | Orchestration, synthesis, case-studies, performance, product subdirs |
 | [`docs/DELIVERY_LOG.md`](docs/DELIVERY_LOG.md) | Chronological release register — every meaningful ship |
@@ -399,10 +521,25 @@ reading and contribution under good-faith conventions."
 
 ## Status
 
-WormBase ships an agent-orchestrated, ledger-substrated data platform that
-installs into your chat, builds your data lake agentically, and answers every
-question with hash-chained receipts. The substrate is settled; the public
-surface is still maturing. See [`docs/DELIVERY_LOG.md`](docs/DELIVERY_LOG.md)
-for what has shipped, and the
-[`docs/architecture/decisions/`](docs/architecture/decisions/) ADRs for the
-load-bearing decisions behind it.
+WormBase ships an agent-orchestrated, ledger-substrated continuous lake
+that installs into your chat platform, builds or connects to your data
+lake, tends both continuously, and answers every question with
+hash-chained receipts. The substrate is settled; the public surface is
+still maturing.
+
+- The **continuous-lake philosophy** is the load-bearing positioning —
+  see [`docs/architecture/continuous-lake.md`](docs/architecture/continuous-lake.md)
+  for the thesis, the four source families, the two installations, and
+  the differentiation against bolt-on agentic layers.
+- The architectural commitment is captured in
+  [ADR-0013](docs/architecture/decisions/ADR-0013-continuous-lake-philosophy.md):
+  the lake exists because the agent is tending it; agent and lake
+  co-emerge from t=0.
+- The eight lake-side loops (L1–L8) that continuously tend the lake are
+  documented in
+  [`docs/architecture/lake-side-loops.md`](docs/architecture/lake-side-loops.md).
+
+See [`docs/DELIVERY_LOG.md`](docs/DELIVERY_LOG.md) for what has shipped,
+and the
+[`docs/architecture/decisions/`](docs/architecture/decisions/) ADRs for
+the load-bearing decisions behind it.
