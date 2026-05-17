@@ -143,11 +143,146 @@ relevant close-outs from the last few months. Patterns repeat; prior
 decisions are usually still correct; the close-out gives the next
 contributor a running start.
 
+## Extending the continuous lake
+
+WormBase is the agent-installable continuous lake (see ADR-0013 and
+`docs/architecture/continuous-lake.md`). Most contributions extend it
+along one of four well-worn seams: a new lake surface, a new tending
+behavior, a new lake-side loop, or a new catalog extractor. Each seam
+has a fixed shape; following the shape keeps the diff small and the
+review cheap.
+
+### Adding a new lake surface (`SurfaceDriver` impl)
+
+A lake surface is a managed face of the continuous lake. Adding one is
+how new data substrates (Postgres flavor, SaaS API, file format) become
+tendable.
+
+- **File location.** `packages/lake-surfaces/src/wormbase_lake_surfaces/<your_kind>.py`
+  (post-Wave-D path; pre-Wave-D the path is still
+  `packages/connectors/src/wormbase_connectors/<your_kind>.py`).
+- **Protocol to implement.** `SurfaceDriver` — `authenticate`,
+  `discover`, `profile`, `sample`. Declare `kind`, `capability`,
+  `classification_hints`, `status`, `status_note` so the dashboard
+  picker can render an honest badge.
+- **Capability faces.** For the `external` and `filedrop` families,
+  also implement `AcquirableSource` (the acquisition face — discover /
+  profile / sample). ALL four families implement `MaintainableSource`
+  (the maintenance face — `detect_drift`, `refresh_classification`,
+  `staleness_signal`, `lineage_health`). See ADR-0003 for the
+  Protocol-split rationale.
+- **Register.** In `wormbase_lake_surfaces/registry.py`, call
+  `register_surface_driver(kind="...", driver=YourSurfaceDriver)` (or
+  decorate the class with `@register_surface_driver`).
+- **JSON-schema config.** Ship a JSON schema next to the class so the
+  dashboard's `/sources/new` picker can render a form from it.
+- **Test.** `packages/lake-surfaces/tests/test_<your_kind>.py` — follow
+  the fixture conventions in adjacent files; use `isinstance(driver,
+  SurfaceDriver)` to assert structural conformance.
+- **TS side.** Add an entry to `apps/dashboard/lib/lake-surfaces-catalog.ts`
+  (post-Wave-D rename) — the status pin test will fail if you skip this.
+- **Cross-reference.** `docs/architecture/surfaces.md` (post-Wave-C) for
+  capability honesty and the production / preview / coming_soon bar.
+
+```python
+# packages/lake-surfaces/src/wormbase_lake_surfaces/myservice.py
+from wormbase_lake_surfaces.base import SurfaceDriver
+
+class MyServiceSurfaceDriver(SurfaceDriver):
+    kind = "myservice"
+    capability = {"discover", "profile", "sample"}
+    status = "preview"
+    status_note = "Read-only; OAuth flow lands in v0.7"
+
+    async def authenticate(self, secrets): ...
+    async def discover(self, handle): ...
+    async def profile(self, handle, resource_id): ...
+    async def sample(self, handle, resource_id, n): ...
+```
+
+
+### Adding a new tending behavior (lake-maintainer Reactivity)
+
+A tending behavior is a per-source Reactivity the lake-maintainer wires
+when a surface registers. Existing behaviors include staleness signal,
+drift detection, classification refresh, and lineage health. Add one
+when a new always-on maintenance axis is needed.
+
+- **File location.** Add a new `@dataclass` Reactivity class to
+  `packages/lake-maintainer/src/wormbase_lake_maintainer/reactivities.py`
+  (or a new file under the same package if the behavior is large).
+- **Protocol.** Each Reactivity has `predicate` (when to fire) and
+  `action` (what to do). The action yields a ledger entry via the
+  `emit_*` primitives — never write to the substrate directly.
+- **Register.** Add the new Reactivity to `factory.py`'s
+  `make_maintenance_reactivities(source)` so `wire_maintenance_for_source`
+  attaches it on every source registration. The factory bundles all
+  per-source Reactivities — partial bundles are an anti-pattern.
+- **Test.** `packages/lake-maintainer/tests/test_<your_behavior>.py` —
+  unit-test predicate and action independently; integration-test via
+  the factory.
+- **Cross-reference.** ADR-0003 (lake-maintainer pattern, Protocol
+  split, factory-bundled Reactivities).
+
+### Adding a new lake-side loop (continuous tending behavior)
+
+A lake-side loop is one of the eight named axes along which the lake
+is continuously tended (L1 source-candidate triage through L8 entity
+stitching). Adding a ninth is the heaviest extension in this list;
+treat it as a multi-task wave with its own design spec.
+
+- **Read first.** `docs/architecture/lake-side-loops.md` for the L1–L8
+  reference, plus the deep specs in `docs/superpowers/specs/2026-05-28-…`
+  through `2026-06-09-…` for the strategy / Reader / composite template.
+- **High-level shape.** Implement strategies that produce candidates for
+  the new axis; implement a `Reader` Protocol for the ledger inputs each
+  strategy consumes; register a `LakeLoopComposite[T]` that fans into
+  strategies and folds candidates into a deduped queue; add a
+  `/lake/<your-axis>` dashboard page for admin disposition.
+- **Cross-axis chains.** A new strategy on an existing axis (e.g. a
+  fourth L3 lineage strategy) lives in that axis's package — no new
+  axis needed.
+- **Test.** Each strategy has its own test fixture; the composite is
+  integration-tested via trigger → strategies → proposals → admin
+  disposition → confirmed state.
+- **Cross-reference.** The eight deep specs in `docs/superpowers/specs/`.
+
+### Adding a new catalog extractor (catalog-mirror per-surface extractor)
+
+A catalog extractor pairs with a `SurfaceDriver` and turns a connected
+surface's catalog (tables, columns, sample-row counts, dtype) into a
+`CatalogSnapshot` that L2 (drift detection) and L4 (schema-impact) read.
+
+- **File location.** `packages/wormbase-catalog-mirror/src/wormbase_catalog_mirror/implementations/<kind>.py`.
+- **Implement.** A `CatalogSource` that takes the `AuthHandle` produced
+  by `SurfaceDriver.authenticate` and returns a `CatalogSnapshot`
+  (tables + columns + sample-row counts + dtype). Mirror the shape of
+  `dbt_manifest.py` or `snowflake_native.py`.
+- **Register.** Call `register_catalog_source(kind="...", cls=...)` in
+  `wormbase_catalog_mirror/registry.py`. The kind must match the
+  corresponding `SurfaceDriver.kind`.
+- **Test.** A recorded-fixture test that pins the snapshot shape catches
+  upstream schema surprises early.
+- **Cross-reference.** The per-surface extractor bundle work tracked in
+  `docs/DELIVERY_LOG.md`; the `CatalogSource` Protocol in
+  `wormbase_catalog_mirror/protocol.py`.
+
 ## Cross-references
 
 - `ARCHITECTURE.md` — the architectural pins this practice maintains.
 - `docs/AUTONOMOUS_MAINTENANCE_PLAYBOOK.md` — distilled methodology behind
   the practice.
+- `docs/architecture/continuous-lake.md` — umbrella narrative for the
+  continuous-lake framing (surfaces, families, tending).
+- `docs/architecture/lake-side-loops.md` — public-friendly L1–L8
+  reference for the eight continuous tending behaviors.
+- `docs/architecture/surfaces.md` (post-Wave-C rename) — capability
+  honesty and the production / preview / coming-soon promotion bar.
+- `docs/architecture/decisions/ADR-0013-continuous-lake-philosophy.md`
+  — the architectural commitment behind the continuous-lake framing.
+- `docs/architecture/decisions/ADR-0003-lake-maintainer-pattern.md` —
+  the `AcquirableSource` / `MaintainableSource` Protocol split and the
+  factory-bundled Reactivity pattern.
 - `docs/superpowers/specs/` — authoritative deep dives on individual
   subsystems.
 - `docs/superpowers/plans/` — wave-level plans before they are dispatched.
