@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WormBase &mdash; ledger-substrated data infrastructure for chat</title>
-<meta name="description" content="WormBase is an agent-orchestrated, ledger-substrated data infrastructure that lives in your chat, builds your data lake agentically, and answers your questions with hash-chained receipts." />
+<title>WormBase &mdash; the agent-installable continuous lake</title>
+<meta name="description" content="WormBase is the agent-installable continuous lake. Two installations: into your chat (Slack/Discord/Teams) and into your data lake (built or connected). From t=0 the lake is continuous + agent-operated. Eight lake-side loops continuously tend it. Hash-chained receipts." />
 <meta name="color-scheme" content="dark" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -427,6 +427,89 @@
     font-size: 11px;
     letter-spacing: 0.04em;
   }
+  .diagram .lake-box {
+    border: 1px solid var(--accent-rule);
+    background: var(--accent-soft);
+    padding: 16px 14px 14px;
+    border-radius: 3px;
+    margin: 6px 0;
+    position: relative;
+  }
+  .diagram .lake-box::before {
+    content: "THE CONTINUOUS LAKE";
+    position: absolute;
+    top: -7px; left: 12px;
+    background: var(--bg-elev);
+    padding: 0 8px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+  }
+  .diagram .family-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .diagram .family {
+    border: 1px solid var(--rule);
+    background: var(--bg);
+    padding: 10px 12px;
+    border-radius: 2px;
+    color: var(--ink);
+    font-size: 12px;
+  }
+  .diagram .family .fam-label {
+    color: var(--accent);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .diagram .family small {
+    display: block;
+    color: var(--ink-faint);
+    font-size: 10.5px;
+    margin-top: 4px;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    text-transform: none;
+  }
+  .diagram .tender {
+    border: 1px dashed var(--accent-rule);
+    background: var(--bg);
+    color: var(--ink);
+    padding: 10px 12px;
+    border-radius: 2px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .diagram .tender .t-label {
+    color: var(--accent);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .diagram .side-rail {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .diagram .side-rail .node { padding: 8px 10px; font-size: 11.5px; }
+  .diagram .arch-grid {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 12px;
+    align-items: stretch;
+  }
+  @media (max-width: 760px) {
+    .diagram .arch-grid { grid-template-columns: 1fr; }
+    .diagram .family-grid { grid-template-columns: 1fr; }
+  }
 
   /* ----- install / code block ----- */
   .install {
@@ -608,18 +691,19 @@
 
 <section class="hero" id="top" aria-label="Introduction">
   <div class="wrap">
-    <span class="eyebrow">Agent-orchestrated data infrastructure</span>
+    <span class="eyebrow">The agent-installable continuous lake</span>
     <h1 class="headline">
-      The worm that lives in your chat<br />
-      and <span class="accent">builds your data lake.</span>
+      The agent-installable<br />
+      <span class="accent">continuous lake.</span>
     </h1>
     <p class="sub">
-      WormBase is an <strong>agent-orchestrated, ledger-substrated</strong> data
-      platform. It installs into your chat in 60&nbsp;seconds, grows your lake
-      agentically from six trigger flows, compounds knowledge across eight
-      lake-side loops, and answers every question with <strong>hash-chained
-      receipts</strong>. Probabilistic edge. Deterministic core. Replays
-      bit-exact from t&nbsp;=&nbsp;0.
+      WormBase installs into your chat <strong>and</strong> your data lake
+      &mdash; either by <strong>building</strong> one (default local) or by
+      <strong>connecting</strong> to your existing lake. From the moment of
+      install, the lake is <strong>continuous + agent-operated</strong>. The
+      agent and the lake <strong>co-emerge</strong>: there is no lake before
+      the agent is tending it. Eight lake-side loops continuously tend its
+      state; every action is hash-chained from the ledger.
     </p>
     <div class="cta-row">
       <a class="btn primary" href="https://github.com/wormbase/wormbase/blob/main/ARCHITECTURE.md" rel="noopener">
@@ -630,10 +714,11 @@
       </a>
     </div>
     <div class="meta-line" role="list">
-      <span role="listitem"><span class="dot" aria-hidden="true"></span>PEVR write primitive</span>
+      <span role="listitem"><span class="dot" aria-hidden="true"></span>Two installations &middot; chat + lake</span>
+      <span role="listitem"><span class="dot" aria-hidden="true"></span>8 lake-side loops</span>
       <span role="listitem"><span class="dot" aria-hidden="true"></span>Hash-chained ledger</span>
-      <span role="listitem"><span class="dot dim" aria-hidden="true"></span>Slack today &middot; WhatsApp preview</span>
-      <span role="listitem"><span class="dot dim" aria-hidden="true"></span>12+ connectors</span>
+      <span role="listitem"><span class="dot dim" aria-hidden="true"></span>Slack today &middot; Discord / Teams via the same adapter</span>
+      <span role="listitem"><span class="dot dim" aria-hidden="true"></span>15+ lake surfaces</span>
     </div>
   </div>
 </section>
@@ -642,7 +727,7 @@
   <div class="wrap">
     <div class="section-head">
       <div class="marker">&sect; 01 &nbsp;/&nbsp; capabilities</div>
-      <h2 id="what-h">Four things the worm does, <span class="accent">end&#8209;to&#8209;end.</span></h2>
+      <h2 id="what-h">Five things the worm does, <span class="accent">end&#8209;to&#8209;end.</span></h2>
     </div>
 
     <div class="cap-grid" role="list">
@@ -652,40 +737,102 @@
         <h3>Listens in chat first</h3>
         <p>
           Installs into your Slack workspace, auto-discovers your team across
-          channels, and ingests files dropped in conversation. WhatsApp in
-          preview; Discord and Teams via the same <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">ChannelAdapter</code>
-          contract. Lurks by default; speaks only when a relevance gate fires.
+          channels, and ingests files dropped in conversation. The chat
+          stream is itself a lake surface &mdash; the conversation family
+          &mdash; tended from the first message forward. Discord and Teams
+          via the same
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">ChannelAdapter</code>
+          contract; WhatsApp in preview. Lurks by default; speaks only when a
+          relevance gate fires.
         </p>
-        <span class="verb">Listen &middot; ingest &middot; respond</span>
+        <span class="verb">Listen &middot; ingest &middot; tend</span>
       </article>
 
       <article class="cap" role="listitem">
         <div class="idx"><span>02 &middot; lake</span><span class="glyph">&#x25B2;</span></div>
-        <h3>Grows your lake agentically</h3>
+        <h3>Tends a continuous lake</h3>
         <p>
-          Six source-building flows: drop&#8209;and&#8209;profile, credential&#8209;in&#8209;DM,
-          mentioned&#8209;in&#8209;conversation, dashboard form, KPI&#8209;gap&#8209;triggered,
-          lake&#8209;discovery. Twelve&#x2009;plus connectors behind a single
-          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">Connector</code>
-          Protocol. Bronze &rarr; silver &rarr; gold replays bit-exact.
+          The lake doesn't sit still after install &mdash; it is
+          <strong>continuous</strong>, always being tended. Eight
+          <strong>lake-side loops</strong> (L1 triage, L2 catalog drift, L3
+          lineage, L4 schema-impact, L5 semantic types, L6 classification,
+          L7 quality, L8 entity stitching) run concurrently from t&nbsp;=&nbsp;0
+          across every surface.
         </p>
-        <span class="verb">Acquire &middot; profile &middot; maintain</span>
+        <p>
+          <strong>Build or connect</strong> via a single
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">SurfaceDriver</code>
+          Protocol: 15+ lake surfaces today &mdash; in production
+          (<code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">csv_local</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">postgres</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">snowflake</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">s3_csv</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">http_csv</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">stripe</code>);
+          coming soon
+          (<code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">bigquery</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">salesforce</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">hubspot</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">gsheets</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">notion</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">linear</code>,
+          plus MCP presets). Bronze &rarr; silver &rarr; gold replays
+          bit-exact.
+        </p>
+        <span class="verb">Tend &middot; build or connect &middot; maintain</span>
       </article>
 
       <article class="cap" role="listitem">
-        <div class="idx"><span>03 &middot; knowledge</span><span class="glyph">&#x25CF;</span></div>
+        <div class="idx"><span>03 &middot; install</span><span class="glyph">&#x25C7;</span></div>
+        <h3>Two installations, both agent-led</h3>
+        <p>
+          A WormBase install is <strong>two acts</strong>, not one.
+          <strong>Chat install</strong>:
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">@connect&nbsp;slack</code>
+          (or
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">discord</code>
+          /
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">teams</code>).
+          The worm acquires a tendable user-side surface &mdash; the
+          conversation stream.
+        </p>
+        <p>
+          <strong>Lake install</strong>: build OR connect. <strong>Build</strong>
+          is the default local path &mdash; the
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">csv_local</code>
+          SurfaceDriver bootstraps
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">~/.wormbase/lake/{bronze,silver,gold}/</code>
+          for prospects without a warehouse yet. <strong>Connect</strong>
+          installs the agent into your existing lake via a SurfaceDriver
+          (Postgres warehouse, Snowflake, BigQuery, S3 lakehouse, Notion via
+          MCP, and so on).
+        </p>
+        <p>
+          Both paths end at the same substrate state. Both trigger the same
+          <code style="font-family:var(--font-mono);font-size:.88em;color:var(--ink)">propose &rarr; execute &rarr; verify &rarr; resolve</code>
+          ledger sequence. Both activate the same eight lake-side loops. The
+          agent and the lake <strong>co-emerge from t&nbsp;=&nbsp;0</strong>.
+        </p>
+        <span class="verb">Chat &middot; build or connect &middot; co-emerge</span>
+      </article>
+
+      <article class="cap" role="listitem">
+        <div class="idx"><span>04 &middot; knowledge</span><span class="glyph">&#x25CF;</span></div>
         <h3>Compounds knowledge across 8 axes</h3>
         <p>
-          Lineage, quality checks, schema-evolution impact, semantic-type
+          The eight lake-side loops are the compounding axes: lineage,
+          quality checks, schema-evolution impact, semantic-type
           fingerprinting, column classification, entity stitching,
-          source-candidate triage, catalog drift. Cross-axis chains reinforce
-          each other. Synthesis happens at ingest, not at retrieval.
+          source-candidate triage, catalog drift. Cross-axis chains
+          (L5&nbsp;&rarr;&nbsp;L7, L6&nbsp;&rarr;&nbsp;L4,
+          L5&nbsp;&rarr;&nbsp;L4) reinforce each other. Synthesis happens
+          at ingest, not at retrieval.
         </p>
         <span class="verb">Detect &middot; classify &middot; reinforce</span>
       </article>
 
       <article class="cap" role="listitem">
-        <div class="idx"><span>04 &middot; receipts</span><span class="glyph">&#x25A0;</span></div>
+        <div class="idx"><span>05 &middot; receipts</span><span class="glyph">&#x25A0;</span></div>
         <h3>Answers with receipts</h3>
         <p>
           Every answer carries the ledger entries that produced it.
@@ -704,25 +851,39 @@
   <div class="wrap">
     <div class="section-head">
       <div class="marker">&sect; 02 &nbsp;/&nbsp; substrate</div>
-      <h2 id="arch-h">One ledger, one write primitive, <span class="accent">everything else is a projection.</span></h2>
+      <h2 id="arch-h">Lake at the center, ledger below, <span class="accent">everything else is a projection.</span></h2>
     </div>
 
     <div class="arch-body">
       <div class="arch-prose">
         <p>
+          The diagram is the thesis. The <strong>continuous lake</strong> is
+          at the center; four equal source families &mdash;
+          <code>conversation</code>, <code>external</code>,
+          <code>filedrop</code>, <code>evidence</code> &mdash; are kinds of
+          faces of the lake, not a separate input box. <strong>Worm-core
+          lives inside the lake</strong> as the tender, not outside it as a
+          consumer. The Postgres ledger is <strong>below</strong> the lake:
+          the substrate every action chains from.
+        </p>
+        <p>
           WormBase reduces to a single write primitive and a single read
           primitive. The write primitive is <strong>PEVR</strong>:
           <code>propose &rarr; execute &rarr; verify &rarr; resolve</code>.
           Every persistent state change &mdash; a profile, a KPI, a person
-          discovery, an answer &mdash; flows through one of those four entry
-          shapes.
+          discovery, an answer, a surface acquired &mdash; flows through one
+          of those four entry shapes. Both installations
+          (<strong>chat</strong> via <code>@connect&nbsp;slack</code> and
+          <strong>lake</strong> via build-or-connect) fire the same
+          sequence; both activate the same eight lake-side loops.
         </p>
         <p>
           The ledger is append-only, company-scoped, hash-chained. It is the
           substrate, not a side-channel. Lake, memory, KPI tree, channel
           history, gate outcomes are <strong>materialized projections</strong>
           over the ledger. Replay it to timestamp&nbsp;T and you reproduce any
-          state &mdash; same hashes, same bytes.
+          state &mdash; same hashes, same bytes &mdash; including the act of
+          installing the surfaces themselves.
         </p>
         <p>
           The conversational edge is LLM-driven and stochastic by design.
@@ -738,26 +899,60 @@
         </p>
       </div>
 
-      <div class="diagram" aria-label="Architecture diagram: surfaces flow through PEVR write actions into the hash-chained ledger; projections and reactivities materialize from it.">
-        <div class="row">
-          <div class="node">chat<small>SLACK / WHATSAPP</small></div>
-          <div class="node">dashboard<small>HTTP / MCP</small></div>
-          <div class="node">connectors<small>12+ SOURCES</small></div>
+      <div class="diagram" aria-label="Architecture diagram: the continuous lake at the center with four equal source families and worm-core as the tender inside; chat platforms write in via the channel-adapter; the Postgres ledger sits below the lake as the substrate; the dashboard and MCP server read from the ledger.">
+        <div class="arch-grid">
+          <div class="side-rail" aria-label="Chat-install rail">
+            <div class="node">chat platforms<small>SLACK / DISCORD / TEAMS</small></div>
+            <div class="arrow"><span class="accent">&darr;</span></div>
+            <div class="node">channel-adapter<small>NORMALIZES WIRE EVENTS</small></div>
+            <div class="arrow"><span class="accent">&rarr;</span> tending</div>
+          </div>
+
+          <div class="lake-box" aria-label="The continuous lake">
+            <div class="family-grid">
+              <div class="family">
+                <span class="fam-label">conversation</span>
+                Slack / Discord threads
+                <small>messages &middot; mentions &middot; decisions</small>
+              </div>
+              <div class="family">
+                <span class="fam-label">external</span>
+                Postgres &middot; Snowflake
+                <small>BigQuery &middot; S3 &middot; Stripe &middot; Notion (MCP)</small>
+              </div>
+              <div class="family">
+                <span class="fam-label">filedrop</span>
+                Dropped CSVs
+                <small>evidence PDFs &middot; one-off uploads</small>
+              </div>
+              <div class="family">
+                <span class="fam-label">evidence</span>
+                Notebooks
+                <small>autoresearch &middot; data products</small>
+              </div>
+            </div>
+            <div class="tender">
+              <span class="t-label">worm-core &mdash; the tender</span>
+              8 lake-side loops (L1&ndash;L8) &middot; lake-maintainer &middot;
+              catalog-mirror &middot; autoresearch &middot; MCP
+            </div>
+          </div>
         </div>
-        <div class="arrow"><span class="accent">&darr;</span> &nbsp; <span class="accent">&darr;</span> &nbsp; <span class="accent">&darr;</span></div>
+
+        <div class="arrow"><span class="accent">&darr;</span> &nbsp; every action hash-chained &nbsp; <span class="accent">&darr;</span></div>
+
         <div class="row">
-          <div class="node accent" style="flex:3">write&#8209;actions &middot; gates<small>RELEVANCE &middot; PII &middot; CLASSIFICATION</small></div>
+          <div class="node accent" style="flex:3">postgres ledger &mdash; append-only, hash-chained<small>SUBSTRATE &middot; SINGLE SOURCE OF TRUTH</small></div>
         </div>
-        <div class="arrow"><span class="accent">&darr;</span></div>
-        <div class="row">
-          <div class="node accent" style="flex:3">ledger &mdash; append-only, hash-chained<small>SINGLE SOURCE OF TRUTH</small></div>
-        </div>
+
         <div class="arrow">&darr; &nbsp; &darr; &nbsp; &darr;</div>
+
         <div class="row">
-          <div class="node">projections<small>POSTGRES READ</small></div>
-          <div class="node">reactivities<small>CONDITION &rarr; ACTION</small></div>
+          <div class="node">dashboard<small>NEXT.JS &middot; READS PROJECTIONS</small></div>
+          <div class="node">MCP server<small>:9911 FASTMCP</small></div>
           <div class="node">wire-replay<small>DETERMINISTIC RE-RUN</small></div>
         </div>
+
         <div class="pevr" aria-label="PEVR entry shapes">
           <span class="k">propose</span>
           <span>&rarr;</span>
@@ -767,7 +962,12 @@
           <span>&rarr;</span>
           <span class="k">resolve</span>
         </div>
-        <div class="legend">PEVR &mdash; every persistent write, one shape.</div>
+        <div class="legend">
+          Lake at the center &middot; surfaces as faces &middot; worm-core inside
+          &middot; ledger below.<br />
+          PEVR &mdash; every persistent write, one shape; every action
+          replayable from t&nbsp;=&nbsp;0.
+        </div>
       </div>
     </div>
   </div>
@@ -777,7 +977,7 @@
   <div class="wrap">
     <div class="section-head">
       <div class="marker">&sect; 03 &nbsp;/&nbsp; get started</div>
-      <h2 id="install-h">Clone, compose, open. <span class="accent">Three commands.</span></h2>
+      <h2 id="install-h">Two installations. <span class="accent">One command to start.</span></h2>
     </div>
 
     <div class="install">
@@ -791,9 +991,12 @@
         <p>
           WormBase runs as a small set of services: the worm-core hub, a
           Postgres for ledger and projections, an inference endpoint, and a
-          channel-adapter for each connected platform. The compose file wires
-          them together; you bring the OAuth credentials and the first data
-          source.
+          channel-adapter for each connected platform. Bringing up the
+          stack is one command; the <strong>two installations</strong>
+          &mdash; chat (<code style="font-family:var(--font-mono);font-size:.88em;background:var(--bg-elev);padding:1px 5px;border:1px solid var(--rule);border-radius:2px;color:var(--accent)">@connect&nbsp;slack</code>)
+          and lake (<strong>build or connect</strong>) &mdash; happen from
+          the dashboard once it's up. A default local lake auto-provisions
+          for the build path so you can see tending behaviors immediately.
         </p>
 <pre class="code" aria-label="Install commands">
 <span class="c"># clone the repo</span>
@@ -803,15 +1006,26 @@
 <span class="c"># bring up worm-core, ledger, inference, channel-adapter</span>
 <span class="p">$</span> <span class="k">docker compose</span> up
 
-<span class="c"># dashboard at http://localhost:3000</span>
-<span class="c"># connect a chat platform, then a data source</span>
+<span class="c"># open dashboard at http://localhost:3000, then:</span>
+<span class="c">#   1. chat install &mdash; @connect slack (or discord / teams)</span>
+<span class="c">#   2. lake install &mdash; build (csv_local default) OR connect</span>
+<span class="c">#                        (postgres / snowflake / s3_csv / stripe / ...)</span>
 </pre>
         <p class="roadmap-note">
           Today, contributors run packages directly from the workspace
           (<code style="font-family:var(--font-mono);font-size:.88em;background:var(--bg-elev);padding:1px 5px;border:1px solid var(--rule);border-radius:2px;color:var(--accent)">make test-all</code>,
           <code style="font-family:var(--font-mono);font-size:.88em;background:var(--bg-elev);padding:1px 5px;border:1px solid var(--rule);border-radius:2px;color:var(--accent)">make qa</code>).
           See DEVELOPERS.md for the contributor path; the hosted compose
-          path lands when the OSS release ships.
+          path lands when the OSS release ships. The lake-surface catalog
+          today covers
+          <code style="font-family:var(--font-mono);font-size:.88em;background:var(--bg-elev);padding:1px 5px;border:1px solid var(--rule);border-radius:2px;color:var(--accent)">csv_local</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;background:var(--bg-elev);padding:1px 5px;border:1px solid var(--rule);border-radius:2px;color:var(--accent)">postgres</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;background:var(--bg-elev);padding:1px 5px;border:1px solid var(--rule);border-radius:2px;color:var(--accent)">snowflake</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;background:var(--bg-elev);padding:1px 5px;border:1px solid var(--rule);border-radius:2px;color:var(--accent)">s3_csv</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;background:var(--bg-elev);padding:1px 5px;border:1px solid var(--rule);border-radius:2px;color:var(--accent)">http_csv</code>,
+          <code style="font-family:var(--font-mono);font-size:.88em;background:var(--bg-elev);padding:1px 5px;border:1px solid var(--rule);border-radius:2px;color:var(--accent)">stripe</code>;
+          BigQuery, Salesforce, HubSpot, Notion / Linear / Atlassian (via
+          MCP) and others land alongside the OSS release.
         </p>
       </div>
     </div>
@@ -877,7 +1091,7 @@
 <footer class="site" role="contentinfo">
   <div class="wrap">
     <div class="lic">
-      <strong>WormBase</strong> &mdash; ledger-substrated data infrastructure.<br />
+      <strong>WormBase</strong> &mdash; the agent-installable continuous lake.<br />
       License: Apache&nbsp;2.0 (planned). Maintained as an open-source project; contributions welcome via GitHub.
     </div>
     <div class="links">
