@@ -118,11 +118,28 @@ SQLAlchemy generic types throughout.
   distinction is intentional — conflating them would re-invent one or the
   other.
 
+## Update 2026-05-17 — Protocols rehomed
+
+Per ADR-0013 (continuous-lake philosophy), `AcquirableSource` and
+`MaintainableSource` Protocols moved from `lake-maintainer/` to
+`lake-surfaces/`. Behaviorally unchanged; only import paths updated.
+`lake-maintainer/` now imports the Protocols from `lake-surfaces/` and
+retains the Reactivity-driven dispatch machinery
+(`wire_maintenance_for_source`, per-family factory). The split rationale
+in this ADR (capability faces; family-honesty) stands; the home moved
+to reflect that surfaces own their capability declarations.
+
+`ConversationSource` and `EvidenceSource` impls also moved to
+`lake-surfaces/` (they implement Surface Protocols; the maintainer
+consumes them).
+
 ## Cross-references
 
 - Related ADRs: ADR-0006 (worm-core hub redefinition pins lake-maintainer's
   per-source wiring as not-at-boot, not-per-install); ADR-0009 (research
-  worm's maintenance-shaped reactivities follow the same template).
+  worm's maintenance-shaped reactivities follow the same template);
+  ADR-0013 (continuous-lake philosophy — surfaces own their capability
+  declarations, motivating the Protocol rehoming noted above).
 - Related specs: schema-evolution doctrine at
   `docs/superpowers/specs/2026-05-03-schema-evolution-doctrine.md`.
 - Architecture: `ARCHITECTURE.md` §2 ("The worm decomposition") lists
