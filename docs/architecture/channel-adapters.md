@@ -14,6 +14,19 @@ The dashboard's TypeScript counterpart is
 plus an `envHint` describing the OAuth env vars an admin needs to set
 to enable the platform.
 
+## What channel-adapter writes are, in the continuous-lake framing
+
+Channel-adapter writes are **bronze ingestion for the conversation
+surface** — one of the four families of the continuous lake. The
+conversation surface is `MaintainableSource`-only: it is read from the
+ledger (the chat_received entries the adapter emits), not acquired in
+tabular shape from outside. See ADR-0003 for the rationale behind the
+`AcquirableSource` / `MaintainableSource` split, and ADR-0013 for the
+umbrella continuous-lake philosophy. In short: channel-adapter is the
+infra surface that feeds the conversation lake; everything downstream
+of that ingest (silver threading, gold process-mining, the eight
+lake-side loops) tends it the same way any other surface is tended.
+
 ## The three statuses
 
 | Status | Definition | Channels-tab UX |
