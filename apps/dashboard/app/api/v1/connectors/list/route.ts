@@ -3,7 +3,7 @@
  *
  * W2.A5 of `docs/superpowers/plans/2026-04-28-production-hardening.md`.
  *
- * Replaces the hardcoded `lib/connectors-catalog.ts` for the
+ * Replaces the hardcoded `lib/lake-surfaces-catalog.ts` for the
  * `/sources/new` picker. The dashboard now fetches the catalog from
  * worm-core so promoting a connector status (coming_soon → preview →
  * production) requires editing exactly one place: the Python connector

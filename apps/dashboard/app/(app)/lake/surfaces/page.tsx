@@ -1,5 +1,5 @@
 /**
- * /lake/connectors — L3 Sub-wave D (2026-05-29).
+ * /lake/surfaces — L3 Sub-wave D (2026-05-29).
  *
  * Marketplace shell: read-only catalog of the Connector registry,
  * grouped by status (PRODUCTION / PREVIEW / COMING SOON), with
@@ -19,7 +19,7 @@ import { ConnectorCatalogRow } from "../../../../components/lake/ConnectorCatalo
 import { getConnectorCatalog } from "../../../../lib/connectors";
 import { getCurrentCompanyId } from "../../../../lib/tenant-cookies";
 
-export const metadata = { title: "WormBase · Lake · Connectors" };
+export const metadata = { title: "WormBase · Lake · Surfaces" };
 
 export const dynamic = "force-dynamic";
 
@@ -35,8 +35,8 @@ export default async function LakeConnectorsPage(): Promise<JSX.Element> {
 
   return (
     <PageBoundary
-      surface="lake connectors"
-      traceQuery="?surface=lake.connectors"
+      surface="lake surfaces"
+      traceQuery="?surface=lake.surfaces"
     >
       <header
         style={{
@@ -57,7 +57,7 @@ export default async function LakeConnectorsPage(): Promise<JSX.Element> {
               color: "var(--wb-color-hash-gray)",
             }}
           >
-            Lake · connector marketplace · read-only catalog
+            Lake · surface marketplace · read-only catalog
           </span>
           <h1
             style={{
@@ -68,7 +68,7 @@ export default async function LakeConnectorsPage(): Promise<JSX.Element> {
               letterSpacing: "-0.01em",
             }}
           >
-            Connectors · {totalRows} kinds · {connectedCount} connected
+            Lake surfaces · {totalRows} kinds · {connectedCount} connected
           </h1>
           <p
             style={{
@@ -79,15 +79,15 @@ export default async function LakeConnectorsPage(): Promise<JSX.Element> {
               maxWidth: 720,
             }}
           >
-            Every connector the worm knows how to talk to. Status badges
+            Every lake surface the worm knows how to talk to. Status badges
             reflect the Python registry's runtime capability — promote a
-            kind by editing exactly one place (the Connector class).
-            "Add source" routes to the existing connector-picker flow.
+            kind by editing exactly one place (the SurfaceDriver class).
+            "Add a lake surface" routes to the existing surface picker flow.
           </p>
         </div>
         <Link
           href="/sources/new"
-          data-testid="lake-connectors-add-source-cta"
+          data-testid="lake-surfaces-add-source-cta"
           className="wb-mono"
           style={{
             fontSize: 11,
@@ -100,13 +100,13 @@ export default async function LakeConnectorsPage(): Promise<JSX.Element> {
             textDecoration: "none",
           }}
         >
-          Add source…
+          Add a lake surface…
         </Link>
       </header>
 
       {catalog.registryUnreachable ? (
         <div
-          data-testid="lake-connectors-registry-unreachable"
+          data-testid="lake-surfaces-registry-unreachable"
           role="alert"
           style={{
             border: "1px solid var(--wb-color-sepia-warning-deep)",
@@ -126,7 +126,7 @@ export default async function LakeConnectorsPage(): Promise<JSX.Element> {
               color: "var(--wb-color-sepia-warning-deep)",
             }}
           >
-            connector registry unreachable
+            surface registry unreachable
           </span>
           <span
             style={{
@@ -144,11 +144,11 @@ export default async function LakeConnectorsPage(): Promise<JSX.Element> {
 
       {totalRows === 0 ? (
         <EmptyState
-          testId="lake-connectors-empty"
-          eyebrow="no connectors registered"
-          title="The connector registry returned no kinds."
+          testId="lake-surfaces-empty"
+          eyebrow="no lake surfaces registered"
+          title="The lake-surface registry returned no kinds."
           description={
-            "The Python registry at packages/connectors/ is the source " +
+            "The Python registry at packages/lake-surfaces/ is the source " +
             "of truth — if this list is empty, the worm-core service is " +
             "likely starting up or the WORMBASE_LEDGER_API_BASE env " +
             "var is misconfigured."
@@ -159,21 +159,21 @@ export default async function LakeConnectorsPage(): Promise<JSX.Element> {
         <>
           <CatalogSection
             heading="Production"
-            description="Production-ready connectors. Every method wired against the real platform."
+            description="Production-ready lake surfaces. Every method wired against the real platform."
             rows={catalog.production}
-            testId="lake-connectors-production"
+            testId="lake-surfaces-production"
           />
           <CatalogSection
             heading="Preview"
             description="Wired end-to-end against the real platform but pending production graduation (operator-approved scopes / scale validation)."
             rows={catalog.preview}
-            testId="lake-connectors-preview"
+            testId="lake-surfaces-preview"
           />
           <CatalogSection
             heading="Coming soon"
-            description="Connector skeleton present; full integration lands in a future wave. The 'Notify me' affordance is wired for v1.5."
+            description="Surface-driver skeleton present; full integration lands in a future wave. The 'Notify me' affordance is wired for v1.5."
             rows={catalog.comingSoon}
-            testId="lake-connectors-coming-soon"
+            testId="lake-surfaces-coming-soon"
           />
         </>
       )}

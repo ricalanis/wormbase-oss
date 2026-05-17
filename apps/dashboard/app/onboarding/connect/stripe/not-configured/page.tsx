@@ -104,7 +104,7 @@ export default async function StripeNotConfiguredPage({
           the source page.
         </p>
         <Link
-          href="/lake/connectors"
+          href="/lake/surfaces"
           className="wb-mono"
           style={{
             fontSize: 11,

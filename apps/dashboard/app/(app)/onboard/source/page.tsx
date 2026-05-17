@@ -2,10 +2,10 @@
  * /onboard/source — data-source marketplace
  * (Onboarding Sub-wave B, 2026-05-30).
  *
- * Reuses the /lake/connectors connector-row data shape — same registry,
+ * Reuses the /lake/surfaces connector-row data shape — same registry,
  * same capability badges, same Add affordance. The only difference is
  * the framing: ``/onboard/source`` is the operator-facing tab in the
- * unified onboarding surface; ``/lake/connectors`` is the
+ * unified onboarding surface; ``/lake/surfaces`` is the
  * lineage-axis marketplace.
  */
 import Link from "next/link";

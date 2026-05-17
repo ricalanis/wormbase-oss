@@ -1,5 +1,5 @@
 /**
- * /lake/connectors accessor tests — L3 Sub-wave D (2026-05-29).
+ * /lake/surfaces accessor tests — L3 Sub-wave D (2026-05-29).
  *
  * Mocks ``fetch`` for the registry endpoint and verifies:
  *

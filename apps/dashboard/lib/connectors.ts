@@ -1,5 +1,5 @@
 /**
- * /lake/connectors read-side accessor — L3 Sub-wave D (2026-05-29).
+ * /lake/surfaces read-side accessor — L3 Sub-wave D (2026-05-29).
  *
  * Reads two surfaces:
  *
@@ -9,7 +9,7 @@
  *      worm-core's ``GET /api/v1/connectors`` endpoint.  We forward via
  *      the dashboard proxy at ``/api/v1/connectors/list``. On worm-core
  *      unreachable we fall back to the static catalog in
- *      ``connectors-catalog.ts`` so the marketplace shell still renders
+ *      ``lake-surfaces-catalog.ts`` so the marketplace shell still renders
  *      honestly (with a banner noting "registry unreachable, showing
  *      cached catalog").
  *
@@ -27,7 +27,7 @@ import { headers } from "next/headers";
 import {
   CONNECTOR_CATALOG,
   type ConnectorCatalogEntry,
-} from "./connectors-catalog";
+} from "./lake-surfaces-catalog";
 import {
   type ConnectorProbe,
   type ConnectorProbeState,
@@ -40,7 +40,7 @@ export type ConnectionState = "connected" | "disconnected" | "available";
 export type { ConnectorProbeState };
 
 /**
- * One row in the /lake/connectors marketplace shell.
+ * One row in the /lake/surfaces marketplace shell.
  *
  * ``connectionState``:
  *   * ``connected``    — at least one active source of this kind exists

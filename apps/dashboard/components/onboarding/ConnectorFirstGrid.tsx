@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation";
 import type {
   ConnectorCatalogEntry,
   ConnectorStatus,
-} from "../../lib/connectors-catalog";
+} from "../../lib/lake-surfaces-catalog";
 
 const BAND_LABEL: Record<ConnectorStatus, string> = {
   production: "production",

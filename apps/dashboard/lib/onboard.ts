@@ -6,7 +6,7 @@
  * rows it renders. The accessors here are thin composition over the
  * existing ledger-client accessors (``getInstalls``, ``getSources``,
  * ``getDomains``, ``getPeople``, ``getPolicies``, ``getConnectorCatalog``)
- * and the ``platform-status`` / ``connectors-catalog`` static
+ * and the ``platform-status`` / ``lake-surfaces-catalog`` static
  * descriptors.
  *
  * This module deliberately does NOT add new entry kinds, projection
@@ -18,7 +18,7 @@
  *
  *   * Channel adapter   → mirrors ``platform-status.PLATFORMS``:
  *                          production / preview / coming_soon
- *   * Data source       → mirrors ``connectors-catalog.CONNECTOR_CATALOG``:
+ *   * Data source       → mirrors ``lake-surfaces-catalog.CONNECTOR_CATALOG``:
  *                          production / preview / coming_soon
  *   * Domain            → packs not yet seeded → "unknown" (Sub-wave C
  *                          populates the pack registry)

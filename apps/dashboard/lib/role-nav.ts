@@ -34,7 +34,7 @@ export interface NavItem {
  *  audit of ``tenant_quota_consumed`` ledger entries — SOC-2 surface);
  *  L3 Sub-wave D (2026-05-29) added /lake/lineage (admin-only L3
  *  inference-axis audit — confirm/reject proposed edges) +
- *  /lake/connectors (read-only marketplace shell with per-tenant
+ *  /lake/surfaces (read-only marketplace shell with per-tenant
  *  connection state); Onboarding Sub-wave B (2026-05-30) added
  *  /onboard (unified onboarding surface covering every institutional
  *  object kind — chat / source / domain / person / policy / agent /
@@ -106,7 +106,7 @@ const ALL_NAV: NavItem[] = [
   { href: "/domains", label: "Domains" },
   { href: "/policies", label: "Policies" },
   { href: "/channels", label: "Channels" },
-  { href: "/lake/connectors", label: "Connectors" },
+  { href: "/lake/surfaces", label: "Lake surfaces" },
   { href: "/lake/overview", label: "Lake overview" },
   { href: "/lake/lineage", label: "Lineage" },
   { href: "/lake/quality", label: "Quality" },
@@ -134,7 +134,7 @@ const ALL_NAV: NavItem[] = [
  *  — admin write actions; first cross-axis trace navigation in the
  *  lake stack), /lake/semantic-types is the L5 sample-data
  *  fingerprinting audit (confirm/reject proposed semantic types from
- *  the strict 19-value enum — admin write actions), /lake/connectors
+ *  the strict 19-value enum — admin write actions), /lake/surfaces
  *  is the marketplace shell with per-tenant connection state, and
  *  /onboard is the unified onboarding surface (chat / source / domain
  *  / person / policy / agent / subscription) — admins extend the
@@ -157,7 +157,7 @@ const ADMIN_OR_OBSERVER_ONLY_HREFS = new Set([
   "/lake/entity-stitches",
   "/lake/source-candidates",
   "/lake/catalog-drift",
-  "/lake/connectors",
+  "/lake/surfaces",
   "/onboard",
 ]);
 
@@ -186,7 +186,7 @@ export function navItemsForRole(role: NavRole): NavItem[] {
   switch (role) {
     case "installer": {
       // Installer onboards into a fresh tenant. /mcp + /ops + /reactivities
-      // + /governance/tenant-quota + /lake/lineage + /lake/connectors are
+      // + /governance/tenant-quota + /lake/lineage + /lake/surfaces are
       // hidden until the installer is promoted (or self-promotes) to admin —
       // privacy: the audit log surfaces other tenants' calls in /mcp, and
       // the installer's role is defined by the tenant they just created,

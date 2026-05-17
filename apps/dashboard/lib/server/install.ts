@@ -230,7 +230,7 @@ export async function completeInstall(
 
 export interface ProposeInstallerFromConnectorIdentityArgs {
   tenantSlug: string;
-  /** Connector kind from connectors-catalog (e.g. "stripe", "salesforce"). */
+  /** Connector kind from lake-surfaces-catalog (e.g. "stripe", "salesforce"). */
   connectorKind: string;
   /** Identity extracted from the connector's OAuth profile. */
   installerName: string;

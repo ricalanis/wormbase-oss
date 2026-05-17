@@ -1,7 +1,7 @@
 /**
  * Per-connector probe accessor — Onboarding Sub-wave D (2026-05-30).
  *
- * Polishes ``/lake/connectors`` with per-row tenant-side health badges.
+ * Polishes ``/lake/surfaces`` with per-row tenant-side health badges.
  * Fetches ``GET /api/v1/connectors/{kind}/probe`` from worm-core and
  * surfaces the result on each row. The endpoint returns one of four
  * honest states:
@@ -132,7 +132,7 @@ export async function probeConnector(
  * Batched probe — calls ``probeConnector`` for every kind in
  * parallel + folds the results into a kind-keyed Map.
  *
- * Used by the /lake/connectors page to enrich the catalog rows with
+ * Used by the /lake/surfaces page to enrich the catalog rows with
  * tenant-side state in one pass.
  */
 export async function probeConnectors(

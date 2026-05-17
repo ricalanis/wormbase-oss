@@ -10,7 +10,7 @@ import {
   CONNECTOR_CATALOG,
   getConnectorByKind,
   type ConnectorStatus,
-} from "../../lib/connectors-catalog";
+} from "../../lib/lake-surfaces-catalog";
 
 const ALLOWED: ReadonlyArray<ConnectorStatus> = [
   "production",
@@ -33,7 +33,7 @@ const EXPECTED: Record<string, ConnectorStatus> = {
   linear: "coming_soon",
 };
 
-describe("connectors-catalog: capability honesty", () => {
+describe("lake-surfaces-catalog: capability honesty", () => {
   it("every entry has a non-empty status from the allowed set", () => {
     for (const c of CONNECTOR_CATALOG) {
       expect(ALLOWED).toContain(c.status);

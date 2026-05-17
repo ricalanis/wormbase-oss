@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation";
 import type {
   ConnectorCatalogEntry,
   ConnectorJsonField,
-} from "../../lib/connectors-catalog";
+} from "../../lib/lake-surfaces-catalog";
 import { IdentityForm, type IdentitySubmitArgs } from "./IdentityForm";
 
 type CredentialValues = Record<string, string>;

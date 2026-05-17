@@ -17,7 +17,7 @@ import type { ConnectorEntry } from "../../../../api/v1/connectors/list/route";
 import { ConnectorConfigure } from "../../../../../components/sources/ConnectorConfigure";
 import { PageBoundary } from "../../../../../components/chrome/PageBoundary";
 
-export const metadata = { title: "WormBase · Configure connector" };
+export const metadata = { title: "WormBase · Configure lake surface" };
 export const dynamic = "force-dynamic";
 
 async function fetchConnector(kind: string): Promise<ConnectorEntry | null> {

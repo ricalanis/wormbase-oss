@@ -135,7 +135,7 @@ export default async function StripeErrorPage({
           Retry
         </Link>
         <Link
-          href="/lake/connectors"
+          href="/lake/surfaces"
           className="wb-mono"
           style={{
             fontSize: 11,

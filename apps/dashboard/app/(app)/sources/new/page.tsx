@@ -90,7 +90,7 @@ export default async function NewSourcePage() {
               letterSpacing: "-0.01em",
             }}
           >
-            Pick a connector
+            Add a lake surface
           </h1>
           <p
             style={{
@@ -100,7 +100,7 @@ export default async function NewSourcePage() {
               color: "var(--wb-color-hash-gray)",
             }}
           >
-            {connectors.length} connectors registered; {productionCount}{" "}
+            {connectors.length} surfaces registered; {productionCount}{" "}
             production-ready today. The Python registry is the source of
             truth — status badges reflect runtime capability, not promise.
           </p>
@@ -147,7 +147,7 @@ export default async function NewSourcePage() {
               color: "var(--wb-color-sepia-warning-deep)",
             }}
           >
-            connector registry unreachable
+            surface registry unreachable
           </span>
           <span
             style={{
@@ -176,7 +176,7 @@ export default async function NewSourcePage() {
             color: "var(--wb-color-hash-gray)",
           }}
         >
-          The connector registry returned an empty list. Check the
+          The lake-surface registry returned an empty list. Check the
           worm-core service is healthy and reachable from the dashboard.
         </div>
       ) : null}

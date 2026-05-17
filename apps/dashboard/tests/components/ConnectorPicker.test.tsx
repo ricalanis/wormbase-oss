@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
 import { ConnectorPicker } from "../../components/sources/ConnectorPicker";
-import { CONNECTOR_CATALOG } from "../../lib/connectors-catalog";
+import { CONNECTOR_CATALOG } from "../../lib/lake-surfaces-catalog";
 
 beforeEach(() => {
   vi.clearAllMocks();

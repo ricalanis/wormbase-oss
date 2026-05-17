@@ -5,7 +5,7 @@
  * D4 of docs/superpowers/plans/2026-04-26-production-dashboard.md.
  *
  * One card per kind from the dashboard's hardcoded catalog (lib/
- * connectors-catalog.ts). Three card states driven by ``status``:
+ * lake-surfaces-catalog.ts). Three card states driven by ``status``:
  *
  *   - production: green pill ``Production``; full-color card; routes
  *     to the config form on click.
@@ -26,7 +26,7 @@ import type {
   ConnectorCatalogEntry,
   CapabilityFlag,
   ConnectorStatus,
-} from "../../lib/connectors-catalog";
+} from "../../lib/lake-surfaces-catalog";
 
 const CAP_LABEL: Record<CapabilityFlag, string> = {
   discover: "discover",

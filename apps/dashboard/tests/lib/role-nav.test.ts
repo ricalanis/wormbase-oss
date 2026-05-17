@@ -13,7 +13,7 @@ describe("navItemsForRole", () => {
     // /lake/schema-impact + /lake/semantic-types +
     // /lake/column-classification + /lake/entity-stitches +
     // /lake/source-candidates + /lake/catalog-drift +
-    // /lake/connectors — installer privacy / pre-provision
+    // /lake/surfaces — installer privacy / pre-provision
     // irrelevance). /onboard IS visible because the installer uses
     // it to extend the tenant they just installed (chat / source /
     // domain / person / policy / agent / subscription).
@@ -34,14 +34,14 @@ describe("navItemsForRole", () => {
     expect(hrefs).not.toContain("/lake/entity-stitches");
     expect(hrefs).not.toContain("/lake/source-candidates");
     expect(hrefs).not.toContain("/lake/catalog-drift");
-    expect(hrefs).not.toContain("/lake/connectors");
+    expect(hrefs).not.toContain("/lake/surfaces");
   });
 
   it("admin sees full nav (all 31 tabs, no onboarding)", () => {
     // 30 tabs = 13 base + data-products + notebooks (Block F § 16.6) +
     // topics (WS5 S3) + mcp (Block J6) + ops (W2.A10) +
     // reactivities (W5.A5) + governance/tenant-quota (post-rest #3,
-    // 2026-05-13) + /lake/lineage + /lake/connectors (L3 Sub-wave D,
+    // 2026-05-13) + /lake/lineage + /lake/surfaces (L3 Sub-wave D,
     // 2026-05-29) + /onboard (Onboarding Sub-wave B, 2026-05-30) +
     // /lake/quality (L7 Sub-wave D, 2026-05-30) +
     // /lake/schema-impact (L4 Sub-wave D, 2026-06-02) +
@@ -77,7 +77,7 @@ describe("navItemsForRole", () => {
     expect(hrefs).toContain("/lake/entity-stitches");
     expect(hrefs).toContain("/lake/source-candidates");
     expect(hrefs).toContain("/lake/catalog-drift");
-    expect(hrefs).toContain("/lake/connectors");
+    expect(hrefs).toContain("/lake/surfaces");
     expect(hrefs).toContain("/onboard");
     expect(hrefs).not.toContain("/onboarding");
     // none flagged readOnly
@@ -91,7 +91,7 @@ describe("navItemsForRole", () => {
     // /lake/schema-impact + /lake/semantic-types +
     // /lake/column-classification + /lake/entity-stitches +
     // /lake/source-candidates + /lake/catalog-drift +
-    // /lake/connectors + /onboard stay admin/observer-only.
+    // /lake/surfaces + /onboard stay admin/observer-only.
     const items = navItemsForRole("member");
     expect(items).toHaveLength(11);
     const hrefs = items.map((i) => i.href);
@@ -117,7 +117,7 @@ describe("navItemsForRole", () => {
     expect(hrefs).not.toContain("/lake/entity-stitches");
     expect(hrefs).not.toContain("/lake/source-candidates");
     expect(hrefs).not.toContain("/lake/catalog-drift");
-    expect(hrefs).not.toContain("/lake/connectors");
+    expect(hrefs).not.toContain("/lake/surfaces");
     expect(hrefs).not.toContain("/onboard");
   });
 
@@ -139,7 +139,7 @@ describe("navItemsForRole", () => {
     expect(hrefs).toContain("/lake/entity-stitches");
     expect(hrefs).toContain("/lake/source-candidates");
     expect(hrefs).toContain("/lake/catalog-drift");
-    expect(hrefs).toContain("/lake/connectors");
+    expect(hrefs).toContain("/lake/surfaces");
     expect(hrefs).toContain("/onboard");
   });
 

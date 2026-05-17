@@ -19,7 +19,7 @@ import { Page } from "@wormbase/design";
 
 import {
   getConnectorByKind,
-} from "../../../../../lib/connectors-catalog";
+} from "../../../../../lib/lake-surfaces-catalog";
 import { CredentialForm } from "../../../../../components/onboarding/CredentialForm";
 
 export const dynamic = "force-dynamic";

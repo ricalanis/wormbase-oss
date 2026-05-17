@@ -19,7 +19,7 @@ import { useState } from "react";
 import type {
   ConnectorCatalogEntry,
   ConnectorJsonField,
-} from "../../lib/connectors-catalog";
+} from "../../lib/lake-surfaces-catalog";
 
 export function ConnectorConfigForm({
   connector,

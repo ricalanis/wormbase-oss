@@ -26,7 +26,7 @@ import { NextResponse } from "next/server";
 import {
   CONNECTOR_CATALOG,
   getConnectorByKind,
-} from "../../../../../lib/connectors-catalog";
+} from "../../../../../lib/lake-surfaces-catalog";
 
 export const dynamic = "force-dynamic";
 

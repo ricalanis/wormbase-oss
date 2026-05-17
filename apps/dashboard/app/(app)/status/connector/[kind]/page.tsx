@@ -107,7 +107,7 @@ export default async function ConnectorProbeDetailPage({
 
       <section style={{ marginTop: 16 }}>
         <Link
-          href="/lake/connectors"
+          href="/lake/surfaces"
           className="wb-mono"
           style={{
             fontSize: 11,

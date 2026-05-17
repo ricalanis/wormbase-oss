@@ -11,7 +11,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
 import { ConnectorFirstGrid } from "../../components/onboarding/ConnectorFirstGrid";
-import { CONNECTOR_CATALOG } from "../../lib/connectors-catalog";
+import { CONNECTOR_CATALOG } from "../../lib/lake-surfaces-catalog";
 
 const pushMock = vi.fn();
 vi.mock("next/navigation", () => ({

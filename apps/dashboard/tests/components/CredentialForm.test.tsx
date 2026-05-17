@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
 import { CredentialForm } from "../../components/onboarding/CredentialForm";
-import { getConnectorByKind } from "../../lib/connectors-catalog";
+import { getConnectorByKind } from "../../lib/lake-surfaces-catalog";
 
 const pushMock = vi.fn();
 vi.mock("next/navigation", () => ({

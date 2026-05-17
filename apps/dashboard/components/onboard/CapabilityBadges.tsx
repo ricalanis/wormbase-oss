@@ -5,7 +5,7 @@
  * Generalizes the badge pattern from L3's ``StrategyStatusBanner``
  * (`apps/dashboard/components/lake/StrategyStatusBanner.tsx`) and from
  * the channel/connector capability surfaces (``platform-status.ts``,
- * ``connectors-catalog.ts``). One component used across the unified
+ * ``lake-surfaces-catalog.ts``). One component used across the unified
  * `/onboard/*` tabs + the universal `/status` and `/logs` views.
  *
  * The badge pattern: a small uppercase wb-mono label with a colored

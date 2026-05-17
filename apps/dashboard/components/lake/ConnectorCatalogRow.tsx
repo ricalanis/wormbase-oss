@@ -1,5 +1,5 @@
 /**
- * ConnectorCatalogRow — single row in the /lake/connectors marketplace
+ * ConnectorCatalogRow — single row in the /lake/surfaces marketplace
  * shell (L3 Sub-wave D + Onboarding Sub-wave D polish).
  *
  * Renders the connector kind, status badge, capability set, connection

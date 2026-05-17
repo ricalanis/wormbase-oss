@@ -30,7 +30,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getConnectorByKind } from "../../../../../lib/connectors-catalog";
+import { getConnectorByKind } from "../../../../../lib/lake-surfaces-catalog";
 import { proposeInstaller_FromForm } from "../../../../../lib/server/install";
 import { proposeSource } from "../../../../../lib/ledger-client";
 import { getTenantFromCookies } from "../../../../../lib/tenant-cookies";

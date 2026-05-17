@@ -1,25 +1,25 @@
 /**
- * Hardcoded connector catalog for the dashboard's /sources/new picker.
+ * Hardcoded lake-surfaces catalog for the dashboard's /sources/new picker.
  *
  * D4 of docs/superpowers/plans/2026-04-26-production-dashboard.md.
  *
  * Cross-language schema sync (Python registry → TS picker) is post-
  * Thursday. For now this list is the source of truth for the picker UI
  * only — actual source connection still happens via the Python
- * connectors registry on the worm-core side. The 12 day-one kinds
- * mirror packages/connectors/src/wormbase_connectors/ exactly:
+ * lake-surfaces registry on the worm-core side. The 12 day-one kinds
+ * mirror packages/lake-surfaces/src/wormbase_lake_surfaces/ exactly:
  *
  *   csv_local, postgres, snowflake, bigquery, s3_csv, http_csv,
  *   stripe, salesforce, hubspot, gsheets, notion, linear
  *
  * IMPORTANT — capability honesty: each entry carries a ``status``
  * ("production" | "preview" | "coming_soon") + a ``statusNote``. These
- * MUST be kept in sync with the Python ``Connector.status`` /
- * ``Connector.status_note`` declarations. If you promote a skeletal
- * connector to production, update both sides in the same change.
+ * MUST be kept in sync with the Python ``SurfaceDriver.status`` /
+ * ``SurfaceDriver.status_note`` declarations. If you promote a skeletal
+ * surface driver to production, update both sides in the same change.
  *
  * Status grading:
- *   - production: every Connector method (discover, profile, sample,
+ *   - production: every SurfaceDriver method (discover, profile, sample,
  *     watch where applicable) is wired against the real platform.
  *   - preview: some methods stubbed but enough is implemented to be
  *     useful (e.g. discover works but sample is bounded).
