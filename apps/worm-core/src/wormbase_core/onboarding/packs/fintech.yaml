@@ -1,0 +1,88 @@
+# Fintech domain pack — Onboarding Sub-wave C (2026-05-30).
+#
+# Regulated-finance shape: ledger / treasury / compliance / customer.
+# All domains land at `regulated` or `confidential` defaults; ships
+# strict masking + access policies pre-seeded so an installer is
+# governance-baseline'd before connecting any data source.
+#
+# Note: SOC-2 / PCI / KYC compliance is not delegated to gates alone —
+# this pack establishes the policy contract; full audit compliance
+# is the org's responsibility.
+pack_id: fintech
+pack_version: v1.0
+display_name: "Fintech"
+description: "Regulated fintech pack: ledger, treasury, compliance, customer. Strict regulated classifications + masking + access policies pre-seeded for SOC-2 / PCI / KYC baseline."
+
+domains:
+  - id: domain_ledger
+    name: Ledger
+    default_classification: regulated
+    owner_role: tenancy.admin
+    description: "General ledger, journal entries, accounting postings."
+  - id: domain_treasury
+    name: Treasury
+    default_classification: confidential
+    owner_role: tenancy.admin
+    description: "Cash management, banking, transfers, reconciliation."
+  - id: domain_compliance
+    name: Compliance
+    default_classification: regulated
+    owner_role: tenancy.admin
+    description: "KYC, AML, sanctions screening, regulatory reporting."
+  - id: domain_customer
+    name: Customer
+    default_classification: pii
+    owner_role: tenancy.admin
+    description: "Customer identity, accounts, KYC-collected PII."
+
+policies:
+  - id: retention_regulated
+    name: "policy:retention_regulated_fintech"
+    applies_to_domains: [domain_ledger, domain_compliance]
+    rule: "data_retention_days: 2555"  # 7 years — SOC-2 + audit baseline
+    gate_impl: wormbase_governance.gates.warmup_gate
+  - id: pii_redaction
+    name: "policy:pii_redaction_fintech"
+    applies_to_domains: [domain_customer, domain_treasury, domain_compliance]
+    rule: "Mask PII before any chat_sent payload leaves the worm."
+    gate_impl: wormbase_governance.gates.pii_redaction_gate
+  - id: regulated_access_gate
+    name: "policy:regulated_access_gate_fintech"
+    applies_to_domains: [domain_ledger, domain_compliance]
+    rule: "Block ungated reads against regulated domains — admin role + audit-trail required."
+    gate_impl: wormbase_governance.gates.knowledge_gate
+  - id: customer_pii_lockdown
+    name: "policy:customer_pii_lockdown_fintech"
+    applies_to_domains: [domain_customer]
+    rule: "Refuse queries that touch PII without an explicit role grant on the resource."
+    gate_impl: wormbase_governance.gates.knowledge_gate
+
+classification_defaults:
+  - pattern: "*email*"
+    classification: pii
+  - pattern: "*_pii"
+    classification: pii
+  - pattern: "phone*"
+    classification: pii
+  - pattern: "address*"
+    classification: pii
+  - pattern: "ssn*"
+    classification: regulated
+  - pattern: "tax_id*"
+    classification: regulated
+  - pattern: "ein*"
+    classification: regulated
+  - pattern: "iban*"
+    classification: regulated
+  - pattern: "routing*"
+    classification: regulated
+  - pattern: "account_number*"
+    classification: regulated
+  - pattern: "card_*"
+    classification: regulated
+  - pattern: "balance*"
+    classification: confidential
+  - pattern: "amount*"
+    classification: confidential
+  - pattern: "transaction*"
+    classification: regulated

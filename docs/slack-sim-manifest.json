@@ -1,0 +1,29 @@
+{
+  "display_information": {
+    "name": "WormBase Sim",
+    "description": "Demo persona poster — drives scripted conversations with username/icon overrides per post. Posts only; never listens.",
+    "background_color": "#3a2e3f"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "WormBase Sim",
+      "always_online": false
+    }
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "chat:write",
+        "chat:write.customize",
+        "files:write",
+        "channels:read",
+        "groups:read"
+      ]
+    }
+  },
+  "settings": {
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}

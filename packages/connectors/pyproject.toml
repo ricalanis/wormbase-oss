@@ -1,0 +1,45 @@
+[project]
+name = "wormbase-connectors"
+version = "0.1.0"
+description = "WormBase Connector Protocol + day-one connectors (csv_local, postgres, snowflake, bigquery, s3_csv, http_csv, stripe, salesforce, hubspot, gsheets, notion, linear)."
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.7",
+    "httpx>=0.27",
+    "asyncpg>=0.29",
+    "aioboto3>=13.0",
+    "snowflake-connector-python>=3.10",
+    # MCP integration (Block J4 — 2026-04-27 mcp-integration spec §6).
+    # MCPConnector(Connector) speaks MCP under the hood; the SDK ships
+    # in ``mcp`` ≥1.27.0 (the official Anthropic SDK). Imported lazily
+    # inside MCPConnector method bodies so the rest of the connector
+    # surface doesn't pay the import cost when MCP isn't in use.
+    "mcp>=1.27.0",
+]
+
+[project.optional-dependencies]
+all = []
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "pytest-httpx>=0.30",
+    "respx>=0.21",
+    "ruff>=0.5",
+    "mypy>=1.10",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "integration: end-to-end tests that touch external services",
+    "service: single-service integration with real dependencies",
+    "slow: tests that take >5s",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wormbase_connectors"]

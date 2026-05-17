@@ -1,0 +1,62 @@
+# 50 labeled examples for the classifier-accuracy gate (≥80%).
+# Distribution: 20 questions, 8 file refs, 5 cred dms, 10 data mentions, 7 other.
+
+# ── 20 channel questions about known metrics ──
+- {id: q01, text: "what's churn this month?", channel_type: channel, expected_concepts: [churn], expected_event_type: question, domain: saas, note: ""}
+- {id: q02, text: "MRR by segment?", channel_type: channel, expected_concepts: [mrr], expected_event_type: question, domain: saas, note: ""}
+- {id: q03, text: "how many active users last week?", channel_type: channel, expected_concepts: [dau, mau], expected_event_type: question, domain: saas, note: ""}
+- {id: q04, text: "what's our ARR right now?", channel_type: channel, expected_concepts: [arr], expected_event_type: question, domain: saas, note: ""}
+- {id: q05, text: "what's NPS this quarter", channel_type: channel, expected_concepts: [nps], expected_event_type: question, domain: saas, note: ""}
+- {id: q06, text: "is LTV improving by plan?", channel_type: channel, expected_concepts: [ltv], expected_event_type: question, domain: saas, note: ""}
+- {id: q07, text: "what's CAC payback?", channel_type: channel, expected_concepts: [cac, payback_period], expected_event_type: question, domain: saas, note: ""}
+- {id: q08, text: "burn rate trend?", channel_type: channel, expected_concepts: [burn_rate], expected_event_type: question, domain: saas, note: ""}
+- {id: q09, text: "how is retention by cohort", channel_type: channel, expected_concepts: [retention, cohort], expected_event_type: question, domain: saas, note: ""}
+- {id: q10, text: "what's NRR?", channel_type: channel, expected_concepts: [net_revenue_retention], expected_event_type: question, domain: saas, note: ""}
+- {id: q11, text: "did MRR drop in EMEA?", channel_type: channel, expected_concepts: [mrr], expected_event_type: question, domain: saas, note: ""}
+- {id: q12, text: "what's gross margin", channel_type: channel, expected_concepts: [gross_margin], expected_event_type: question, domain: saas, note: ""}
+- {id: q13, text: "rule of 40 score?", channel_type: channel, expected_concepts: [rule_of_40], expected_event_type: question, domain: saas, note: ""}
+- {id: q14, text: "trial conversion this week?", channel_type: channel, expected_concepts: [trial, conversion], expected_event_type: question, domain: saas, note: ""}
+- {id: q15, text: "expansion revenue update", channel_type: channel, expected_concepts: [expansion_revenue], expected_event_type: question, domain: saas, note: ""}
+- {id: q16, text: "what's quick ratio?", channel_type: channel, expected_concepts: [quick_ratio], expected_event_type: question, domain: saas, note: ""}
+- {id: q17, text: "magic number this quarter?", channel_type: channel, expected_concepts: [magic_number], expected_event_type: question, domain: saas, note: ""}
+- {id: q18, text: "renewals coming up?", channel_type: channel, expected_concepts: [renewal], expected_event_type: question, domain: saas, note: ""}
+- {id: q19, text: "how many signups last week", channel_type: channel, expected_concepts: [signup], expected_event_type: question, domain: saas, note: ""}
+- {id: q20, text: "what's our DAU vs MAU ratio", channel_type: channel, expected_concepts: [dau, mau], expected_event_type: question, domain: saas, note: ""}
+
+# ── 8 file-drop references ──
+- {id: f01, text: "subscriptions.csv uploaded", channel_type: channel, expected_concepts: [], expected_event_type: file_reference, domain: saas, note: ""}
+- {id: f02, text: "here's the accounts export accounts.csv", channel_type: channel, expected_concepts: [], expected_event_type: file_reference, domain: saas, note: ""}
+- {id: f03, text: "events.jsonl from segment uploaded", channel_type: channel, expected_concepts: [], expected_event_type: file_reference, domain: saas, note: ""}
+- {id: f04, text: "billing.parquet uploaded yesterday", channel_type: channel, expected_concepts: [], expected_event_type: file_reference, domain: saas, note: ""}
+- {id: f05, text: "users.json now in s3", channel_type: channel, expected_concepts: [], expected_event_type: file_reference, domain: saas, note: ""}
+- {id: f06, text: "here's stripe_export.csv", channel_type: channel, expected_concepts: [], expected_event_type: file_reference, domain: saas, note: ""}
+- {id: f07, text: "salesforce.xlsx attached", channel_type: channel, expected_concepts: [], expected_event_type: file_reference, domain: saas, note: ""}
+- {id: f08, text: "renewals_q3.tsv from finance", channel_type: channel, expected_concepts: [], expected_event_type: file_reference, domain: saas, note: ""}
+
+# ── 5 credential DMs ──
+- {id: c01, text: "our postgres is at postgres://reader:secret@db.internal/prod", channel_type: dm, expected_concepts: [], expected_event_type: credential_offer, domain: saas, note: ""}
+- {id: c02, text: "stripe live key sk_live_abcdefghij1234567890", channel_type: dm, expected_concepts: [], expected_event_type: credential_offer, domain: saas, note: ""}
+- {id: c03, text: "mongodb://admin:pw@cluster0.mongodb.net/app", channel_type: dm, expected_concepts: [], expected_event_type: credential_offer, domain: saas, note: ""}
+- {id: c04, text: "s3://wormbase-data/finance/exports/", channel_type: dm, expected_concepts: [], expected_event_type: credential_offer, domain: saas, note: ""}
+- {id: c05, text: "use Bearer abcd1234efgh5678ijkl for the api", channel_type: dm, expected_concepts: [], expected_event_type: credential_offer, domain: saas, note: ""}
+
+# ── 10 data-mention chatter ──
+- {id: m01, text: "we should look at Stripe billing", channel_type: channel, expected_concepts: [stripe], expected_event_type: data_mention, domain: saas, note: ""}
+- {id: m02, text: "our Segment events stream", channel_type: channel, expected_concepts: [segment_io], expected_event_type: data_mention, domain: saas, note: ""}
+- {id: m03, text: "can we pipe Salesforce data in?", channel_type: channel, expected_concepts: [salesforce], expected_event_type: data_mention, domain: saas, note: ""}
+- {id: m04, text: "the usage_logs are growing fast", channel_type: channel, expected_concepts: [usage_logs], expected_event_type: data_mention, domain: saas, note: ""}
+- {id: m05, text: "stripe events looking healthy", channel_type: channel, expected_concepts: [stripe], expected_event_type: data_mention, domain: saas, note: ""}
+- {id: m06, text: "Salesforce CRM exports came in clean", channel_type: channel, expected_concepts: [salesforce], expected_event_type: data_mention, domain: saas, note: ""}
+- {id: m07, text: "we have segment data flowing", channel_type: channel, expected_concepts: [segment_io], expected_event_type: data_mention, domain: saas, note: ""}
+- {id: m08, text: "the orders table needs attention", channel_type: channel, expected_concepts: [], expected_event_type: data_mention, domain: marketplace, note: ""}
+- {id: m09, text: "our product analytics is in segment now", channel_type: channel, expected_concepts: [segment_io], expected_event_type: data_mention, domain: saas, note: ""}
+- {id: m10, text: "stripe billing is the source of truth", channel_type: channel, expected_concepts: [stripe], expected_event_type: data_mention, domain: saas, note: ""}
+
+# ── 7 off-topic ──
+- {id: o01, text: "lunch in 10?", channel_type: channel, expected_concepts: [], expected_event_type: other, domain: saas, note: ""}
+- {id: o02, text: "who's on call?", channel_type: channel, expected_concepts: [], expected_event_type: other, domain: saas, note: ""}
+- {id: o03, text: "PR merged!", channel_type: channel, expected_concepts: [], expected_event_type: other, domain: saas, note: ""}
+- {id: o04, text: "good morning team", channel_type: channel, expected_concepts: [], expected_event_type: other, domain: saas, note: ""}
+- {id: o05, text: "see you in 5", channel_type: channel, expected_concepts: [], expected_event_type: other, domain: saas, note: ""}
+- {id: o06, text: "thanks!", channel_type: channel, expected_concepts: [], expected_event_type: other, domain: saas, note: ""}
+- {id: o07, text: "lol", channel_type: channel, expected_concepts: [], expected_event_type: other, domain: saas, note: ""}

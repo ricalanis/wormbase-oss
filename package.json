@@ -1,0 +1,15 @@
+{
+  "name": "wormbase-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.8.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "story": "pnpm --filter @wormbase/design story",
+    "dashboard:dev": "pnpm --filter @wormbase/dashboard dev"
+  }
+}

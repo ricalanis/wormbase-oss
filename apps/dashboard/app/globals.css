@@ -1,0 +1,46 @@
+/* Page-local tweaks only; design tokens live in @wormbase/design/styles.css */
+
+::selection {
+  background: var(--wb-color-highlight);
+  color: var(--wb-color-aged-ink);
+}
+
+/* Page-enter animation used by the landing hero. */
+.wb-enter {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: wb-entry var(--wb-duration-entry) var(--wb-ease-entry) forwards;
+}
+
+.wb-enter-1 {
+  animation-delay: 0ms;
+}
+.wb-enter-2 {
+  animation-delay: 140ms;
+}
+.wb-enter-3 {
+  animation-delay: 280ms;
+}
+.wb-enter-4 {
+  animation-delay: 420ms;
+}
+
+/* Subtle breathing pulse for "in progress" status indicators
+   (Phase D3 sync history panel). Opacity-only so reduce-motion users
+   still see the chip; the animation amplitude is intentionally small
+   to read as "alive" without distracting from page content. */
+@keyframes wb-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wb-enter,
+  [style*="wb-pulse"] {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,300 @@
+# Marketplace ontology pack — 40+ concepts.
+
+# -- METRICS (15) -----------------------------------------------------
+- id: gmv
+  label: Gross Merchandise Value
+  category: metric
+  aliases: [gmv, "GMV", "gross merchandise"]
+  examples:
+    - "GMV by region"
+
+- id: take_rate
+  label: Take Rate
+  category: metric
+  aliases: [take_rate, "rake", "platform fee %"]
+  examples:
+    - "take rate trend"
+
+- id: liquidity
+  label: Liquidity
+  category: metric
+  aliases: [liquidity, "match rate", "supply liquidity"]
+  examples:
+    - "liquidity score"
+
+- id: supply_demand_ratio
+  label: Supply/Demand Ratio
+  category: metric
+  aliases: [supply_demand, "supply/demand", "supply-demand ratio"]
+  examples:
+    - "supply demand by city"
+
+- id: fill_rate
+  label: Fill Rate
+  category: metric
+  aliases: [fill_rate, "fulfillment rate"]
+  examples:
+    - "fill rate this week"
+
+- id: cancel_rate
+  label: Cancel Rate
+  category: metric
+  aliases: [cancel_rate, "cancellation rate", "order cancel %"]
+  examples:
+    - "cancel rate by region"
+
+- id: time_to_match
+  label: Time To Match
+  category: metric
+  aliases: [time_to_match, "TTM", "match latency"]
+  examples:
+    - "TTM p95"
+
+- id: avg_order_value
+  label: Average Order Value
+  category: metric
+  aliases: [aov, "AOV", "avg order value"]
+  examples:
+    - "AOV growing"
+
+- id: dispute_rate
+  label: Dispute Rate
+  category: metric
+  aliases: [dispute_rate, "disputes %", "claim rate"]
+  examples:
+    - "dispute rate by category"
+
+- id: chargeback_rate
+  label: Chargeback Rate
+  category: metric
+  aliases: [chargeback_rate, "chargebacks %"]
+  examples:
+    - "chargebacks last month"
+
+- id: repeat_rate
+  label: Repeat Buyer Rate
+  category: metric
+  aliases: [repeat_rate, "repeat buyer %"]
+  examples:
+    - "repeat buyer rate"
+
+- id: nps_marketplace
+  label: NPS (marketplace)
+  category: metric
+  aliases: [nps, "net promoter"]
+  examples:
+    - "marketplace NPS"
+
+- id: seller_growth
+  label: Seller Growth
+  category: metric
+  aliases: [seller_growth, "supply growth"]
+  examples:
+    - "new sellers this month"
+
+- id: buyer_growth
+  label: Buyer Growth
+  category: metric
+  aliases: [buyer_growth, "demand growth"]
+  examples:
+    - "new buyers this month"
+
+- id: search_to_purchase
+  label: Search-to-Purchase Rate
+  category: metric
+  aliases: [search_to_purchase, "S2P", "browse to buy"]
+  examples:
+    - "search-to-purchase funnel"
+
+# -- ENTITIES (10) ----------------------------------------------------
+- id: seller
+  label: Seller
+  category: entity
+  aliases: [seller, "supplier", "merchant", "vendor"]
+  examples:
+    - "active sellers"
+
+- id: buyer
+  label: Buyer
+  category: entity
+  aliases: [buyer, "customer", "shopper"]
+  examples:
+    - "buyers per region"
+
+- id: listing
+  label: Listing
+  category: entity
+  aliases: [listing, "SKU", "item", "product listing"]
+  examples:
+    - "listings live"
+
+- id: order
+  label: Order
+  category: entity
+  aliases: [order, "transaction", "purchase order"]
+  examples:
+    - "orders today"
+
+- id: review
+  label: Review
+  category: entity
+  aliases: [review, "rating", "feedback"]
+  examples:
+    - "review count"
+
+- id: dispute
+  label: Dispute
+  category: entity
+  aliases: [dispute, "claim", "complaint"]
+  examples:
+    - "open disputes"
+
+- id: payout
+  label: Payout
+  category: entity
+  aliases: [payout, "seller payout", "disbursement"]
+  examples:
+    - "pending payouts"
+
+- id: category
+  label: Category
+  category: entity
+  aliases: [category, "product category"]
+  examples:
+    - "top categories"
+
+- id: shipment
+  label: Shipment
+  category: entity
+  aliases: [shipment, "delivery"]
+  examples:
+    - "shipments in transit"
+
+- id: market_account
+  label: Market Account
+  category: entity
+  aliases: [market_account, "marketplace account"]
+  examples:
+    - "active market accounts"
+
+# -- EVENTS (8) -------------------------------------------------------
+- id: search
+  label: Search
+  category: event
+  aliases: [search, "query", "search event"]
+  examples:
+    - "searches today"
+
+- id: list_item
+  label: List Item
+  category: event
+  aliases: [list_item, "post listing"]
+  examples:
+    - "items listed"
+
+- id: place_order
+  label: Place Order
+  category: event
+  aliases: [place_order, "order placed"]
+  examples:
+    - "orders placed today"
+
+- id: ship
+  label: Ship
+  category: event
+  aliases: [ship, "shipped"]
+  examples:
+    - "shipped today"
+
+- id: deliver
+  label: Deliver
+  category: event
+  aliases: [deliver, "delivered"]
+  examples:
+    - "delivered today"
+
+- id: refund
+  label: Refund
+  category: event
+  aliases: [refund, "refunded"]
+  examples:
+    - "refunds today"
+
+- id: review_left
+  label: Review Left
+  category: event
+  aliases: [review_left, "left review"]
+  examples:
+    - "reviews left"
+
+- id: dispute_opened
+  label: Dispute Opened
+  category: event
+  aliases: [dispute_opened, "claim opened"]
+  examples:
+    - "disputes opened today"
+
+# -- DIMENSIONS (5) ---------------------------------------------------
+- id: region
+  label: Region
+  category: dimension
+  aliases: [region, "geo region"]
+  examples:
+    - "by region"
+
+- id: category_dim
+  label: Category Dimension
+  category: dimension
+  aliases: [category_dim, "category"]
+  examples:
+    - "by category"
+
+- id: marketplace_segment
+  label: Marketplace Segment
+  category: dimension
+  aliases: [marketplace_segment, "segment"]
+  examples:
+    - "by segment"
+
+- id: device
+  label: Device
+  category: dimension
+  aliases: [device, "platform", "client"]
+  examples:
+    - "by device"
+
+- id: cohort_market
+  label: Cohort (marketplace)
+  category: dimension
+  aliases: [cohort_market, "cohort"]
+  examples:
+    - "by cohort"
+
+# -- SOURCE ARCHETYPES (4) -------------------------------------------
+- id: orders_table
+  label: Orders Table
+  category: source_archetype
+  aliases: [orders_table, "orders.csv", "order export"]
+  examples:
+    - "orders table dump"
+
+- id: listings_csv
+  label: Listings CSV
+  category: source_archetype
+  aliases: [listings_csv, "listings.csv"]
+  examples:
+    - "listings.csv ingest"
+
+- id: payment_processor
+  label: Payment Processor Export
+  category: source_archetype
+  aliases: [payment_processor, "stripe", "adyen export"]
+  examples:
+    - "payment processor csv"
+
+- id: search_logs
+  label: Search Logs
+  category: source_archetype
+  aliases: [search_logs, "search log stream"]
+  examples:
+    - "search logs"

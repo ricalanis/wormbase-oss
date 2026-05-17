@@ -1,0 +1,39 @@
+# Generic domain pack — Onboarding Sub-wave C (2026-05-30).
+#
+# Minimal baseline for orgs without a clear vertical match. One general
+# domain, one retention policy, conservative PII classification
+# defaults. Picked by the Tier 2 pack picker; seeds the ledger with one
+# `domain_pack_selected` parent entry plus the fan-out
+# (emit_domain_registered + emit_policy_applied) PEVR cycles via
+# `pack_seeder.seed_pack`.
+#
+# `pack_version` is bumped if any of the bundled contents change so
+# audit trails distinguish installs done against different baselines.
+pack_id: generic
+pack_version: v1.0
+display_name: "Generic Org"
+description: "Minimal pack for orgs without a clear vertical match. One general domain plus conservative retention + PII defaults."
+
+domains:
+  - id: domain_general
+    name: General
+    default_classification: internal
+    owner_role: tenancy.admin
+    description: "Catch-all domain for orgs not yet split by function."
+
+policies:
+  - id: retention_default
+    name: "policy:data_retention_default"
+    applies_to_domains: [domain_general]
+    rule: "data_retention_days: 365"
+    gate_impl: wormbase_governance.gates.warmup_gate
+
+classification_defaults:
+  - pattern: "*email*"
+    classification: pii
+  - pattern: "*_pii"
+    classification: pii
+  - pattern: "phone*"
+    classification: pii
+  - pattern: "ssn*"
+    classification: regulated

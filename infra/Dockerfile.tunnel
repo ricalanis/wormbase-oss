@@ -1,0 +1,41 @@
+# Cloudflared quick-tunnel sidecar (W1.A2).
+#
+# Free `trycloudflare.com` HTTPS quick tunnel — no Cloudflare account
+# required, no host-level install. The container exposes the dashboard
+# (running at http://dashboard:3000 on the compose network) at a
+# rotating https://*.trycloudflare.com URL.
+#
+# We log to a file inside a shared volume so the host-side
+# `wait-for-tunnel.sh` can poll for the assigned URL without touching
+# Docker logs. The metrics endpoint stays bound on 0.0.0.0:8081 inside
+# the container for healthcheck visibility.
+#
+# The upstream `cloudflare/cloudflared` image is distroless (no shell,
+# no coreutils), so we copy the binary into an Alpine base. Alpine
+# gives us `sh`, `tee`, `grep`, `awk`, `cat` — all needed by the
+# wait-for-tunnel.sh / sync-tunnel-to-env.sh helpers that run via
+# `docker compose exec -T tunnel ...`.
+#
+# Quick-tunnel URLs rotate per restart (this is a Cloudflare free-tier
+# constraint). For stable URLs upgrade to a named tunnel — see
+# docs/setup/tunnel.md.
+
+FROM cloudflare/cloudflared:latest AS cloudflared
+
+FROM alpine:3.20
+COPY --from=cloudflared /usr/local/bin/cloudflared /usr/local/bin/cloudflared
+
+# /shared is the cross-container handoff for the URL discovery handshake:
+# - tunnel writes /shared/tunnel.log
+# - wait-for-tunnel.sh greps the log and writes /shared/tunnel.url
+# - sync-tunnel-to-env.sh reads /shared/tunnel.url
+RUN mkdir -p /shared && chmod 777 /shared
+
+# `cloudflared tunnel --url` prints the assigned URL to stdout/stderr
+# in the form "https://<random>.trycloudflare.com". We tee both streams
+# into /shared/tunnel.log so wait-for-tunnel.sh can grep for it.
+#
+# --no-autoupdate: don't try to self-update inside an immutable container.
+# --metrics 0.0.0.0:8081: bind metrics endpoint for liveness checks.
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["cloudflared tunnel --url http://dashboard:3000 --no-autoupdate --metrics 0.0.0.0:8081 2>&1 | tee /shared/tunnel.log"]

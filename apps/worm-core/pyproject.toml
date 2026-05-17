@@ -1,0 +1,77 @@
+[project]
+name = "wormbase-worm-core"
+version = "0.1.0"
+description = "WormBase worm core — reactivity triad, classifier, source-building, ramp, autoresearch."
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "httpx>=0.27",
+    "jinja2>=3.1",
+    "click>=8.1",
+    "wormbase-ledger",
+    "wormbase-inference-router",
+    "wormbase-governance",
+    "wormbase-ontology-seed",
+    "wormbase-channel-adapters",
+    "wormbase-connectors",
+    "wormbase-lake-maintainer",
+    "wormbase-catalog-mirror",
+    "wormbase-reactivities",
+    "wormbase-agent-gateway",
+    "slack-bolt>=1.21",
+    "aiohttp>=3.10",
+    # F2/F6 — S3-compatible object storage for data product + notebook
+    # artifact bytes. aioboto3 wraps boto3+aiobotocore for async usage.
+    # Optional at import time (S3Backend imports lazily); only required
+    # when WORMBASE_OBJECT_STORE_URI starts with s3://.
+    "aioboto3>=13.0",
+    # MCP integration (Phase 0 spike — 2026-04-27 mcp-integration spec).
+    # FastMCP ships in ``mcp`` ≥1.27.0 (the official Anthropic SDK).
+    # Optional at runtime — the MCP server only starts when
+    # WORMBASE_MCP_ENABLED=1; non-spike deployments don't pay the import
+    # cost (FastMCP imports lazily inside ``mcp_server.build_mcp_server``).
+    "mcp>=1.27.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "mypy>=1.10",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+wormbase-worm-core = "wormbase_core.cli:main"
+wormbase-embedding-backfill = "wormbase_core.scripts.embedding_backfill:main"
+
+[tool.uv.sources]
+wormbase-ledger = { workspace = true }
+wormbase-inference-router = { workspace = true }
+wormbase-governance = { workspace = true }
+wormbase-ontology-seed = { workspace = true }
+wormbase-channel-adapters = { workspace = true }
+wormbase-connectors = { workspace = true }
+wormbase-lake-maintainer = { workspace = true }
+wormbase-catalog-mirror = { workspace = true }
+wormbase-reactivities = { workspace = true }
+wormbase-agent-gateway = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "integration: end-to-end tests that touch external services",
+    "reproducibility: hash-chain and replay determinism tests",
+    "service: single-service integration with real dependencies",
+    "demo: demo gate / acceptance criteria tests",
+    "slow: tests that take >5s",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wormbase_core"]

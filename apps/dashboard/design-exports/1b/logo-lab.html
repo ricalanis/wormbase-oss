@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Worm-W Lab v3 — bigger, bolder</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #222; font-family: "Source Serif 4", Georgia, serif; padding: 40px; color: #2C5F3E; }
+  .row { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
+  .card { background: #FAF7F0; padding: 24px; border-radius: 2px; }
+  .card h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: #2A2A2A; }
+  svg { display: block; }
+  pre { font-size: 10px; white-space: pre-wrap; margin: 8px 0 0; color: #888; font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<div class="row" id="lab"></div>
+
+<script>
+const INK = '#2C5F3E';
+const PAPER = '#FAF7F0';
+
+// Smooth cubic between two anchors with HORIZONTAL tangents (rounded peaks/valleys).
+function smooth(ax, ay, bx, by, t = 0.55) {
+  const dx = (bx - ax) * t;
+  return `C ${ax + dx} ${ay} ${bx - dx} ${by} ${bx} ${by}`;
+}
+
+// Bigger W — fills the seal.
+// Seal inner ring r=128. Safe area for worm: x∈[42..258], y∈[132..240]
+// W body now spans ~x[62..238] (176 wide) and ~y[144..232] (88 tall) — BIG.
+function makeW(opts = {}) {
+  const {
+    xL = 72, xR = 228,         // outer peaks — much wider
+    xVL = 118, xVR = 182,      // valleys
+    xC = 150,                  // center apex
+    yPeak = 148,               // much higher peaks
+    yValley = 230,             // deeper valleys
+    yApex = 182,               // center apex
+
+    // Tail — curl tucked at lower-left
+    xTail = 54, yTailCenter = 222, tailR = 10,
+
+    // Head — lifted up-right
+    xHead = 252, yHead = 128,
+
+    t = 0.55,                  // bezier tangent strength
+  } = opts;
+
+  const parts = [];
+
+  // TAIL — full closed-loop curl
+  const cx = xTail, cy = yTailCenter, r = tailR;
+  parts.push(`M ${cx + r} ${cy}`);
+  parts.push(`C ${cx + r} ${cy + r * 1.1}  ${cx - r} ${cy + r * 1.1}  ${cx - r} ${cy}`);
+  parts.push(`C ${cx - r} ${cy - r * 1.1}  ${cx + r * 0.7} ${cy - r * 1.1}  ${cx + r * 0.7} ${cy - 1}`);
+  // tail → left peak
+  parts.push(smooth(cx + r * 0.7, cy - 1, xL, yPeak, 0.5));
+
+  // W
+  parts.push(smooth(xL, yPeak, xVL, yValley, t));
+  parts.push(smooth(xVL, yValley, xC, yApex, t));
+  parts.push(smooth(xC, yApex, xVR, yValley, t));
+  parts.push(smooth(xVR, yValley, xR, yPeak, t));
+
+  // HEAD
+  parts.push(smooth(xR, yPeak, xHead, yHead, 0.5));
+
+  return { d: parts.join(' '), anchors: { xL, xR, xVL, xVR, xC, yPeak, yValley, yApex, xHead, yHead, xTail, yTailCenter, tailR } };
+}
+
+// Segmentation ticks along the W body — symmetric.
+// Each tick: [cx, cy, angle] relative to center (150,150). Left half, mirror to right.
+function makeTicks(anchors) {
+  const ticks = [];
+  // Approximate body path — sample points along each segment analytically.
+  // For simplicity, hand-place along the W.
+  const { xL, xR, xVL, xVR, xC, yPeak, yValley, yApex } = anchors;
+
+  // Tail area (left only — no mirror)
+  ticks.push([xL - 6, yPeak + 4, 70]);
+  ticks.push([xL + 2, yPeak + 12, 82]);
+
+  // Left downstroke (peak → valley): sample at t=0.25, 0.5, 0.75
+  for (const t of [0.25, 0.5, 0.75]) {
+    const x = xL + (xVL - xL) * t;
+    // Smooth bezier y — approximate with a cosine curve
+    const y = yPeak + (yValley - yPeak) * (0.5 - 0.5 * Math.cos(Math.PI * t));
+    const angle = 90 - Math.atan2(yValley - yPeak, xVL - xL) * 180 / Math.PI * (0.5 - 0.5 * Math.cos(Math.PI * t));
+    ticks.push([x, y, angle]);
+  }
+  // Left upstroke (valley → apex)
+  for (const t of [0.25, 0.5, 0.75]) {
+    const x = xVL + (xC - xVL) * t;
+    const y = yValley + (yApex - yValley) * (0.5 - 0.5 * Math.cos(Math.PI * t));
+    ticks.push([x, y, 75]);
+  }
+
+  // Mirror left half to right half around x=xC
+  const mirrored = ticks.map(([x, y, a]) => [2 * xC - x, y, -a]);
+
+  // Head area ticks (mirror of tail)
+  mirrored.push([xR + 6, yPeak + 4, -70]);
+  mirrored.push([xR - 2, yPeak + 12, -82]);
+
+  return [...ticks, ...mirrored];
+}
+
+function tickSvg(cx, cy, angle, color = INK, len = 3.6, w = 1.0) {
+  return `<g transform="translate(${cx} ${cy}) rotate(${angle})" stroke="${color}" stroke-width="${w}" stroke-linecap="round" opacity="0.85">
+    <line x1="${-len}" y1="0" x2="${len}" y2="0"/>
+    <line x1="0" y1="${-len}" x2="0" y2="${len}"/>
+  </g>`;
+}
+
+const variants = [
+  { name: 'A. big & bold',     opts: { t: 0.55 } },
+  { name: 'B. tighter peaks',  opts: { t: 0.42 } },
+  { name: 'C. very dramatic',  opts: { yPeak: 140, yValley: 238, t: 0.5 } },
+  { name: 'D. narrower W',     opts: { xL: 82, xR: 218, xVL: 122, xVR: 178 } },
+  { name: 'E. thick stroke',   opts: {}, sw: 6.5 },
+  { name: 'F. thin refined',   opts: {}, sw: 3.2 },
+];
+
+const lab = document.getElementById('lab');
+for (const v of variants) {
+  const { d, anchors } = makeW(v.opts);
+  const a = anchors;
+  const sw = v.sw || 5.0;
+  const ticks = makeTicks(a).map(([cx, cy, ang]) => tickSvg(cx, cy, ang)).join('');
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <h3>${v.name} · sw=${sw}</h3>
+    <svg width="300" height="300" viewBox="0 0 300 300">
+      <circle cx="150" cy="150" r="142" fill="${PAPER}" stroke="${INK}" stroke-width="3.2"/>
+      <circle cx="150" cy="150" r="130" fill="none" stroke="${INK}" stroke-width="1.2"/>
+      <path id="arc-${v.name.charCodeAt(0)}" d="M 46 150 A 104 104 0 0 1 254 150" fill="none"/>
+      <text font-family="'Source Serif 4', Georgia, serif" font-size="22" font-weight="500" letter-spacing="4.5" text-anchor="middle" fill="${INK}">
+        <textPath href="#arc-${v.name.charCodeAt(0)}" startOffset="50%">WORMBASE</textPath>
+      </text>
+      <line x1="56" y1="110" x2="244" y2="110" stroke="${INK}" stroke-width="1.2"/>
+
+      <path d="${d}" fill="none" stroke="${INK}" stroke-width="${sw}"
+        stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- head bulge + eye -->
+      <circle cx="${a.xHead}" cy="${a.yHead}" r="${sw * 0.9}" fill="${INK}"/>
+      <circle cx="${a.xHead - 1}" cy="${a.yHead - 1.5}" r="${sw * 0.25}" fill="${PAPER}"/>
+
+      ${ticks}
+    </svg>
+  `;
+  lab.appendChild(card);
+}
+</script>
+</body>
+</html>

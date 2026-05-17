@@ -1,0 +1,56 @@
+[project]
+name = "wormbase-tools-test"
+version = "0.1.0"
+description = "Pip-installable Connector Protocol conformance harness for WormBase. Validate any third-party connector against the six W6.A4 invariants without depending on the monorepo."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "WormBase Contributors", email = "ricardo.alanis@gmail.com" },
+]
+keywords = ["wormbase", "connector", "conformance", "pytest", "data"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Testing",
+]
+
+dependencies = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pyarrow>=15.0",
+    "ruff>=0.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/wormbase/wormbase"
+Documentation = "https://github.com/wormbase/wormbase/blob/main/examples/CONTRIBUTING-A-CONNECTOR.md"
+Source = "https://github.com/wormbase/wormbase"
+
+# Register the pytest plugin so `pytest --plugins wormbase_tools_test` resolves.
+# Once installed, the plugin is auto-loaded by pytest via this entry point;
+# the ``--connector`` flag becomes available without explicit ``--plugins``.
+[project.entry-points.pytest11]
+wormbase_tools_test = "wormbase_tools_test.plugin"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wormbase_tools_test"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

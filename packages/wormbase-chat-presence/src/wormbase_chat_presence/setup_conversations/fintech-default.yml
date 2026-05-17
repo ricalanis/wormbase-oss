@@ -1,0 +1,50 @@
+# Fintech-default bot setup conversation (Block G5 / PRD §17.5).
+#
+# Mirrors saas-default but with fintech-specific blurbs + a stricter
+# default classification (confidential, given regulated workloads).
+
+domain_pack: fintech
+
+steps:
+  - id: domain_pack
+    bot_says: |
+      Welcome! What's your team's primary focus? Reply with one of:
+      saas, marketplace, fintech, custom.
+    expects: one_of
+    options: [saas, marketplace, fintech, custom]
+    on_answer: emit_domain_registered_for_pack
+    next: classification_default
+
+  - id: classification_default
+    bot_says: |
+      Got it. For your account / transaction / KYC data, default
+      classification: confidential or regulated?
+    expects: one_of
+    options: [confidential, regulated]
+    on_answer: emit_classification_default
+    next: invite_admins
+
+  - id: invite_admins
+    bot_says: |
+      Who else should be admin? Tag them, e.g. @bob @carol.
+      Or reply 'skip' to do this later. Compliance officers should be
+      included.
+    expects: free_text
+    on_answer: parse_mentions_emit_role_assigned
+    next: first_kpi
+
+  - id: first_kpi
+    bot_says: |
+      What's your most important fintech KPI this quarter — net interest
+      margin, fraud-loss rate, monthly active users, payment volume?
+      Free text.
+    expects: free_text
+    on_answer: emit_kpi_proposed
+    next: done
+
+  - id: done
+    bot_says: |
+      All set! Your dashboard is at $DASHBOARD_URL. The worm is now lurking
+      and will start helping. /research will show experiments for your
+      role within 24h.
+    on_answer: emit_setup_completed

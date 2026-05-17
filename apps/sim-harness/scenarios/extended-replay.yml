@@ -1,0 +1,263 @@
+# ============================================================
+# extended-replay.yml — VIRTUAL-WEEK SCENARIO (~3.5 min wall, 5 days virtual)
+#
+# Intended for `--pace virtual`; ledger timestamps are injected to
+# simulate a fictional week (Mon-Fri) of a freshly-installed tenant.
+# Every step of the canonical 5-step product arc fires at least once.
+# Exercises compounding state: by Fri the lake is denser, the KPI
+# tree is taller, the process map is thicker, and per-user
+# autoresearch wins have accumulated for both CFO Carol and DE Dave.
+#
+# Maps onto the canonical 5-step product arc:
+#   Step 1 CONNECT          | Day 1 onboarding beat (Carol registers
+#                             her CFO position; Dave joins as DE).
+#   Step 2 GROW THE LAKE    | 6 source-building flow demonstrations
+#                             across the week, including the new
+#                             lake_discovery flow on Day 1 (admin
+#                             points the worm at a Snowflake catalog).
+#   Step 3 BUILD CONCURRENT | KPI tree growth (Mon → Fri), process
+#                             retrieval (decisions extracted Wed +
+#                             Thu), governance (Dave is a different
+#                             position from Carol).
+#   Step 4 PRODUCE+CONVERSE | Board-deck artifact published Thu;
+#                             multiple @-mention QA receipts.
+#   Step 5 SELF-IMPROVE     | Friday research-log beat: per-position
+#                             autoresearch wins for CFO + DE.
+#
+# Day boundaries (wall-clock when paced virtual ≈ 6s/day-step):
+#   Day 1 (Mon, ~0-40s):    Onboarding + lake_discovery + sales drop
+#   Day 2 (Tue, ~40-80s):   CFO board prep, revenue-actuals drop,
+#                            Stripe proactivity (mentioned_in_conv'n)
+#   Day 3 (Wed, ~80-130s):  Customer base review, customers drop,
+#                            HubSpot proactivity, decision extracted
+#   Day 4 (Thu, ~130-180s): Churn investigation, board-deck artifact,
+#                            Dave asks pipeline-latency question
+#   Day 5 (Fri, ~180-220s): Retention cohort + per-user research log
+#                            for Carol AND Dave (different positions,
+#                            different wins)
+#
+# Total beats: ~32. Personas used: alice, bob, carol, dave.
+# All five fixtures exercised + stripe-payouts.csv.
+# ============================================================
+name: extended-replay
+description: |
+  Virtual-mode 5-day scenario covering all 5 steps of the canonical
+  product arc with two positions (CFO + Data Engineer), six source
+  flows (incl. lake_discovery), per-user autoresearch on Friday.
+default_channel: "#todo-baseworm"
+beats:
+  # ============================================================
+  # DAY 1 (Mon) — Onboarding + Step 1 CONNECT + Step 2 lake_discovery
+  # ============================================================
+
+  # [C7, C8] Step 1: Carol installs and registers her CFO position.
+  # Narrator points at /onboarding wizard finishing.
+  - at: 0
+    persona: carol
+    say: "ok week of truth — Q3 close starts today. Just finished the worm install, registered as CFO."
+
+  # New persona: Dave, data engineer. Different position → different
+  # autoresearch loop will fire for him on Friday.
+  - at: 4
+    persona: dave
+    say: "morning — joining as data engineer. Pointing the worm at our Snowflake catalog now."
+
+  # >>> NARRATOR: "Dave just kicked off the lake_discovery flow.
+  # >>>  cmd: `wormbase-worm-core discover-lake --uri snowflake://demo/wh/analytics`
+  # >>>  Worm is walking ~50 tables, classifying, proposing 12 as on-thesis."
+
+  - at: 9
+    persona: bob
+    say: "rollup script ran overnight, exports landed"
+
+  - at: 14
+    persona: alice
+    say: "board prep is Thursday, numbers locked by Wed EOD ideally"
+
+  # [C1, C7] Step 2: drop_and_profile — Bob drops sales-q3.csv.
+  - at: 20
+    persona: bob
+    drop:
+      file: sales-q3.csv
+      caption: "Q3 sales export — regional + product, 20 rows"
+
+  - at: 28
+    persona: alice
+    say: "@WormBase can you pull the regional split for me?"
+
+  # >>> EXPECTED BOT REPLY: "Worm: Q3 by region — NA $244k, EMEA $185k,
+  # >>>  APAC $120k. Source: sales-q3.csv (hash a8989ece). Receipt #..."
+
+  - at: 34
+    persona: bob
+    say: "calling it — picking up tomorrow"
+
+  # ============================================================
+  # DAY 2 (Tue) — Step 2 mentioned_in_conv'n (Stripe) + drop
+  # ============================================================
+
+  - at: 42
+    persona: carol
+    say: "morning — pulling MRR waterfall for the deck"
+
+  # [C1] Step 2: drop_and_profile #2.
+  - at: 48
+    persona: carol
+    drop:
+      file: q3-revenue-actuals.csv
+      caption: "Q3 revenue actuals by month — plan, expansion, churn, net"
+
+  # [C1] Step 2: mentioned_in_conversation flow #1 (Stripe).
+  # Carol does NOT @ the worm. Worm proactively offers.
+  - at: 56
+    persona: carol
+    say: "we should integrate Stripe so the gross-net reconciliation is clean"
+
+  # >>> EXPECTED PROACTIVE BOT REPLY: "Worm: I can wire Stripe up — DM me
+  # >>>  a read-only API key and I'll connect + profile + propose gold."
+
+  # [C6] credential_offered_in_dm flow (narrated; harness can't drive DM).
+  # The Stripe credential drop triggers MedallionCascade for stripe-payouts.csv.
+  - at: 64
+    persona: carol
+    say: "@WormBase DMed you the Stripe key. ping me when it's wired."
+
+  # >>> NARRATOR: "Dashboard /sources just lit up stripe-payouts.csv.
+  # >>>  Bronze → silver → gold. Second source live in 4s."
+
+  - at: 72
+    persona: alice
+    say: "@WormBase what's our Q3 net revenue vs Q2, with the new Stripe rec?"
+
+  - at: 78
+    persona: bob
+    say: "agreed, churn line is the one I'd interrogate next"
+
+  # ============================================================
+  # DAY 3 (Wed) — Step 2 customers drop + Step 2 mentioned_in_conv'n
+  # (HubSpot) + Step 3 decision extracted
+  # ============================================================
+
+  - at: 86
+    persona: alice
+    say: "morning — going to look at the active customer base before churn analysis"
+
+  # [C1] drop_and_profile #3.
+  - at: 92
+    persona: alice
+    drop:
+      file: customers-active.csv
+      caption: "Active customers snapshot — 15 rows, plan + MRR + last seen"
+
+  # [C1] mentioned_in_conversation flow #2 (HubSpot).
+  - at: 100
+    persona: alice
+    say: "we should also pull the HubSpot lead data — would help the cohort cut"
+
+  # >>> EXPECTED PROACTIVE BOT REPLY: "Worm: HubSpot can be wired via OAuth.
+  # >>>  Want me to surface an /add-source link? (Or DM the API key.)"
+
+  - at: 108
+    persona: bob
+    say: "this should join cleanly with the churn export from yesterday — let's do it"
+
+  # [C3] Step 3 process retrieval: a decision is being made in-channel.
+  # Worm extracts emit_decision_recorded.
+  # >>> NARRATOR: "Decision just extracted: 'wire HubSpot for cohort cut'.
+  # >>>  Owner: Alice. /decisions has a new row."
+
+  - at: 116
+    persona: carol
+    say: "@WormBase how much MRR is concentrated in the top decile?"
+
+  - at: 124
+    persona: alice
+    say: "nice, that frames the retention conversation tomorrow"
+
+  # ============================================================
+  # DAY 4 (Thu) — Step 2 churn drop + Step 4a board-deck artifact
+  # + Step 3 Dave asks a pipeline question (different position)
+  # ============================================================
+
+  - at: 132
+    persona: bob
+    say: "morning — board deck day. churn export is up next"
+
+  # [C3] drop_and_profile #4 — overlaps customer_ids with day 3.
+  - at: 138
+    persona: bob
+    drop:
+      file: churn-events.csv
+      caption: "Q3 churn events — reasons, MRR lost, paying flag"
+
+  - at: 146
+    persona: carol
+    say: "@WormBase which reasons drove the most MRR loss in Q3?"
+
+  - at: 156
+    persona: alice
+    say: "switched_competitor showing up more than I'd like"
+
+  - at: 162
+    persona: bob
+    say: "yeah — the enterprise one stings"
+
+  # [C7] Dave asks a DIFFERENT kind of question — pipeline-shaped,
+  # not revenue-shaped. His autoresearch loop on Friday will reflect this.
+  - at: 168
+    persona: dave
+    say: "@WormBase what's the p95 on the Stripe → gold pipeline since we wired it?"
+
+  # >>> EXPECTED BOT REPLY (DE-flavored): "Worm: p95 = 1.8s for stripe.payouts
+  # >>>  bronze→gold. Schema-stable. No drift since Tue. Receipt #..."
+
+  # [C2, C7] Step 4a: board-deck data product published.
+  - at: 174
+    persona: carol
+    say: "@WormBase save the Q3 net + churn breakdown as the board deck artifact"
+
+  # >>> EXPECTED BOT REPLY: "Worm: emit_data_product_published board_q3.md
+  # >>>  (hash 7d4e1b...). 2 KPIs, 4 charts, full lineage. Linked from /products."
+
+  # ============================================================
+  # DAY 5 (Fri) — Step 5 SELF-IMPROVE PER USER (per-position wins)
+  # ============================================================
+
+  - at: 182
+    persona: alice
+    say: "wrapping the week — retention cohorts to close it out"
+
+  # [C3] drop_and_profile #5.
+  - at: 188
+    persona: alice
+    drop:
+      file: retention-cohorts.csv
+      caption: "Cohort retention by signup month — m1/m3/m6 active"
+
+  - at: 196
+    persona: alice
+    say: "@WormBase any cohort with anomalous retention vs the trend?"
+
+  # [C5, C8] Step 5: Carol asks for her CFO research log.
+  - at: 204
+    persona: carol
+    say: "@WormBase what experiments did you run on my CFO metrics this week?"
+
+  # >>> EXPECTED BOT REPLY (CFO-flavored): "Worm: 23 experiments. 8 keeps.
+  # >>>  Q3 forecast accuracy +4%. Runway projection 12% tighter. Top win:
+  # >>>  cached net-rev query cut p95 by 41%. Karpathy loop, your role."
+
+  # [C5, C7] Step 5: Dave asks for HIS research log — different position,
+  # different wins. Same product surface, different value per user.
+  - at: 212
+    persona: dave
+    say: "@WormBase same for me — what did you optimize on the data-engineering side?"
+
+  # >>> EXPECTED BOT REPLY (DE-flavored): "Worm: 17 experiments on your DE
+  # >>>  position. 6 keeps. Pipeline p95 down 22% (added incremental gold
+  # >>>  refresh). Schema-drift alert tightened (false positives -4/wk).
+  # >>>  Cost: $0.43/wk warehouse cut. Trail in /research."
+
+  - at: 218
+    persona: bob
+    say: "good week. closing the laptop."

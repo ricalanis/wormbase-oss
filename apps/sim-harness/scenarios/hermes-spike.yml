@@ -1,0 +1,38 @@
+# ============================================================
+# hermes-spike.yml — H1 GO/NO-GO scenario.
+# Block H Task H1, per docs/superpowers/specs/2026-04-27-openclaw-to-
+# hermes-migration.md §5 Phase 0.
+#
+# Posts five messages over ~25s. Used to compare OpenClaw's capture
+# JSONL against Hermes's wire-tap hook JSONL: both should record
+# exactly the same five inbound messages. Single persona, no file
+# drops, no DM (we want the inbound-message-only path under test
+# without confounders).
+#
+# Removed when H6 retires OpenClaw entirely — the Hermes-only stack
+# uses install-arc-7beat.yml as the canonical demo and warmup.yml
+# as the live-stack health check.
+# ============================================================
+name: hermes-spike
+description: |
+  Five-message inbound-only scenario for the Block H1 spike. Drives
+  Slack via the existing sim-harness path; both OpenClaw and Hermes
+  observe the same workspace, and we diff their capture logs after
+  the run.
+default_channel: "#todo-baseworm"
+beats:
+  - at: 0
+    persona: bob
+    say: "hermes spike message 1 — first ping"
+  - at: 5
+    persona: bob
+    say: "hermes spike message 2 — keeping the wire warm"
+  - at: 10
+    persona: bob
+    say: "hermes spike message 3 — middle of the run"
+  - at: 17
+    persona: bob
+    say: "hermes spike message 4 — second-to-last"
+  - at: 23
+    persona: bob
+    say: "hermes spike message 5 — last one, see the count of envelopes after this"

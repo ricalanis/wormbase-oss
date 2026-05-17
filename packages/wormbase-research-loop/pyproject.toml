@@ -1,0 +1,55 @@
+# packages/wormbase-research-loop/pyproject.toml
+# > AUTHORED 2026-05-03: shape mirrors packages/lake-maintainer/pyproject.toml.
+# > No README per project rule. Wave C₁ Block A.1 — empty scaffold; Blocks B–G
+# > lift autoresearch_loop / autoresearch_learn / keep_rate_publisher into here.
+# > Deps: wormbase-ledger (writes via emit_experiment_*), wormbase-reactivities
+# > (Reactivity Protocol), wormbase-governance (PolicyEngine / gate primitives —
+# > the plan calls these "wormbase-policies" but the live workspace member is
+# > wormbase-governance, mirroring the same kind of typo as wormbase-core →
+# > wormbase-worm-core seen in identity-tracker / chat-presence drafts).
+[project]
+name = "wormbase-research-loop"
+version = "0.1.0"
+description = "Research-loop agent: Karpathy autoresearch loop (propose / run / resolve / publish_keep_notebook) as W5a Reactivities."
+requires-python = ">=3.12"
+
+dependencies = [
+    "wormbase-ledger",
+    "wormbase-reactivities",
+    "wormbase-governance",
+    "wormbase-worm-core",
+    "wormbase-identity-tracker",
+    "sqlalchemy>=2.0",
+]
+
+[project.optional-dependencies]
+# > wormbase-chat-presence is a test-only dep so test_factory.py /
+# > integration tests can construct the typed `Install` dataclass
+# > (O-A2, 2026-05-04). research-loop's runtime does not consume any
+# > chat-presence types — `wire_research_for_install` only reads
+# > `install` opaquely (factory.py:128-129).
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "hypothesis>=6.100",
+    "wormbase-chat-presence",
+]
+
+[tool.uv.sources]
+wormbase-ledger = { workspace = true }
+wormbase-reactivities = { workspace = true }
+wormbase-governance = { workspace = true }
+wormbase-worm-core = { workspace = true }
+wormbase-identity-tracker = { workspace = true }
+wormbase-chat-presence = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wormbase_research_loop"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

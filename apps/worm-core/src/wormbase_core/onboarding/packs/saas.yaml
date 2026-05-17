@@ -1,0 +1,66 @@
+# SaaS domain pack — Onboarding Sub-wave C (2026-05-30).
+#
+# Standard B2B SaaS shape: product / growth / finance / support
+# domains. Inherits the conservative PII pattern set from generic.yaml
+# and adds payment-data classification + per-domain owner roles.
+pack_id: saas
+pack_version: v1.0
+display_name: "SaaS"
+description: "B2B SaaS pack: product, growth, finance, support. Adds payment classification + per-domain owner role hints."
+
+domains:
+  - id: domain_product
+    name: Product
+    default_classification: internal
+    owner_role: tenancy.admin
+    description: "Product analytics, activation, retention, feature usage."
+  - id: domain_growth
+    name: Growth
+    default_classification: internal
+    owner_role: tenancy.member
+    description: "Acquisition, marketing attribution, funnel conversion."
+  - id: domain_finance
+    name: Finance
+    default_classification: confidential
+    owner_role: tenancy.admin
+    description: "Revenue, billing, ARR/MRR, cash, AR/AP."
+  - id: domain_support
+    name: Support
+    default_classification: internal
+    owner_role: tenancy.member
+    description: "Customer support, ticket flow, SLA tracking."
+
+policies:
+  - id: retention_default
+    name: "policy:data_retention_saas"
+    applies_to_domains: [domain_product, domain_growth, domain_finance, domain_support]
+    rule: "data_retention_days: 365"
+    gate_impl: wormbase_governance.gates.warmup_gate
+  - id: pii_redaction
+    name: "policy:pii_redaction_saas"
+    applies_to_domains: [domain_product, domain_growth, domain_support]
+    rule: "Mask PII before any chat_sent payload leaves the worm."
+    gate_impl: wormbase_governance.gates.pii_redaction_gate
+  - id: finance_confidential_gate
+    name: "policy:finance_confidential_gate"
+    applies_to_domains: [domain_finance]
+    rule: "Block ungated reads against domain.finance for non-admin roles."
+    gate_impl: wormbase_governance.gates.knowledge_gate
+
+classification_defaults:
+  - pattern: "*email*"
+    classification: pii
+  - pattern: "*_pii"
+    classification: pii
+  - pattern: "phone*"
+    classification: pii
+  - pattern: "ssn*"
+    classification: regulated
+  - pattern: "credit_card*"
+    classification: regulated
+  - pattern: "payment*"
+    classification: confidential
+  - pattern: "card_*"
+    classification: regulated
+  - pattern: "invoice*"
+    classification: confidential

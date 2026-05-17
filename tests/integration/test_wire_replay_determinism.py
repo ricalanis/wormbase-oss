@@ -1,0 +1,227 @@
+"""L5 integration: wire-replay reproduces wire-driven ledger state.
+
+Loading a recorded JSONL through ``WireReplayer`` produces ledger
+entries whose payloads (``tool`` + ``args``) match the captured wire
+events. The hash chain + entry_ids vary (replay = a fresh chain), so
+we assert payload-level equivalence — same code path, same shape.
+
+PRD §8.3.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from uuid import UUID, uuid4
+
+import pytest
+
+from wormbase_ledger import InMemoryLedger
+
+from wormbase_channel_adapter.wire_replay import WireReplayer
+
+
+pytestmark = pytest.mark.asyncio
+
+
+@pytest.fixture
+def test_company_id() -> UUID:
+    return UUID("00000000-0000-0000-0000-0000000c5550")
+
+
+@pytest.fixture
+def test_ledger() -> InMemoryLedger:
+    return InMemoryLedger()
+
+
+async def test_wire_replay_reproduces_ledger(
+    test_ledger: InMemoryLedger,
+    test_company_id: UUID,
+    tmp_path: Path,
+) -> None:
+    """Two wire records → two execute rows whose payloads match."""
+    fixture = tmp_path / "wire.jsonl"
+    fixture.write_text(
+        "\n".join(
+            [
+                json.dumps({
+                    "seq": 1,
+                    "ts": "2026-04-26T10:00:00+00:00",
+                    "tool": "channel_adapter.emit_chat_received",
+                    "args": {
+                        "channel_id": "C0",
+                        "message_id": "1.0",
+                        "sender_person": str(uuid4()),
+                        "text": "hi",
+                        "classification": "internal",
+                    },
+                }),
+                json.dumps({
+                    "seq": 2,
+                    "ts": "2026-04-26T10:00:05+00:00",
+                    "tool": "channel_adapter.emit_file_received",
+                    "args": {
+                        "channel_id": "C0",
+                        "message_id": "5.0",
+                        "sender_person": str(uuid4()),
+                        "slack_file_id": "F1",
+                        "file_name": "sales-q3.csv",
+                        "mimetype": "text/csv",
+                        "file_size": 4096,
+                        "url_private": "https://files.example.com/sales-q3.csv",
+                        "classification": "internal",
+                        "caption_text": "sales",
+                    },
+                }),
+            ]
+        )
+        + "\n"
+    )
+
+    replayer = WireReplayer(
+        ledger=test_ledger,
+        company_id=test_company_id,
+        jsonl_path=fixture,
+    )
+    n = await replayer.run()
+    assert n == 2
+
+    rows = await test_ledger.fetch(test_company_id)
+    executes = [r for r in rows if r["kind"] == "execute"]
+    tools = [r["payload"].get("tool") for r in executes]
+    assert "channel_adapter.emit_chat_received" in tools
+    assert "channel_adapter.emit_file_received" in tools
+
+    # Payload args round-trip the input.
+    chat = next(
+        r for r in executes
+        if r["payload"]["tool"] == "channel_adapter.emit_chat_received"
+    )
+    assert chat["payload"]["args"]["text"] == "hi"
+    assert chat["payload"]["args"]["channel_id"] == "C0"
+    file_row = next(
+        r for r in executes
+        if r["payload"]["tool"] == "channel_adapter.emit_file_received"
+    )
+    assert file_row["payload"]["args"]["slack_file_id"] == "F1"
+    assert file_row["payload"]["args"]["file_name"] == "sales-q3.csv"
+
+
+async def test_wire_replay_writes_full_pevr_cycle(
+    test_ledger: InMemoryLedger,
+    test_company_id: UUID,
+    tmp_path: Path,
+) -> None:
+    """Each replayed event produces the canonical 4-row PEVR cycle.
+
+    Same primitive as the live channel-adapter — proposes, executes,
+    verifies, resolves. Wire-replay must therefore land 4 rows per
+    input record, not just an execute row.
+    """
+    fixture = tmp_path / "wire.jsonl"
+    fixture.write_text(
+        json.dumps({
+            "seq": 1,
+            "ts": "2026-04-26T10:00:00+00:00",
+            "tool": "channel_adapter.emit_chat_received",
+            "args": {
+                "channel_id": "C0",
+                "message_id": "1.0",
+                "sender_person": str(uuid4()),
+                "text": "hi",
+                "classification": "internal",
+            },
+        }) + "\n"
+    )
+
+    replayer = WireReplayer(
+        ledger=test_ledger,
+        company_id=test_company_id,
+        jsonl_path=fixture,
+    )
+    n = await replayer.run()
+    assert n == 1
+
+    rows = await test_ledger.fetch(test_company_id)
+    kinds = [r["kind"] for r in rows]
+    assert kinds == ["propose", "execute", "verify", "resolve"]
+
+
+async def test_wire_replay_skips_unknown_tools(
+    test_ledger: InMemoryLedger,
+    test_company_id: UUID,
+    tmp_path: Path,
+) -> None:
+    """Tools outside the wire-record set should not produce ledger writes.
+
+    Only channel_adapter.emit_chat_received / chat_sent / file_received
+    are valid wire-replay inputs; everything else is the worm's response
+    and should be regenerated by re-running the worm, not replayed.
+    """
+    fixture = tmp_path / "wire.jsonl"
+    fixture.write_text(
+        "\n".join(
+            [
+                json.dumps({
+                    "tool": "emit_source_proposed",
+                    "args": {"some": "thing"},
+                }),
+                json.dumps({
+                    "tool": "channel_adapter.emit_chat_received",
+                    "args": {
+                        "channel_id": "C0",
+                        "message_id": "1.0",
+                        "sender_person": str(uuid4()),
+                        "text": "ok",
+                        "classification": "internal",
+                    },
+                }),
+            ]
+        ) + "\n"
+    )
+
+    replayer = WireReplayer(
+        ledger=test_ledger,
+        company_id=test_company_id,
+        jsonl_path=fixture,
+    )
+    n = await replayer.run()
+    assert n == 1
+
+    rows = await test_ledger.fetch(test_company_id)
+    tools = [
+        r["payload"].get("tool")
+        for r in rows
+        if r["kind"] == "execute"
+    ]
+    assert tools == ["channel_adapter.emit_chat_received"]
+
+
+async def test_wire_replay_handles_blank_lines(
+    test_ledger: InMemoryLedger,
+    test_company_id: UUID,
+    tmp_path: Path,
+) -> None:
+    fixture = tmp_path / "wire.jsonl"
+    fixture.write_text(
+        "\n\n"
+        + json.dumps({
+            "tool": "channel_adapter.emit_chat_received",
+            "args": {
+                "channel_id": "C0",
+                "message_id": "1.0",
+                "sender_person": str(uuid4()),
+                "text": "hi",
+                "classification": "internal",
+            },
+        })
+        + "\n\n"
+    )
+
+    replayer = WireReplayer(
+        ledger=test_ledger,
+        company_id=test_company_id,
+        jsonl_path=fixture,
+    )
+    n = await replayer.run()
+    assert n == 1

@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>WormBase — Design System Vol. I (Print)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4 portrait; margin: 14mm 14mm 14mm 14mm; }
+  html, body { margin: 0; padding: 0; background: #FAF7F0; color: #2A2A2A;
+    font-family: "Source Serif 4", Georgia, serif;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @keyframes wb-spin { to { transform: rotate(360deg); } }
+
+  /* Each plate fills one printed page */
+  .page {
+    width: 182mm;            /* A4 - margins */
+    min-height: 269mm;       /* A4 - margins */
+    background: #FAF7F0;
+    padding: 0;
+    margin: 0 auto 12mm;
+    position: relative;
+    box-sizing: border-box;
+    break-after: page;
+    page-break-after: always;
+    overflow: hidden;
+  }
+  .page:last-child { break-after: auto; page-break-after: auto; }
+
+  .page-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  .plate-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    border-bottom: 1px solid #2A2A2A;
+    padding-bottom: 6mm; margin-bottom: 8mm;
+  }
+  .plate-head .kicker {
+    font-family: "JetBrains Mono", monospace; font-size: 9pt; letter-spacing: 1.2px;
+    color: #7A7A7A; text-transform: uppercase;
+  }
+  .plate-head .folio {
+    font-family: "JetBrains Mono", monospace; font-size: 9pt; letter-spacing: 1px; color: #A8A49A;
+  }
+  .plate-title {
+    font-family: "Source Serif 4", Georgia, serif; font-weight: 400;
+    font-size: 28pt; line-height: 1.05; letter-spacing: -0.4px;
+    margin: 0 0 7mm; color: #2A2A2A;
+  }
+  .plate-subtitle {
+    font-family: "Source Serif 4", Georgia, serif; font-style: italic;
+    font-size: 12pt; color: #4A4842; margin: -4mm 0 8mm;
+  }
+  .plate-foot {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between;
+    border-top: 1px solid #E8E0CC; padding-top: 4mm; margin-top: 8mm;
+    font-family: "JetBrains Mono", monospace; font-size: 8pt; letter-spacing: 1px;
+    color: #A8A49A; text-transform: uppercase;
+  }
+
+  /* Cover */
+  .cover {
+    display: flex; flex-direction: column; justify-content: space-between;
+    height: 269mm; padding-top: 28mm; box-sizing: border-box;
+  }
+  .cover .top { display: flex; justify-content: space-between; align-items: baseline;
+    font-family: "JetBrains Mono", monospace; font-size: 9pt; letter-spacing: 1.4px;
+    color: #7A7A7A; text-transform: uppercase;
+    border-bottom: 3px double #2A2A2A; padding-bottom: 6mm; }
+  .cover h1 { font-family: "Source Serif 4", Georgia, serif; font-weight: 400;
+    font-size: 56pt; line-height: 0.95; letter-spacing: -2px; margin: 18mm 0 0; }
+  .cover .h1-rule { width: 30%; height: 2px; background: #2A2A2A; margin-top: 6mm; }
+  .cover .lede { font-family: "Source Serif 4", Georgia, serif; font-style: italic;
+    font-size: 16pt; line-height: 1.45; color: #4A4842; max-width: 130mm; margin-top: 14mm; }
+  .cover .seal-area { display: flex; justify-content: center; margin: 8mm 0; }
+  .cover .colophon { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10mm;
+    font-family: "JetBrains Mono", monospace; font-size: 8.5pt; letter-spacing: 0.6px;
+    color: #4A4842; text-transform: uppercase; border-top: 1px solid #2A2A2A; padding-top: 5mm; }
+  .cover .colophon span:first-child { color: #A8A49A; display: block; margin-bottom: 1mm; }
+
+  /* Generic helpers */
+  .meta { font-family: "JetBrains Mono", monospace; font-size: 8.5pt;
+    letter-spacing: 0.8px; text-transform: uppercase; color: #7A7A7A; }
+  .body { font-family: "Source Serif 4", Georgia, serif; font-size: 11pt;
+    line-height: 1.5; color: #2A2A2A; }
+  .body em { font-style: italic; color: #4A4842; }
+  .mono { font-family: "JetBrains Mono", monospace; font-size: 9.5pt; }
+
+  /* Palette plate */
+  .swatch-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #2A2A2A; }
+  .swatch { padding: 7mm 6mm 5mm; min-height: 26mm; display: flex; flex-direction: column; justify-content: space-between;
+    border-right: 1px solid #2A2A2A; border-bottom: 1px solid #2A2A2A; }
+  .swatch:nth-child(2n) { border-right: none; }
+  .swatch .role { font-family: "Source Serif 4", Georgia, serif; font-style: italic; font-size: 12pt; }
+  .swatch .name-row { display: flex; justify-content: space-between; align-items: baseline;
+    font-family: "JetBrains Mono", monospace; font-size: 9pt; letter-spacing: 0.5px; }
+
+  /* Type plate */
+  .type-row { display: grid; grid-template-columns: 28mm 16mm 1fr; align-items: baseline;
+    padding: 4mm 0; border-bottom: 1px solid #E8E0CC; }
+  .type-row .col-meta { font-family: "JetBrains Mono", monospace; font-size: 9pt; color: #7A7A7A; letter-spacing: 0.5px; }
+  .type-row .col-px { font-family: "JetBrains Mono", monospace; font-size: 9pt; color: #7A7A7A; }
+  .type-row .col-sample { color: #2A2A2A; }
+
+  /* Spacing plate */
+  .space-row { display: grid; grid-template-columns: 24mm 16mm 1fr; align-items: center;
+    padding: 3mm 0; border-bottom: 1px solid #E8E0CC; }
+  .space-bar { background: #2C5F3E; height: 4mm; }
+
+  /* Rules */
+  .rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm 12mm; margin-top: 6mm; }
+  .rules-grid .item .line { height: 0; margin-bottom: 3mm; }
+  .rules-grid .item .desc { font-family: "Source Serif 4", Georgia, serif; font-style: italic; font-size: 10.5pt; color: #4A4842; }
+
+  /* Logo plate */
+  .logo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12mm; margin-top: 4mm; }
+  .logo-cell { display: flex; flex-direction: column; align-items: center; gap: 4mm; }
+  .logo-cell .label { font-family: "JetBrains Mono", monospace; font-size: 8.5pt; letter-spacing: 0.8px; color: #7A7A7A; text-transform: uppercase; }
+
+  /* Motion plate */
+  .motion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; }
+  .motion-spec { font-family: "JetBrains Mono", monospace; font-size: 9.5pt; line-height: 1.7; color: #2A2A2A; }
+  .motion-spec span { color: #7A7A7A; }
+
+  /* Primitives showcase */
+  .row { display: flex; gap: 8mm; align-items: flex-end; flex-wrap: wrap; margin-bottom: 6mm; }
+  .stack { display: flex; flex-direction: column; gap: 3mm; }
+  .stack .lab { font-family: "JetBrains Mono", monospace; font-size: 8pt; color: #A8A49A; letter-spacing: 0.6px; text-transform: uppercase; }
+  .section-label { font-family: "JetBrains Mono", monospace; font-size: 8.5pt; letter-spacing: 1px; color: #7A7A7A; text-transform: uppercase; margin: 6mm 0 4mm; }
+
+  /* Receipt block */
+  .receipt-block { background: #FAF7F0; border: 1px solid #2A2A2A; padding: 6mm 7mm; max-width: 110mm; }
+  .receipt-block .rh { font-family: "JetBrains Mono", monospace; font-size: 8.5pt; color: #7A7A7A; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px dashed #A8A49A; padding-bottom: 2mm; margin-bottom: 3mm; }
+  .receipt-block .line { display: flex; justify-content: space-between; font-family: "JetBrains Mono", monospace; font-size: 9.5pt; padding: 1mm 0; }
+  .receipt-block .line span:first-child { color: #7A7A7A; }
+  .receipt-block .seal { font-family: "JetBrains Mono", monospace; font-size: 8.5pt; color: #2C5F3E; letter-spacing: 0.8px; margin-top: 3mm; padding-top: 3mm; border-top: 1px solid #E8E0CC; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div id="pages"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="brand-logo.jsx"></script>
+<script type="text/babel" src="tokens.jsx"></script>
+<script type="text/babel" src="primitives.jsx"></script>
+
+<script type="text/babel">
+
+// Page wrapper component for headed plates
+function Page({ kicker, folio, title, subtitle, foot, children }) {
+  return (
+    <div className="page">
+      <div className="page-inner">
+        <div className="plate-head">
+          <span className="kicker">{kicker}</span>
+          <span className="folio">{folio}</span>
+        </div>
+        <h2 className="plate-title">{title}</h2>
+        {subtitle && <div className="plate-subtitle">{subtitle}</div>}
+        {children}
+        <div className="plate-foot">
+          <span>WormBase · Design System Vol. I</span>
+          <span>{foot || folio}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 00 · COVER
+function Cover() {
+  return (
+    <div className="page">
+      <div className="cover">
+        <div className="top">
+          <span>WormBase</span>
+          <span>Vol. I · Edition I</span>
+          <span>April 2026</span>
+        </div>
+
+        <div>
+          <div className="meta" style={{ letterSpacing: 1.4 }}>— A treatise on the system of</div>
+          <h1>Design<br/>System</h1>
+          <div className="h1-rule" />
+          <p className="lede">
+            Comprising the palette, the typography, the measure, the motion, and the six
+            primitive components from which every interface of the institutional data agent is composed.
+          </p>
+        </div>
+
+        <div className="seal-area">
+          <WMonogram size={180} />
+        </div>
+
+        <div className="colophon">
+          <div><span>Set in</span>Source Serif 4 / JetBrains Mono</div>
+          <div><span>Drawn on</span>Paper #FAF7F0 · Ink #2A2A2A</div>
+          <div><span>Provenance</span>SHA256 · D94E32B7…1F08C</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 01 · PALETTE
+const PALETTE = [
+  { name: 'paper',      hex: '#FAF7F0', role: 'Canvas / background',       fg: '#2A2A2A' },
+  { name: 'paper-deep', hex: '#F2ECDE', role: 'Section fill, hover',       fg: '#2A2A2A' },
+  { name: 'paper-edge', hex: '#E8E0CC', role: 'Thin rules, borders',       fg: '#2A2A2A' },
+  { name: 'ink',        hex: '#2A2A2A', role: 'Primary text, strong rule', fg: '#FAF7F0' },
+  { name: 'ink-soft',   hex: '#4A4842', role: 'Secondary text',            fg: '#FAF7F0' },
+  { name: 'ink-mute',   hex: '#7A7A7A', role: 'Hash gray, metadata',       fg: '#FAF7F0' },
+  { name: 'green',      hex: '#2C5F3E', role: 'Botanical primary',         fg: '#FAF7F0' },
+  { name: 'green-deep', hex: '#1F4A2E', role: 'Pressed / confirmed',       fg: '#FAF7F0' },
+  { name: 'green-soft', hex: '#E6EDE4', role: 'Classification wash',       fg: '#2A2A2A' },
+  { name: 'sepia',      hex: '#B8603C', role: 'WARNING ONLY · sparingly',  fg: '#FAF7F0' },
+  { name: 'sepia-soft', hex: '#F3E4DA', role: 'Warning wash',              fg: '#2A2A2A' },
+  { name: '—',          hex: 'transparent', role: '', fg: '#2A2A2A', empty: true },
+];
+function PalettePage() {
+  return (
+    <Page kicker="Pl. I · Palette" folio="Plate I" title="Color · Paper, ink, botanical"
+      subtitle="Paper and aged ink carry 95% of the surface. Botanical green marks verified data — the living subject under glass.">
+      <div className="swatch-grid">
+        {PALETTE.map((s, i) => (
+          <div key={i} className="swatch" style={{ background: s.empty ? '#FAF7F0' : s.hex, color: s.fg, borderRight: i % 2 === 0 ? '1px solid #2A2A2A' : 'none' }}>
+            <div className="role">{s.role}</div>
+            <div className="name-row"><span>{!s.empty && '— ' + s.name}</span><span>{!s.empty && s.hex}</span></div>
+          </div>
+        ))}
+      </div>
+      <p className="body" style={{ marginTop: '6mm', maxWidth: '150mm' }}>
+        <em>Sepia is warning only. Never decorative. If you reach for sepia to "add warmth," reach for paper-deep instead.</em>
+      </p>
+    </Page>
+  );
+}
+
+// 02 · TYPE
+const TYPE_SCALE = [
+  { name: 'display', px: 48, sample: 'Institutional data agent', stack: 'serif', tracking: -0.6, weight: 400 },
+  { name: 'h1',      px: 34, sample: 'Provenance ledger',          stack: 'serif', tracking: -0.4, weight: 400 },
+  { name: 'h2',      px: 24, sample: 'Source attribution',         stack: 'serif', tracking: -0.2, weight: 500 },
+  { name: 'h3',      px: 18, sample: 'Classification',             stack: 'serif', tracking: 0,    weight: 600 },
+  { name: 'body',    px: 16, sample: 'Every answer is receipted and hashed. The ledger is append-only and auditable.', stack: 'serif', tracking: 0, weight: 400 },
+  { name: 'small',   px: 13, sample: 'Secondary prose, footnotes.', stack: 'serif', tracking: 0, weight: 400 },
+  { name: 'mono-lg', px: 14, sample: 'SELECT hash, owner FROM ledger', stack: 'mono', tracking: 0, weight: 500 },
+  { name: 'mono',    px: 12, sample: 'sha256:a7f3c9e4d2b1…',      stack: 'mono', tracking: 0, weight: 500 },
+  { name: 'meta',    px: 10, sample: 'HASH · OWNER · CLASSIFICATION', stack: 'mono', tracking: 0.8, weight: 500 },
+];
+function TypePage() {
+  return (
+    <Page kicker="Pl. II · Typography" folio="Plate II" title="Type · Editorial serif, semantic mono"
+      subtitle="Serif is voice. Mono is ledger-native — it marks anything the system can prove.">
+      <div style={{ borderTop: '1px solid #2A2A2A' }}>
+        {TYPE_SCALE.map((s) => (
+          <div key={s.name} className="type-row">
+            <div className="col-meta">— {s.name}<div style={{ color: '#A8A49A', marginTop: '1mm' }}>{s.stack}</div></div>
+            <div className="col-px">{s.px}px</div>
+            <div className="col-sample" style={{
+              fontFamily: s.stack === 'mono' ? '"JetBrains Mono", monospace' : '"Source Serif 4", Georgia, serif',
+              fontSize: s.px * 0.75, fontWeight: s.weight,
+              letterSpacing: s.stack === 'mono' ? 0 : s.tracking,
+              lineHeight: s.px > 30 ? 1.05 : 1.35,
+            }}>{s.sample}</div>
+          </div>
+        ))}
+      </div>
+      <p className="body" style={{ marginTop: '8mm', maxWidth: '150mm' }}>
+        <em>Hashes, IDs, SQL, schema names, owners — anything the agent can prove appears in mono. Never used decoratively.</em>
+      </p>
+    </Page>
+  );
+}
+
+// 03 · SPACING + RULES
+const SCALE = [
+  { name: 'xs', px: 4 }, { name: 'sm', px: 8 }, { name: 'md', px: 12 }, { name: 'lg', px: 16 },
+  { name: 'xl', px: 24 }, { name: 'xxl', px: 32 }, { name: 'xxxl', px: 48 }, { name: 'xxxxl', px: 72 },
+];
+function SpacingPage() {
+  return (
+    <Page kicker="Pl. III · Measure" folio="Plate III" title="Spacing · Vertical rhythm & rules"
+      subtitle="Generous between sections, tight within. The page breathes between thoughts, not inside them.">
+      <div className="section-label">— Spatial scale (px)</div>
+      <div style={{ borderTop: '1px solid #2A2A2A' }}>
+        {SCALE.map((s) => (
+          <div key={s.name} className="space-row">
+            <div className="mono" style={{ color: '#7A7A7A' }}>— {s.name}</div>
+            <div className="mono" style={{ color: '#7A7A7A' }}>{s.px}px</div>
+            <div className="space-bar" style={{ width: s.px * 1.2 }} />
+          </div>
+        ))}
+      </div>
+
+      <div className="section-label" style={{ marginTop: '10mm' }}>— Rules & dividers</div>
+      <div className="rules-grid">
+        <div className="item">
+          <div className="line" style={{ height: 1, background: '#E8E0CC', marginBottom: '3mm' }} />
+          <div className="desc">Thin — 1px paper-edge. Section separation, table rows.</div>
+        </div>
+        <div className="item">
+          <div className="line" style={{ height: 1, background: '#2A2A2A', marginBottom: '3mm' }} />
+          <div className="desc">Strong — 1px ink. Primary boundary; plate edges.</div>
+        </div>
+        <div className="item">
+          <div className="line" style={{ borderTop: '3px double #2A2A2A', marginBottom: '3mm', height: 0 }} />
+          <div className="desc">Double — 3px ink. Heading divider; Royal Society.</div>
+        </div>
+        <div className="item">
+          <div className="line" style={{ borderTop: '1px dashed #7A7A7A', marginBottom: '3mm' }} />
+          <div className="desc">Dashed — provisional / pending ledger.</div>
+        </div>
+      </div>
+    </Page>
+  );
+}
+
+// 04 · LOGO
+function LogoPage() {
+  return (
+    <Page kicker="Pl. IV · Mark" folio="Plate IV" title="The Seal · Mark, wordmark, lockup"
+      subtitle="One continuous serpentine line traces a symmetric W. The worm is the monogram.">
+      <div className="logo-grid">
+        <div className="logo-cell">
+          <WMonogram size={200} />
+          <div className="label">— Primary, in green</div>
+        </div>
+        <div className="logo-cell">
+          <WMonogram size={200} ink="#2A2A2A" />
+          <div className="label">— Single-color, ink</div>
+        </div>
+        <div className="logo-cell">
+          <WMonogram size={200} mode="negative" ink="#2C5F3E" />
+          <div className="label">— Negative, on green</div>
+        </div>
+        <div className="logo-cell">
+          <Lockup orientation="horizontal" scale={0.95} color="#2A2A2A" withReceipt={false} />
+          <div className="label">— Horizontal lockup</div>
+        </div>
+      </div>
+      <p className="body" style={{ marginTop: '8mm', maxWidth: '150mm' }}>
+        <em>The mark must clear an inner ring of ink with one full stroke-width of breathing room on every side.
+        Never recolor the worm independently of its seal. Never rotate. Never stretch.</em>
+      </p>
+    </Page>
+  );
+}
+
+// 05 · MOTION
+function MotionPage() {
+  React.useEffect(() => {
+    // Animate the breathing gauge
+    let raf, t0 = performance.now();
+    const tick = () => {
+      const t = (performance.now() - t0) / 1000;
+      const phase = (Math.sin(t * 2 * Math.PI / 4) + 1) / 2; // 4s breath cycle
+      const el = document.getElementById('breath-bar');
+      if (el) el.style.width = (30 + phase * 60) + 'mm';
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <Page kicker="Pl. V · Motion" folio="Plate V" title="Motion · The breath"
+      subtitle="One cycle every 4 seconds. Linear ease. Nothing accelerates; the system inhales and exhales as a living archive.">
+      <div className="motion-grid">
+        <div>
+          <div className="section-label">— Specification</div>
+          <div className="motion-spec">
+            <div><span>cycle</span> &nbsp; 4000ms</div>
+            <div><span>easing</span> &nbsp; ease-in-out</div>
+            <div><span>amplitude</span> &nbsp; 0.92 → 1.00 → 0.92</div>
+            <div><span>opacity</span> &nbsp; 0.78 → 1.00 → 0.78</div>
+            <div><span>property</span> &nbsp; transform: scale(), opacity</div>
+            <div><span>applies-to</span> &nbsp; gauge, seal, ledger.heartbeat</div>
+            <div><span>never-on</span> &nbsp; text, buttons, inputs</div>
+          </div>
+        </div>
+        <div>
+          <div className="section-label">— Reference</div>
+          <div style={{ background: '#FAF7F0', border: '1px solid #2A2A2A', padding: '6mm', height: '70mm', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div className="meta">— Live archive · breathing</div>
+            <div>
+              <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '9pt', color: '#7A7A7A', marginBottom: '2mm' }}>0%&nbsp;—————————————————&nbsp;100%</div>
+              <div style={{ height: '6mm', background: '#E8E0CC', position: 'relative' }}>
+                <div id="breath-bar" style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '60mm', background: '#2C5F3E' }} />
+              </div>
+              <div style={{ fontFamily: '"JetBrains Mono", monospace', fontSize: '8.5pt', color: '#7A7A7A', marginTop: '3mm', letterSpacing: 0.6 }}>↺ 4.0s · ease-in-out</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p className="body" style={{ marginTop: '8mm', maxWidth: '160mm' }}>
+        <em>Animation is reserved for elements that represent living state — verified counts, breathing seals, the heartbeat dot
+        beside an open ledger row. Static UI never moves.</em>
+      </p>
+    </Page>
+  );
+}
+
+// 06 · BUTTONS
+function ButtonsPage() {
+  return (
+    <Page kicker="Pl. VI · Primitive" folio="Plate VI" title="Button · Action, verified"
+      subtitle="Sharp corners. 2px offset block-shadow — a letterpress impression, pressed into paper.">
+      <div className="section-label">— Variants</div>
+      <div className="row">
+        <div className="stack"><Button variant="primary">Seal ledger</Button><div className="lab">primary</div></div>
+        <div className="stack"><Button variant="field">Run query</Button><div className="lab">field</div></div>
+        <div className="stack"><Button variant="ghost">Cancel</Button><div className="lab">ghost</div></div>
+        <div className="stack"><Button variant="danger">Revoke</Button><div className="lab">danger</div></div>
+      </div>
+
+      <div className="section-label">— States · primary</div>
+      <div className="row">
+        <div className="stack"><Button>Seal ledger</Button><div className="lab">default</div></div>
+        <div className="stack"><Button state="hover">Seal ledger</Button><div className="lab">hover</div></div>
+        <div className="stack"><Button state="pressed">Seal ledger</Button><div className="lab">pressed</div></div>
+        <div className="stack"><Button state="loading">Sealing…</Button><div className="lab">loading</div></div>
+        <div className="stack"><Button state="disabled">Seal ledger</Button><div className="lab">disabled</div></div>
+      </div>
+
+      <div className="section-label">— Sizes</div>
+      <div className="row">
+        <div className="stack"><Button size="sm" variant="field">Run</Button><div className="lab">sm</div></div>
+        <div className="stack"><Button size="md" variant="field">Run</Button><div className="lab">md</div></div>
+        <div className="stack"><Button size="lg" variant="field">Run</Button><div className="lab">lg</div></div>
+      </div>
+
+      <div className="section-label">— Mono · ledger actions</div>
+      <div className="row">
+        <div className="stack"><Button mono variant="primary">COMMIT</Button><div className="lab">mono primary</div></div>
+        <div className="stack"><Button mono variant="ghost">DIFF</Button><div className="lab">mono ghost</div></div>
+        <div className="stack"><Button mono variant="danger">REVERT</Button><div className="lab">mono danger</div></div>
+      </div>
+    </Page>
+  );
+}
+
+// 07 · INPUTS
+function InputsPage() {
+  return (
+    <Page kicker="Pl. VII · Primitive" folio="Plate VII" title="Input · Field entry"
+      subtitle="A bottom rule, not a box. Focus shifts the rule from ink to botanical green.">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7mm 8mm' }}>
+        <Input label="Dataset name" placeholder="e.g. fct_orders" />
+        <Input label="Dataset name" value="fct_orders_daily" state="focus" hint="Will be registered in the ledger" />
+        <Input label="SQL filter" value="WHERE created_at > NOW() - INTERVAL 7 DAY" mono state="focus" />
+        <Input label="Schema" value="analytics.fct_orders" state="filled" mono />
+        <Input label="Owner" value="" state="error" error="Required to seal the ledger" />
+        <Input label="Hash" value="sha256:a7f3c9e4d2b1…" state="disabled" mono />
+      </div>
+      <p className="body" style={{ marginTop: '8mm', maxWidth: '150mm' }}>
+        <em>Inputs that hold provable values (hashes, IDs, SQL) are typeset in mono. Inputs that hold human prose use serif.</em>
+      </p>
+    </Page>
+  );
+}
+
+// 08 · RECEIPT (most distinctive primitive)
+function ReceiptPage() {
+  return (
+    <Page kicker="Pl. VIII · Primitive" folio="Plate VIII" title="Receipt · The proof of an answer"
+      subtitle="Every answer the agent produces is accompanied by a receipt: source, hash, owner, classification, timestamp.">
+      <div style={{ display: 'flex', gap: '10mm', flexWrap: 'wrap' }}>
+        <div className="receipt-block">
+          <div className="rh">— Receipt · 0001</div>
+          <div className="line"><span>source</span><span>analytics.fct_orders</span></div>
+          <div className="line"><span>hash</span><span>a7f3c9e4d2b1…</span></div>
+          <div className="line"><span>owner</span><span>data-platform@</span></div>
+          <div className="line"><span>class</span><span style={{ color: '#2C5F3E' }}>VERIFIED</span></div>
+          <div className="line"><span>at</span><span>2026-04-25 14:32 UTC</span></div>
+          <div className="seal">⟐ sealed · sha256:d94e32b7…</div>
+        </div>
+
+        <div className="receipt-block" style={{ background: '#F3E4DA', borderColor: '#B8603C' }}>
+          <div className="rh" style={{ color: '#B8603C' }}>— Receipt · 0002 · warning</div>
+          <div className="line"><span>source</span><span>raw.events_legacy</span></div>
+          <div className="line"><span>hash</span><span>—</span></div>
+          <div className="line"><span>owner</span><span>—</span></div>
+          <div className="line"><span>class</span><span style={{ color: '#B8603C' }}>UNVERIFIED</span></div>
+          <div className="line"><span>at</span><span>2026-04-25 14:33 UTC</span></div>
+          <div className="seal" style={{ color: '#B8603C', borderTop: '1px solid #B8603C' }}>⚠ no provenance · do not cite</div>
+        </div>
+      </div>
+      <p className="body" style={{ marginTop: '8mm', maxWidth: '160mm' }}>
+        <em>The receipt is the most ceremonial primitive in the system. It is the artifact the user keeps when the conversation ends.
+        It must always include hash, owner, classification, and a sealed signature.</em>
+      </p>
+    </Page>
+  );
+}
+
+// 09 · CARD + GAUGE + LEDGER (composite)
+function CompositePage() {
+  return (
+    <Page kicker="Pl. IX · Primitives" folio="Plate IX" title="Card, Gauge, Ledger entry"
+      subtitle="Surfaces, indicators, and the row of the append-only ledger.">
+      <div className="section-label">— Card</div>
+      <div style={{ background: '#FAF7F0', border: '1px solid #2A2A2A', padding: '6mm', maxWidth: '120mm', marginBottom: '8mm' }}>
+        <div className="meta">— Dataset · fct_orders_daily</div>
+        <div style={{ fontFamily: '"Source Serif 4", serif', fontSize: '14pt', margin: '2mm 0 4mm', borderBottom: '3px double #2A2A2A', paddingBottom: '3mm' }}>Order facts, daily grain</div>
+        <div className="body" style={{ fontSize: '10pt' }}><em>14.2M rows · last sealed 14:32 UTC · owner data-platform@</em></div>
+      </div>
+
+      <div className="section-label">— Gauge</div>
+      <div style={{ display: 'flex', gap: '10mm', alignItems: 'flex-end', marginBottom: '8mm' }}>
+        <div className="stack">
+          <div style={{ width: '24mm', height: '24mm', borderRadius: '50%', border: '2px solid #2C5F3E', display: 'grid', placeItems: 'center', fontFamily: '"Source Serif 4", serif', fontSize: '14pt', color: '#2C5F3E' }}>98%</div>
+          <div className="lab">verified · breathing</div>
+        </div>
+        <div className="stack">
+          <div style={{ width: '24mm', height: '24mm', borderRadius: '50%', border: '2px solid #B8603C', display: 'grid', placeItems: 'center', fontFamily: '"Source Serif 4", serif', fontSize: '14pt', color: '#B8603C' }}>12%</div>
+          <div className="lab">warning</div>
+        </div>
+      </div>
+
+      <div className="section-label">— Ledger entry</div>
+      <div style={{ borderTop: '1px solid #2A2A2A' }}>
+        {[
+          { t: '14:32', op: 'SEAL', tgt: 'fct_orders_daily', who: 'data-platform@', cls: 'VERIFIED' },
+          { t: '14:31', op: 'WRITE', tgt: 'dim_users.v3', who: 'analytics-eng@', cls: 'VERIFIED' },
+          { t: '14:29', op: 'REVOKE', tgt: 'raw.events_legacy', who: 'data-platform@', cls: 'WARN' },
+        ].map((r, i) => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '14mm 18mm 1fr 38mm 22mm', padding: '3mm 0', borderBottom: '1px solid #E8E0CC',
+            fontFamily: '"JetBrains Mono", monospace', fontSize: '9.5pt', alignItems: 'center' }}>
+            <span style={{ color: '#7A7A7A' }}>{r.t}</span>
+            <span style={{ color: r.cls === 'WARN' ? '#B8603C' : '#2A2A2A' }}>{r.op}</span>
+            <span>{r.tgt}</span>
+            <span style={{ color: '#7A7A7A' }}>{r.who}</span>
+            <span style={{ color: r.cls === 'WARN' ? '#B8603C' : '#2C5F3E', textAlign: 'right' }}>{r.cls}</span>
+          </div>
+        ))}
+      </div>
+    </Page>
+  );
+}
+
+// 10 · COLOPHON
+function Colophon() {
+  return (
+    <Page kicker="Pl. X · Colophon" folio="Plate X" title="Colophon"
+      subtitle="The making of this volume.">
+      <div className="body" style={{ maxWidth: '160mm', columns: 2, columnGap: '10mm' }}>
+        <p>This volume of the WormBase Design System was set in <em>Source Serif 4</em>, drawn by Frank Grießhammer at Adobe; and <em>JetBrains Mono</em>, drawn by Philipp Nurullin at JetBrains.</p>
+        <p>Paper tone is <span className="mono">#FAF7F0</span>, an unbleached cream calibrated to read as paper under both warm and cool office light. Aged ink is <span className="mono">#2A2A2A</span>. Botanical green — <span className="mono">#2C5F3E</span> — is reserved for elements representing verified, living data.</p>
+        <p>The seal at the front of this volume — a serpentine W traced as one continuous line — was constructed on a 300×300 unit grid with horizontally-tangent cubic beziers. Tail at lower-left, head at upper-right. Symmetric about the vertical axis.</p>
+        <p>The system is published under the WormBase institutional charter. It is append-only. Future revisions will appear as Vol. II, III, &amp;c., and never overwrite this edition.</p>
+      </div>
+
+      <div style={{ position: 'absolute', bottom: '20mm', left: 0, right: 0, display: 'flex', justifyContent: 'space-between',
+        borderTop: '3px double #2A2A2A', paddingTop: '4mm',
+        fontFamily: '"JetBrains Mono", monospace', fontSize: '9pt', color: '#7A7A7A', letterSpacing: 1 }}>
+        <span>SHA256 · D94E32B7A1F08C9E2D5B4F7A3C1E8B6D</span>
+        <span>Edition I · April 2026 · 26 pp</span>
+      </div>
+    </Page>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <Cover />
+      <PalettePage />
+      <TypePage />
+      <SpacingPage />
+      <LogoPage />
+      <MotionPage />
+      <ButtonsPage />
+      <InputsPage />
+      <ReceiptPage />
+      <CompositePage />
+      <Colophon />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('pages')).render(<App />);
+
+// Auto-print: wait for fonts + JSX + a small delay
+window.addEventListener('load', async () => {
+  try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+  setTimeout(() => { window.print(); }, 700);
+});
+</script>
+</body>
+</html>

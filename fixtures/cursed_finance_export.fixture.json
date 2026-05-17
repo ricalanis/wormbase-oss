@@ -1,0 +1,124 @@
+{
+  "_comment": "Sidecar metadata for fixtures/cursed_finance_export.csv. Pinned expectations the bronze→silver→gold cascade asserts against. Regenerate the CSV with `python scripts/generate_cursed_csv.py`; this sidecar describes the curses + the contracts they test.",
+  "fixture_path": "fixtures/cursed_finance_export.csv",
+  "generator_script": "scripts/generate_cursed_csv.py",
+  "generator_seed": 20260429,
+  "row_count_data": 220,
+  "row_count_header_total": 2,
+  "row_count_with_header": 222,
+  "byte_count": 39557,
+  "encoding": {
+    "actual": "cp1252",
+    "expected_detection": "cp1252",
+    "rationale": "Excel-export-from-Western-locale; UTF-8 fails on byte 0xe9 (é in cp1252). Connector's deterministic candidate list reports 'cp1252' after UTF-8 fails."
+  },
+  "header_columns": [
+    "row_id",
+    "deal_id",
+    "customer_name",
+    "customer_email",
+    "region",
+    "department",
+    "product",
+    "sales_rep",
+    "Q3 Rev (final)(USE THIS)",
+    "net_revenue",
+    "customer_count",
+    "recorded_at",
+    "recorded_at_utc",
+    "notes"
+  ],
+  "expected_classification": {
+    "default": "internal",
+    "filename_hint": null,
+    "column_pii_hints": [
+      {
+        "column": "customer_email",
+        "hint": "pii",
+        "reason": "column_name_matches_pii_pattern"
+      },
+      {
+        "column": "customer_name",
+        "hint": "pii",
+        "reason": "silver_classifier_matches_pii_name"
+      }
+    ],
+    "promoted_classification": "pii",
+    "rationale": "Source carries one or more PII column-name hints, so policy gate defaults the resource to PII classification."
+  },
+  "expected_anomalies": [
+    {
+      "column": "customer_count",
+      "kind": "sentinel_value",
+      "sentinel": "-9999",
+      "rationale": "in-band sentinel for missing CRM-merge rows; silver replaces with null before stats."
+    },
+    {
+      "column": "Q3 Rev (final)(USE THIS)",
+      "kind": "excel_error_strings",
+      "tokens": ["#REF!"],
+      "rationale": "Excel formula error preserved through the export."
+    },
+    {
+      "column": "net_revenue",
+      "kind": "excel_error_strings",
+      "tokens": ["#N/A", "#REF!"],
+      "rationale": "VLOOKUP miss + Excel formula error mixed into a numeric series."
+    }
+  ],
+  "expected_silver_normalizations": [
+    {
+      "rule": "duplicate_header_dedup",
+      "description": "Bronze surfaces 2 identical header rows (Excel sin); silver collapses to 1.",
+      "evidence": "profile.extra.duplicate_header_rows == 1"
+    },
+    {
+      "rule": "encoding_normalize",
+      "description": "Re-encode cp1252 → utf-8 at the bronze→silver boundary so downstream parsers don't need a custom decoder.",
+      "evidence": "silver-normalized bytes round-trip through utf-8"
+    },
+    {
+      "rule": "excel_error_strings_to_null",
+      "description": "Replace any cell whose stripped value matches an Excel error token (#REF!, #N/A, #VALUE!, #DIV/0!, #NAME?, #NULL!) with empty so a 99%-numeric column infers as numeric.",
+      "evidence": "Q3 Rev (final)(USE THIS) and net_revenue infer as float dtype after silver"
+    },
+    {
+      "rule": "column_id_normalize",
+      "description": "Excel-style column labels collapse to lower_snake_case ids. The literal 'Q3 Rev (final)(USE THIS)' routes to 'q3_rev_final_use_this' — pinned by Seed-S1 chatter so phenomenon-gap detector matches.",
+      "examples": [
+        {
+          "raw": "Q3 Rev (final)(USE THIS)",
+          "silver_id": "q3_rev_final_use_this"
+        },
+        {
+          "raw": "customer_email",
+          "silver_id": "customer_email"
+        }
+      ]
+    },
+    {
+      "rule": "datetime_canonicalize",
+      "description": "Two datetime columns (recorded_at tz-naïve + recorded_at_utc tz-aware) describe the same logical event. Silver picks the tz-aware UTC variant; the naïve column is preserved as bronze provenance.",
+      "canonical_column": "recorded_at_utc",
+      "deprecated_column": "recorded_at"
+    },
+    {
+      "rule": "minus_9999_to_null",
+      "description": "Replace -9999 with null in customer_count after sentinel anomaly is logged.",
+      "column": "customer_count"
+    }
+  ],
+  "expected_kpi_proposal": {
+    "label_pattern": "monthly total Q3 Rev (final)(USE THIS)",
+    "formula_pattern": "SUM(Q3 Rev (final)(USE THIS))",
+    "unit": "USD",
+    "source_columns": ["Q3 Rev (final)(USE THIS)", "recorded_at_utc"],
+    "rationale": "Gold's KPI heuristic picks the first revenue-shaped numeric column when a date column is also present. After silver normalization the cursed CSV has both."
+  },
+  "demo_arc_role": {
+    "beat": "F1 Beat 2-3 (default local source connect → first KPI proposal)",
+    "triad_criteria": ["C7 — Domain specialization", "C5 — Metric-governed self-improvement"],
+    "p_item": "P4",
+    "seed_dependency": "Seed-S1 chatter (cursed_csv_chatter.jsonl) references the literal Q3 Rev label so phenomenon-gap detector at Beat 6 matches concretely."
+  }
+}

@@ -1,0 +1,30 @@
+[project]
+name = "wormbase-identity-tracker"
+version = "0.1.0"
+description = "Identity-tracking agent: resolves Persons across platforms, exposes IdentityResolver Protocol consumed by chat / process / research worms."
+requires-python = ">=3.12"
+
+dependencies = [
+    "wormbase-ledger",
+    "wormbase-reactivities",
+    "wormbase-worm-core",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2", "pytest-asyncio>=0.23"]
+
+[tool.uv.sources]
+wormbase-ledger = { workspace = true }
+wormbase-reactivities = { workspace = true }
+wormbase-worm-core = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wormbase_identity_tracker"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

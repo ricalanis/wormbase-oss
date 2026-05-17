@@ -1,0 +1,56 @@
+# Policy templates loaded on company warmup. `gate_impl` is an importable
+# dotted path to the gate function (validated at parse time).
+
+- id: pii_redaction
+  name: PII Redaction
+  applies_to:
+    classification: pii
+    domain_pack: "*"
+  rule: "Mask PII before any chat_sent payload leaves the worm."
+  gate_impl: wormbase_governance.gates.pii_redaction_gate
+
+- id: warmup_required
+  name: Warmup Required
+  applies_to:
+    resource_type: source
+    domain_pack: "*"
+  rule: "Block active actions until ramp.schema >= 50."
+  gate_impl: wormbase_governance.gates.warmup_gate
+
+- id: interjection_budget
+  name: Interjection Budget
+  applies_to:
+    target: channel
+    domain_pack: "*"
+  rule: "≤3 clarifying questions per channel per UTC day."
+  gate_impl: wormbase_governance.gates.interjection_gate
+
+- id: knowledge_threshold
+  name: Knowledge Threshold
+  applies_to:
+    target: query
+    domain_pack: "*"
+  rule: "Block answers when referenced concepts are unknown or undefined."
+  gate_impl: wormbase_governance.gates.knowledge_gate
+
+- id: masked_column_refusal
+  name: Masked Column Refusal
+  applies_to:
+    resource_type: source
+    connector_kind: snowflake
+    domain_pack: "*"
+  rule: "Refuse queries that touch a Snowflake column tagged PII / regulated / confidential (governance_passthrough)."
+  gate_impl: wormbase_governance.policies.masked_column_refusal.masked_column_refusal_gate
+
+- id: pt_channel_talkativeness_default
+  name: "policy:channel_talkativeness"
+  applies_to:
+    domain_pack: "*"
+    scope: "channel"
+  rule: |
+    Per-channel posture default.
+    talkativeness ∈ {lurker, responsive, proactive}; defaults to responsive.
+    daily_interjection_budget is the per-channel rolling-day cap on
+    clarifying questions; defaults to 3 per the first-week-of-operation envelope.
+    Admins override per-channel via /channels POST.
+  gate_impl: wormbase_governance.gates.channel_talkativeness_default

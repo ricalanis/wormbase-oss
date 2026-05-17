@@ -1,0 +1,243 @@
+# ============================================================
+# demo-c-plus-b.yml — CANONICAL INVESTOR DEMO (~115s)
+#
+# Maps 1:1 onto the canonical 5-step product arc
+# (docs/superpowers/specs/2026-04-26-wormbase-product-arc.md).
+# Each act below realizes one (or more) of the 5 steps.
+#
+#   Act I  (0-25s)    | Step 1 CONNECT
+#                       Worm joins the channel, lurks, listens. The
+#                       team talks; ingest is on, speak is gated.
+#                       [C7 domain specialization, C8 unprompted surface]
+#
+#   Act II (25-70s)   | Step 2 GROW THE LAKE
+#                       Two source-building flows fire back-to-back:
+#                         - drop_and_profile      (Bob drops sales-q3.csv)
+#                         - mentioned_in_conv'n   (Bob: "we should pull
+#                                                  Stripe" → worm proposes
+#                                                  → Carol DMs the key
+#                                                  → MedallionCascade fires
+#                                                  → second source live)
+#                       Audience watches /sources flip bronze → silver →
+#                       gold for both, and emit_kpi_proposed land.
+#                       [C1 unprompted action, C2 deterministic output,
+#                        C3 compounding state, C6 auditable governance]
+#
+#   Act III (70-100s) | Steps 3 + 4a BUILD CONCURRENTLY + DATA PRODUCTS
+#                       The worm has been process-extracting in parallel
+#                       since beat 0. Carol asks @WormBase a Q3-revenue
+#                       question — the answer cites the just-loaded source.
+#                       Alice asks a retention question — second receipt.
+#                       Audience flips to /processes and /decisions to see
+#                       what the worm extracted from the chatter — the
+#                       KPI tree, governance, and process map all grew at
+#                       the same time, from the same ledger.
+#                       [C2, C3, C6, C7]
+#
+#   Act IV (100-115s) | Step 4b CONVERSE + multitenancy beat
+#                       Carol uses the dashboard tenant switcher
+#                       (baseworm → democorp). Same product surface, a
+#                       sparser, separate company. Voice modality is
+#                       cued (narrator note: ElevenLabs demo plays via
+#                       screencap if not provisioned live).
+#                       [C2, C7]
+#
+#   Act V  (115-130s) | Step 5 SELF-IMPROVE PER USER
+#                       Carol opens /research; the panel shows experiments
+#                       run for her CFO position over the past virtual
+#                       week. One win is highlighted (Karpathy autoresearch,
+#                       parameterized by role).
+#                       [C5 metric-governed self-improvement, C3, C7, C8]
+#
+# Narrator runbook notes:
+#   - Beats 0-3: "Worm is in the room. Ingest on. Speak gated. This is
+#                 the unprompted surface from a16z's institutional AI."
+#   - Beat 5  (drop):  "/sources just flipped bronze. Hash a8989ece. In
+#                       1.5s it'll be silver; in 4s it'll be gold."
+#   - Beat 7  (mention "Stripe"): "Bob didn't @ the worm. The worm noticed
+#                                  anyway — that's mentioned_in_conversation."
+#   - Beat 8  (worm offers):     "Worm posts proactively. Interjection
+#                                  budget enforced by gate."
+#   - Beat 9  (Carol DM, narrated):
+#                "Carol DMs the bot the Stripe API key. We narrate this
+#                 step — the harness can't drive a DM message yet, so the
+#                 dashboard /sources panel shows credential_offered_in_dm
+#                 fire from a pre-recorded ledger insert. (TODO: wire
+#                 channel: dm into Beat schema; for now read the runbook.)"
+#   - Beat 10 (worm confirms):   "Second source live. MedallionCascade fired
+#                                 again. Same shape, deterministic hash."
+#   - Beat 11 (Carol Q3 Q):      "Worm answers with a citation: dataset
+#                                 sales-q3.csv, hash a8989ece, computed at
+#                                 09:14. Replay produces the same hash."
+#   - Beat 13 (Alice retention): "Second receipt. Different question, same
+#                                 contract. THIS is institutional AI."
+#   - After beat 14: "Tenant switcher → democorp → sparser company, same
+#                     surface. Then /research → CFO autoresearch wins."
+# ============================================================
+name: demo-c-plus-b
+description: |
+  Canonical investor demo, mapped 1:1 to the 5-step product arc:
+  CONNECT, GROW THE LAKE, BUILD CONCURRENTLY, PRODUCE+CONVERSE,
+  SELF-IMPROVE PER USER. ~115s wall-clock; narrator covers the
+  multitenancy + research beats from the dashboard.
+default_channel: "#todo-baseworm"
+beats:
+  # ============================================================
+  # Act I — Step 1: CONNECT
+  # The worm just joined. The team is mid-conversation. Listen,
+  # don't speak. This *is* the demo: zero-config presence.
+  # ============================================================
+
+  # [C8 unprompted surface] worm sees organic talk, no speech yet.
+  - at: 0
+    persona: alice
+    say: "morning — anyone got a read on Q3 close yet?"
+
+  # [C7 domain specialization] context-priming. CFO + close prep =
+  # finance domain. Worm's classifier has its hint already.
+  - at: 8
+    persona: bob
+    say: "pulling the regional rollup now, give me a sec"
+
+  - at: 16
+    persona: carol
+    say: "need Q3 actuals locked before Thursday's board prep"
+
+  # [C8] one more beat of ambient context — worm absorbs domain
+  # vocabulary and actor-graph signal before any speech.
+  - at: 22
+    persona: alice
+    say: "same here — and the retention review depends on the close numbers"
+
+  # ============================================================
+  # Act II — Step 2: GROW THE LAKE
+  # Two flows fire back-to-back: drop_and_profile, then
+  # mentioned_in_conversation → credential_offered_in_dm. Audience
+  # watches the medallion cascade twice.
+  # ============================================================
+
+  # [C1 unprompted action] drop_and_profile — Bob drops the file.
+  # Worm classifies, proposes, runs MedallionCascade.
+  # Narrator: "/sources just flipped bronze."
+  - at: 26
+    persona: bob
+    drop:
+      file: sales-q3.csv
+      caption: "Q3 sales export, raw — 20 rows, regional + product breakdown"
+
+  # [C2 deterministic output] cascade runs to silver+gold while
+  # chatter continues. emit_kpi_proposed lands ~beat 7.
+  - at: 35
+    persona: bob
+    say: "that's the regional cut — should help with the Q3 net read"
+
+  # [C1 unprompted action] mentioned_in_conversation trigger.
+  # Bob does NOT @ the worm. The worm's relevance gate fires anyway
+  # because "Stripe" matches a registered semantic data-reference.
+  - at: 43
+    persona: bob
+    say: "we should also pull our Stripe data so the gross-net rec is clean"
+
+  # The worm posts proactively in-channel. (Driven by the worm
+  # itself, not by sim-harness — this beat is a placeholder for
+  # the visible bot reply. Narrator points at it on stage.)
+  # >>> EXPECTED BOT REPLY (proactive, not scripted here):
+  # >>> "Worm: I can wire Stripe up — DM me an API key (read-only is fine)
+  # >>>  and I'll connect + profile + propose the gold view."
+
+  # [C6 auditable governance] credential_offered_in_dm flow.
+  # NOTE: the harness can't drive a DM message in this build.
+  # Runbook author: narrate this beat. The dashboard /sources panel
+  # plays a pre-recorded credential_offered_in_dm ledger entry so
+  # MedallionCascade visibly fires for stripe-payouts.csv.
+  # (TODO: extend Beat schema with `channel: dm` to script this.)
+  - at: 55
+    persona: carol
+    say: "on it — DMing the worm a read-only Stripe key now"
+
+  # >>> EXPECTED BOT REPLY (after DM credential, narrated):
+  # >>> "Worm: Stripe connected. Bronze landed (10 payouts). Silver in 1.4s.
+  # >>>  Proposing gold view: stripe.payouts.weekly_net. emit_kpi_proposed."
+
+  # ============================================================
+  # Act III — Steps 3 + 4a: BUILD CONCURRENTLY + DATA PRODUCTS
+  # All this time, the worm has been extracting decisions / process
+  # bits / KPI candidates from chatter. Now Carol & Alice ask
+  # questions; the worm answers with sourced receipts. Audience
+  # flips to /processes, /decisions, /kpis to see compounded state.
+  # ============================================================
+
+  # [C2 deterministic output, C6 auditable governance]
+  # Carol references the source explicitly so the citation target
+  # is visible to the audience.
+  - at: 70
+    persona: carol
+    say: "@WormBase what's our Q3 net revenue from the file Bob just dropped?"
+
+  # >>> EXPECTED BOT REPLY (sourced):
+  # >>> "Worm: Q3 net = $549,963 across NA/EMEA/APAC. Source:
+  # >>>  sales-q3.csv (hash a8989ece) joined with stripe.payouts (hash
+  # >>>  3b7c1f). Computed 09:14 today. Receipt: ledger#kpi_proposed_q3_net."
+
+  # [C3 compounding state] retention question — pulls from churn-events
+  # + retention-cohorts in the worm's existing lake (loaded earlier in
+  # an extended-replay session, demonstrating compounding).
+  - at: 86
+    persona: alice
+    say: "@WormBase any retention dip in the May or June cohort?"
+
+  # >>> EXPECTED BOT REPLY (process-aware):
+  # >>> "Worm: m3 retention dipped 8% for the June cohort vs May. Driver:
+  # >>>  switched_competitor (5 of 7 churn events). Process map shows this
+  # >>>  recurs Q-over-Q; recommend a recurring-question alert."
+
+  # [C3, C7] human-to-human follow-up — gives the worm process-extraction
+  # signal (a decision is being formed: retention review uses cohorts).
+  - at: 94
+    persona: bob
+    say: "we'll want to lock the cohort definitions before the readout"
+
+  # ============================================================
+  # Act IV — Step 4b: PRODUCE + CONVERSE + multitenancy
+  # Carol asks for a board-deck export; narrator demos the tenant
+  # switcher (baseworm → democorp) and queues the voice beat.
+  # ============================================================
+
+  # [C2, C7] worm produces a data product: the board-ready breakdown.
+  - at: 102
+    persona: carol
+    say: "@WormBase good — save that breakdown as a board-deck artifact?"
+
+  # >>> EXPECTED BOT REPLY (data product):
+  # >>> "Worm: emit_data_product_published board_q3_net.md (hash 7d4e...).
+  # >>>  Exportable as PDF/CSV/JSON. Linked to source receipts above."
+
+  # [C7] human ack — also a soft signal to the worm that the artifact
+  # was accepted (process-extraction picks up "approval" here).
+  - at: 110
+    persona: alice
+    say: "great — and ping me when the multitenant democorp view is up too"
+
+  # >>> NARRATOR (no scripted beat — dashboard action):
+  # >>> "Switching tenants now: baseworm → democorp. Same product, separate
+  # >>>  ledger, sparser lake. This is multitenancy — one binary, N companies."
+  # >>>
+  # >>> "Voice ready. [Either play live ElevenLabs call or roll the screencap
+  # >>>  fallback per the runbook.]"
+
+  # ============================================================
+  # Act V — Step 5: SELF-IMPROVE PER USER
+  # Carol opens /research. Per-CFO autoresearch loop has been running.
+  # ============================================================
+
+  # [C5 metric-governed self-improvement, C8 unprompted]
+  # Carol's last beat doubles as the bridge to /research.
+  - at: 116
+    persona: carol
+    say: "@WormBase what experiments did you run on my CFO metrics this week?"
+
+  # >>> EXPECTED BOT REPLY (research log):
+  # >>> "Worm: 23 experiments run on your CFO position. 8 keeps, 15 discards.
+  # >>>  Headline: Q3 forecast accuracy +4%, runway projection 12% tighter.
+  # >>>  Top win: caching the net-rev query cut your dashboard p95 by 41%.
+  # >>>  Trail in /research. Karpathy autoresearch, parameterized to your role."

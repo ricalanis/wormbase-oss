@@ -1,0 +1,300 @@
+# Fintech ontology pack — 40+ concepts.
+
+# -- METRICS (15) -----------------------------------------------------
+- id: transaction_volume
+  label: Transaction Volume
+  category: metric
+  aliases: [transaction_volume, "txn volume", "TPV"]
+  examples:
+    - "TPV today"
+
+- id: default_rate
+  label: Default Rate
+  category: metric
+  aliases: [default_rate, "loan default %"]
+  examples:
+    - "default rate by cohort"
+
+- id: chargeback_rate_fin
+  label: Chargeback Rate (fintech)
+  category: metric
+  aliases: [chargeback_rate, "cb rate"]
+  examples:
+    - "chargeback rate"
+
+- id: fraud_rate
+  label: Fraud Rate
+  category: metric
+  aliases: [fraud_rate, "fraud %"]
+  examples:
+    - "fraud rate trend"
+
+- id: loss_ratio
+  label: Loss Ratio
+  category: metric
+  aliases: [loss_ratio, "losses / volume"]
+  examples:
+    - "loss ratio q3"
+
+- id: approval_rate
+  label: Approval Rate
+  category: metric
+  aliases: [approval_rate, "approval %"]
+  examples:
+    - "approval rate"
+
+- id: nim
+  label: Net Interest Margin
+  category: metric
+  aliases: [nim, "NIM", "net interest margin"]
+  examples:
+    - "NIM trend"
+
+- id: cost_of_funds
+  label: Cost of Funds
+  category: metric
+  aliases: [cost_of_funds, "CoF"]
+  examples:
+    - "cost of funds"
+
+- id: aml_alerts
+  label: AML Alerts Generated
+  category: metric
+  aliases: [aml_alerts, "AML hits", "AML alert count"]
+  examples:
+    - "AML alerts today"
+
+- id: kyc_pass_rate
+  label: KYC Pass Rate
+  category: metric
+  aliases: [kyc_pass_rate, "KYC %"]
+  examples:
+    - "KYC pass rate"
+
+- id: avg_balance
+  label: Average Balance
+  category: metric
+  aliases: [avg_balance, "average balance"]
+  examples:
+    - "avg balance per account"
+
+- id: deposit_growth
+  label: Deposit Growth
+  category: metric
+  aliases: [deposit_growth, "deposits delta"]
+  examples:
+    - "deposits this month"
+
+- id: withdrawal_volume
+  label: Withdrawal Volume
+  category: metric
+  aliases: [withdrawal_volume, "withdrawals"]
+  examples:
+    - "withdrawal volume"
+
+- id: settlement_time
+  label: Settlement Time
+  category: metric
+  aliases: [settlement_time, "T+N"]
+  examples:
+    - "settlement time p95"
+
+- id: dispute_rate_fin
+  label: Dispute Rate (fintech)
+  category: metric
+  aliases: [dispute_rate, "disputes %"]
+  examples:
+    - "fintech dispute rate"
+
+# -- ENTITIES (10) ----------------------------------------------------
+- id: cardholder
+  label: Cardholder
+  category: entity
+  aliases: [cardholder, "card user", "customer"]
+  examples:
+    - "active cardholders"
+
+- id: merchant
+  label: Merchant
+  category: entity
+  aliases: [merchant, "biz", "merchant account"]
+  examples:
+    - "merchants signed"
+
+- id: transaction
+  label: Transaction
+  category: entity
+  aliases: [transaction, "txn", "charge"]
+  examples:
+    - "txns today"
+
+- id: card
+  label: Card
+  category: entity
+  aliases: [card, "payment card", "issued card"]
+  examples:
+    - "issued cards"
+
+- id: bank_account
+  label: Bank Account
+  category: entity
+  aliases: [bank_account, "account", "ach account"]
+  examples:
+    - "linked bank accounts"
+
+- id: loan
+  label: Loan
+  category: entity
+  aliases: [loan, "credit account"]
+  examples:
+    - "active loans"
+
+- id: alert
+  label: Compliance Alert
+  category: entity
+  aliases: [alert, "AML alert", "sanctions alert"]
+  examples:
+    - "open alerts"
+
+- id: kyc_record
+  label: KYC Record
+  category: entity
+  aliases: [kyc_record, "identity record"]
+  examples:
+    - "kyc records"
+
+- id: ledger_entry
+  label: Ledger Entry
+  category: entity
+  aliases: [ledger_entry, "double-entry row"]
+  examples:
+    - "ledger postings today"
+
+- id: dispute_case
+  label: Dispute Case
+  category: entity
+  aliases: [dispute_case, "case", "dispute"]
+  examples:
+    - "open dispute cases"
+
+# -- EVENTS (8) -------------------------------------------------------
+- id: txn_authorized
+  label: Transaction Authorized
+  category: event
+  aliases: [txn_authorized, "auth", "authorized"]
+  examples:
+    - "auths today"
+
+- id: txn_settled
+  label: Transaction Settled
+  category: event
+  aliases: [txn_settled, "settled"]
+  examples:
+    - "settlements today"
+
+- id: txn_declined
+  label: Transaction Declined
+  category: event
+  aliases: [txn_declined, "declined", "auth declined"]
+  examples:
+    - "declines today"
+
+- id: kyc_passed
+  label: KYC Passed
+  category: event
+  aliases: [kyc_passed, "kyc cleared"]
+  examples:
+    - "kyc passed today"
+
+- id: kyc_failed
+  label: KYC Failed
+  category: event
+  aliases: [kyc_failed, "kyc rejected"]
+  examples:
+    - "kyc failed today"
+
+- id: aml_hit
+  label: AML Hit
+  category: event
+  aliases: [aml_hit, "aml triggered"]
+  examples:
+    - "aml hits today"
+
+- id: chargeback_filed
+  label: Chargeback Filed
+  category: event
+  aliases: [chargeback_filed, "cb filed"]
+  examples:
+    - "chargebacks filed"
+
+- id: deposit
+  label: Deposit
+  category: event
+  aliases: [deposit, "ach deposit"]
+  examples:
+    - "deposits today"
+
+# -- DIMENSIONS (5) ---------------------------------------------------
+- id: card_type
+  label: Card Type
+  category: dimension
+  aliases: [card_type, "credit/debit"]
+  examples:
+    - "by card type"
+
+- id: merchant_category
+  label: Merchant Category Code
+  category: dimension
+  aliases: [mcc, "merchant_category"]
+  examples:
+    - "by MCC"
+
+- id: country_dim
+  label: Country
+  category: dimension
+  aliases: [country_dim, "country"]
+  examples:
+    - "by country"
+
+- id: risk_band
+  label: Risk Band
+  category: dimension
+  aliases: [risk_band, "risk tier"]
+  examples:
+    - "by risk band"
+
+- id: tx_channel
+  label: Transaction Channel
+  category: dimension
+  aliases: [tx_channel, "ecom/instore/atm"]
+  examples:
+    - "by channel"
+
+# -- SOURCE ARCHETYPES (4) -------------------------------------------
+- id: ledger_table
+  label: General Ledger Table
+  category: source_archetype
+  aliases: [ledger_table, "GL", "general ledger"]
+  examples:
+    - "GL export"
+
+- id: txn_export
+  label: Transaction Export
+  category: source_archetype
+  aliases: [txn_export, "transactions.csv"]
+  examples:
+    - "transactions.csv ingest"
+
+- id: kyc_export
+  label: KYC Export
+  category: source_archetype
+  aliases: [kyc_export, "compliance export"]
+  examples:
+    - "kyc data export"
+
+- id: card_network_feed
+  label: Card Network Feed
+  category: source_archetype
+  aliases: [card_network_feed, "visa file", "mc file"]
+  examples:
+    - "card network daily file"

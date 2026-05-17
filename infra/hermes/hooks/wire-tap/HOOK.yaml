@@ -1,0 +1,39 @@
+# Hermes hook — wire-tap.
+#
+# Per gateway/hooks.py in upstream Hermes (NousResearch/hermes-agent
+# v0.11.0), a hook is a directory under ~/.hermes/hooks/ containing
+# HOOK.yaml + handler.py. The registry's discover_and_load() walks the
+# dir, parses this manifest, dynamically loads handler.py, and registers
+# its `handle` function for every event listed below.
+#
+# H1 spike (docs/superpowers/specs/2026-04-27-openclaw-to-hermes-migration.md
+# §5 Phase 0): we only need to prove the inbound-message hook fires
+# deterministically. The closest event in v0.11.0 is `agent:start` —
+# emitted from gateway/run.py:4894 every time a normalized inbound
+# message reaches the agent loop. Hook context shape per upstream:
+#
+#   {
+#     "platform":   <"slack" | "discord" | ...>,
+#     "user_id":    <platform-native sender id>,
+#     "session_id": <hermes session uuid>,
+#     "message":    <first 500 chars of the text>,
+#   }
+#
+# The wire-tap hook POSTs that envelope (plus a tenant tag) to a thin
+# spike endpoint on the channel-adapter container. See
+# infra/hermes/hooks/wire-tap/handler.py.
+#
+# session:start is included as a defensive secondary so we can tell
+# whether Hermes is at least seeing pairing/session events even if the
+# agent:start path is gated by some auth/relevance check we don't see
+# in the code yet.
+
+name: wormbase-wire-tap
+description: |
+  Spike hook — POSTs every agent:start envelope to the channel-adapter
+  spike endpoint so we can compare Hermes's capture rate against
+  OpenClaw's. Removed once Block H2 lands the production HermesEventConsumer.
+events:
+  - agent:start
+  - session:start
+  - session:end

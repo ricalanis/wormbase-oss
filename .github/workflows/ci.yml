@@ -1,0 +1,319 @@
+# WormBase CI — staged 6-layer pipeline.
+#
+# Stages (each is its own job; later ones depend on earlier ones):
+#
+#   lint        ruff + tsc + mypy + eslint                  ~30s
+#   unit        L1 (Python pytest) + L2 (TS vitest)         ~60s
+#   contract    L3 (tests/contract/)                        ~5s
+#   service     L4 (-m service marker)                      ~30s   (mostly skipped today)
+#   integration L5 (tests/integration/, real testcontainers Postgres) ~3min
+#   demo-gates  L6 (tests/demo/) — manual / nightly / tag   ~5min
+#
+# qa-report aggregates every job's junit XML at the end so a single
+# table summarizes the run.
+
+name: ci
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+  # demo-gates runs on every push too, but skipped tests stay skipped
+  # so the cost is low. For the heavy real-Slack version (post-P5),
+  # wire a separate workflow on tag.
+
+env:
+  PNPM_VERSION: "9"
+  NODE_VERSION: "22"
+  PYTHON_VERSION: "3.12"
+  UV_VERSION: "0.4.0"
+
+jobs:
+  # ─── Stage 1: lint ─────────────────────────────────────────────
+  lint:
+    name: lint (ruff + tsc + mypy + eslint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: ruff check
+        run: |
+          uv tool install ruff
+          uv tool run ruff check . || echo "ruff: tolerant during P0-P3 scaffold"
+
+      - name: mypy
+        run: |
+          uv tool install mypy
+          uv tool run mypy --config-file pyproject.toml . \
+            || echo "mypy: tolerant during P0-P3 scaffold"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile || pnpm install
+
+      - name: eslint
+        run: pnpm -r --if-present lint
+
+      - name: tsc
+        run: pnpm -r --if-present typecheck
+
+  # ─── Stage 2: unit (L1 + L2) ───────────────────────────────────
+  unit:
+    name: unit (L1 pytest + L2 vitest)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: pytest L1 (per-package, with junitxml)
+        run: |
+          make test-l1
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile || pnpm install
+
+      - name: vitest L2
+        run: make test-ts
+
+      - name: Upload L1 junit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-l1
+          path: .junit/l1-*.xml
+          if-no-files-found: warn
+
+  # ─── Stage 3: contract (L3) ────────────────────────────────────
+  contract:
+    name: contract (L3)
+    runs-on: ubuntu-latest
+    needs: unit
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: uv sync (root dev)
+        run: uv sync --extra dev
+
+      - name: pytest L3
+        run: make test-contract
+
+      - name: Upload L3 junit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-l3
+          path: .junit/l3-*.xml
+          if-no-files-found: warn
+
+  # ─── Stage 4: service (L4) ─────────────────────────────────────
+  service:
+    name: service (L4)
+    runs-on: ubuntu-latest
+    needs: contract
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: uv sync (root dev)
+        run: uv sync --extra dev
+
+      - name: pytest L4 (-m service)
+        run: make test-service
+
+      - name: Upload L4 junit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-l4
+          path: .junit/l4-*.xml
+          if-no-files-found: warn
+
+  # ─── Stage 5: integration (L5) ─────────────────────────────────
+  integration:
+    name: integration (L5, testcontainers Postgres)
+    runs-on: ubuntu-latest
+    needs: service
+    services:
+      docker:
+        image: docker:dind
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: uv sync (root dev)
+        run: uv sync --extra dev
+
+      - name: pytest L5 (real testcontainers Postgres)
+        env:
+          WORMBASE_INTEGRATION_REAL_DB: "1"
+        run: make integration
+
+      - name: Upload L5 junit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-l5
+          path: .junit/l5-*.xml
+          if-no-files-found: warn
+
+  # ─── Stage 6: demo-gates (L6) ──────────────────────────────────
+  demo-gates:
+    name: demo-gates (L6)
+    runs-on: ubuntu-latest
+    needs: integration
+    # Demo-gates are mostly skipped today (P4/P5 territory); we still
+    # run them on every push so qa-report shows the climbing pass count.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/uv.lock
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: uv sync (root dev)
+        run: uv sync --extra dev
+
+      - name: pytest L6 demo gates
+        run: make demo-gates
+
+      - name: Upload L6 junit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-l6
+          path: .junit/l6-*.xml
+          if-no-files-found: warn
+
+  # ─── Final: qa-report ──────────────────────────────────────────
+  qa-report:
+    name: qa-report (aggregate)
+    runs-on: ubuntu-latest
+    needs: [unit, contract, service, integration, demo-gates]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Download all junit artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: .junit-collected
+
+      - name: Flatten artifacts into .junit/
+        run: |
+          mkdir -p .junit
+          find .junit-collected -name '*.xml' -exec cp {} .junit/ \;
+          ls -la .junit/
+
+      - name: Render qa-report table
+        run: |
+          uv run python -m tests._aggregator.qa_report \
+            $(for f in .junit/*.xml; do echo "--junit $f"; done)

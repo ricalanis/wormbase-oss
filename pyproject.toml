@@ -1,0 +1,170 @@
+[project]
+name = "wormbase-monorepo"
+version = "0.1.0"
+description = "WormBase — institutional AI data agent (monorepo root)"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "Ricardo Alanis", email = "ricardo.alanis@gmail.com" }]
+
+# Root is a workspace shell only; individual Python packages live under
+# packages/* and apps/*, each with its own pyproject.toml.
+dependencies = []
+
+[project.optional-dependencies]
+# Cross-cutting test deps used by `tests/` (the L3/L4/L5/L6 layers).
+# Install via: uv sync --extra dev (root) or uv pip install -e ".[dev]"
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "testcontainers>=4.7",
+    "psycopg2-binary>=2.9",
+    "sqlalchemy[asyncio]>=2.0.30",
+    "asyncpg>=0.29",
+    "hypothesis>=6.100",
+    "wormbase-ledger",
+    "wormbase-governance",
+    "wormbase-ontology-seed",
+    "wormbase-channel-adapter",
+    "wormbase-worm-core",
+    "wormbase-sim-harness",
+    "wormbase-lake-maintainer",
+    "wormbase-reactivities",
+    "wormbase-identity-tracker",
+    "wormbase-chat-presence",
+    "wormbase-research-loop",
+    "wormbase-process-extractor",
+    "wormbase-inference-router",
+    # Voice agent (apps/voice-agent) is a workspace member but was missing
+    # from dev extras, which broke `tests/integration/test_ask_the_worm_pipeline.py`
+    # collection at the workspace root with `ModuleNotFoundError`. The
+    # pipeline test imports `wormbase_voice_agent.app` and friends, so the
+    # workspace root needs the package installed for `uv run pytest tests/`
+    # to succeed.
+    "wormbase-voice-agent",
+]
+
+[tool.uv.workspace]
+members = [
+    "apps/worm-core",
+    "apps/sim-harness",
+    "apps/channel-adapter",
+    "apps/voice-agent",
+    "packages/ledger",
+    "packages/inference-router",
+    "packages/governance",
+    "packages/ontology-seed",
+    "packages/connectors",
+    "packages/channel-adapters",
+    "packages/reactivities",
+    "packages/lake-maintainer",
+    "packages/wormbase-agent-gateway",
+    "packages/wormbase-catalog-mirror",
+    "packages/wormbase-tools",
+    "packages/wormbase-tools-test",
+    "packages/wormbase-identity-tracker",
+    "packages/wormbase-chat-presence",
+    "packages/wormbase-research-loop",
+    "packages/wormbase-process-extractor",
+]
+
+[tool.uv.sources]
+wormbase-ledger = { workspace = true }
+wormbase-governance = { workspace = true }
+wormbase-ontology-seed = { workspace = true }
+wormbase-channel-adapter = { workspace = true }
+wormbase-worm-core = { workspace = true }
+wormbase-sim-harness = { workspace = true }
+wormbase-voice-agent = { workspace = true }
+wormbase-connectors = { workspace = true }
+wormbase-channel-adapters = { workspace = true }
+wormbase-reactivities = { workspace = true }
+wormbase-lake-maintainer = { workspace = true }
+wormbase-tools = { workspace = true }
+wormbase-tools-test = { workspace = true }
+wormbase-identity-tracker = { workspace = true }
+wormbase-chat-presence = { workspace = true }
+wormbase-research-loop = { workspace = true }
+wormbase-process-extractor = { workspace = true }
+wormbase-inference-router = { workspace = true }
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["apps", "packages"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+warn_return_any = true
+warn_unreachable = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "apps:packages"
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+]
+markers = [
+    "integration: multi-service tests via docker-compose.test.yml (L5)",
+    "reproducibility: hash-chain and replay determinism tests",
+    "service: single-service tests with real dependencies (testcontainers, L4)",
+    "demo: PRD §6 acceptance gate tests (F/Q/N — L6)",
+    "contract: cross-package schema fidelity tests (L3)",
+    "chaos: failure-injection / external-dependency-down tests (W6.A3)",
+    "property: Hypothesis-based property invariants (W6.A1)",
+    "slow: tests that take >5s",
+    "live_openclaw: tests that require a paired live OpenClaw instance (env-gated by WORMBASE_LIVE_OPENCLAW_TEST=1)",
+    "perf: performance / micro-benchmark suite — opt-in, excluded from default runs (invoke explicitly with `pytest tests/perf/ -m perf`)",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "build>=1.4.4",
+]
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true

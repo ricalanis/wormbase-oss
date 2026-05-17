@@ -1,0 +1,46 @@
+{
+  "display_information": {
+    "name": "WormBase Observer",
+    "description": "Passive observation channel for WormBase ledger ingest. Read-only.",
+    "background_color": "#0d1b2a"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "WormBase Observer",
+      "always_online": true
+    }
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "channels:history",
+        "channels:read",
+        "groups:history",
+        "groups:read",
+        "im:history",
+        "im:read",
+        "mpim:history",
+        "mpim:read",
+        "files:read",
+        "users:read"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "bot_events": [
+        "message.channels",
+        "message.groups",
+        "message.im",
+        "message.mpim",
+        "file_shared"
+      ]
+    },
+    "interactivity": {
+      "is_enabled": false
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": true,
+    "token_rotation_enabled": false
+  }
+}

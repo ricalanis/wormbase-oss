@@ -1,0 +1,49 @@
+# packages/wormbase-chat-presence/pyproject.toml
+# > AUTHORED 2026-05-03: shape mirrors packages/lake-maintainer/pyproject.toml.
+# > No README per project rule. Deps include wormbase-channel-adapters
+# > because ChatReply.speak calls ChannelAdapter.send. wormbase-governance
+# > because chat-worm consumes InterjectionGate (read-only via ChatStore).
+# > wormbase-worm-core because chat flows call write_actions and SourceBuilder
+# > (one-way dep — cli.py is the wiring callsite, not chat-worm).
+[project]
+name = "wormbase-chat-presence"
+version = "0.1.0"
+description = "Chat-presence agent: relevance + speech rules + chat-driven source-building flows + the ChatReply write primitive."
+requires-python = ">=3.12"
+
+dependencies = [
+    "wormbase-ledger",
+    "wormbase-reactivities",
+    "wormbase-governance",
+    "wormbase-channel-adapters",
+    "wormbase-worm-core",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2", "pytest-asyncio>=0.23"]
+
+[tool.uv.sources]
+wormbase-ledger = { workspace = true }
+wormbase-reactivities = { workspace = true }
+wormbase-governance = { workspace = true }
+wormbase-channel-adapters = { workspace = true }
+wormbase-worm-core = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wormbase_chat_presence"]
+
+# O-B4: ensure setup_conversations/*.yml ship as package data. Hatchling's
+# default discovery picks up non-Python files under the package root so long
+# as the directory has an __init__.py and is reachable from `packages`. This
+# explicit include guards against future build-tool changes that might tighten
+# the default.
+[tool.hatch.build.targets.wheel.force-include]
+"src/wormbase_chat_presence/setup_conversations" = "wormbase_chat_presence/setup_conversations"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

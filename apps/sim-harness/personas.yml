@@ -1,0 +1,24 @@
+personas:
+  alice:
+    display_name: "Alice Chen"
+    # Simple emojis render reliably as Slack post avatars across all
+    # workspace skins. Compound :woman_office_worker_with_glasses:-type
+    # names sometimes fall through to literal text in the avatar slot.
+    icon_emoji: ":bar_chart:"
+    role: "Marketing Lead"
+    voice_hint: "data-driven, friendly, asks growth/retention questions"
+  bob:
+    display_name: "Bob Martin"
+    icon_emoji: ":wrench:"
+    role: "Data Engineer"
+    voice_hint: "terse, technical, drops files in channels, comments on schemas"
+  carol:
+    display_name: "Carol Reyes"
+    icon_emoji: ":money_with_wings:"
+    role: "CFO"
+    voice_hint: "concise, asks revenue and unit-economics questions, references actuals vs forecast"
+  dave:
+    display_name: "Dave Park"
+    icon_emoji: ":hammer_and_wrench:"
+    role: "Data Engineer"
+    voice_hint: "infra-minded, asks pipeline-latency / schema-drift / cost questions, references warehouses and catalogs"

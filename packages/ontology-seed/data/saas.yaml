@@ -1,0 +1,403 @@
+# SaaS ontology pack — 50+ concepts spanning metrics, entities, events,
+# dimensions, and source archetypes. Each concept carries colloquial aliases
+# and natural-language usage examples to support classifier prompting.
+
+# -- METRICS (17) -----------------------------------------------------
+- id: mrr
+  label: Monthly Recurring Revenue
+  category: metric
+  aliases: [mrr, "monthly recurring rev", "MRR", "monthly rev", "recurring revenue"]
+  examples:
+    - "what's our MRR this month?"
+    - "MRR by segment please"
+    - "MRR dropped 4% — why?"
+
+- id: arr
+  label: Annual Recurring Revenue
+  category: metric
+  aliases: [arr, "annual recurring rev", "ARR", "yearly revenue", "annualised revenue"]
+  examples:
+    - "how is ARR tracking?"
+    - "ARR target for Q4"
+    - "expand ARR to 12M by end of year"
+
+- id: churn
+  label: Churn Rate
+  category: metric
+  aliases: [churn, "churn rate", "logo churn", "customer churn", "monthly churn"]
+  examples:
+    - "what's churn this month?"
+    - "churn by segment?"
+    - "is churn improving?"
+
+- id: revenue_churn
+  label: Revenue Churn
+  category: metric
+  parent_id: churn
+  aliases: [revenue_churn, "$ churn", "gross revenue churn", "revenue attrition"]
+  examples:
+    - "revenue churn vs logo churn"
+    - "what's our gross revenue churn"
+    - "$ churn target?"
+
+- id: ltv
+  label: Customer Lifetime Value
+  category: metric
+  aliases: [ltv, "lifetime value", "LTV", "cltv", "customer ltv"]
+  examples:
+    - "LTV/CAC ratio"
+    - "what's LTV by plan?"
+    - "lifetime value uplift from upsell"
+
+- id: cac
+  label: Customer Acquisition Cost
+  category: metric
+  aliases: [cac, "acquisition cost", "CAC", "cost per acquisition", "cpa"]
+  examples:
+    - "CAC payback period"
+    - "blended CAC last quarter"
+    - "marketing CAC trend"
+
+- id: dau
+  label: Daily Active Users
+  category: metric
+  aliases: [dau, "daily actives", "DAU", "daily users", "active users"]
+  examples:
+    - "DAU trend last 30 days"
+    - "how many DAU last week?"
+
+- id: mau
+  label: Monthly Active Users
+  category: metric
+  aliases: [mau, "monthly actives", "MAU", "monthly users"]
+  examples:
+    - "MAU growth"
+    - "MAU/DAU ratio"
+
+- id: nps
+  label: Net Promoter Score
+  category: metric
+  aliases: [nps, "net promoter", "NPS"]
+  examples:
+    - "what's our NPS?"
+    - "NPS trend"
+
+- id: retention
+  label: Retention Rate
+  category: metric
+  aliases: [retention, "retention rate", "user retention", "cohort retention"]
+  examples:
+    - "30-day retention"
+    - "cohort retention by month"
+
+- id: expansion_revenue
+  label: Expansion Revenue
+  category: metric
+  aliases: [expansion, "expansion revenue", "upsell revenue", "expansion MRR"]
+  examples:
+    - "expansion revenue this quarter"
+    - "net new ARR from expansion"
+
+- id: gross_margin
+  label: Gross Margin
+  category: metric
+  aliases: [gross_margin, "GM", "gross margin %", "margin"]
+  examples:
+    - "what's gross margin"
+    - "GM by product line"
+
+- id: net_revenue_retention
+  label: Net Revenue Retention
+  category: metric
+  aliases: [nrr, "NRR", "net retention", "net revenue retention"]
+  examples:
+    - "what's NRR?"
+    - "NRR target 110%+"
+
+- id: payback_period
+  label: CAC Payback Period
+  category: metric
+  aliases: [payback, "payback period", "CAC payback", "months to recover CAC"]
+  examples:
+    - "CAC payback in months"
+    - "payback period by segment"
+
+- id: burn_rate
+  label: Burn Rate
+  category: metric
+  aliases: [burn, "burn rate", "monthly burn", "cash burn"]
+  examples:
+    - "what's our burn?"
+    - "monthly burn rate"
+
+- id: quick_ratio
+  label: Quick Ratio
+  category: metric
+  aliases: [quick_ratio, "quick ratio", "growth/contraction"]
+  examples:
+    - "quick ratio for Q3"
+    - "quick ratio of 4 looks healthy"
+
+- id: rule_of_40
+  label: Rule of 40
+  category: metric
+  aliases: [rule_of_40, "rule of 40", "ro40", "growth + margin"]
+  examples:
+    - "rule of 40 score"
+    - "ro40 over time"
+
+- id: magic_number
+  label: Magic Number
+  category: metric
+  aliases: [magic_number, "magic number", "Bessemer magic"]
+  examples:
+    - "magic number this quarter"
+    - "what's our magic number"
+
+# -- ENTITIES (10) ----------------------------------------------------
+- id: customer
+  label: Customer
+  category: entity
+  aliases: [customer, "client", "buyer"]
+  examples:
+    - "how many customers do we have"
+    - "list customer churn risks"
+
+- id: account
+  label: Account
+  category: entity
+  aliases: [account, "company account", "org account"]
+  examples:
+    - "active accounts in EMEA"
+    - "accounts list export"
+
+- id: subscription
+  label: Subscription
+  category: entity
+  aliases: [subscription, "sub", "subs", "subscription record"]
+  examples:
+    - "subscription state"
+    - "monthly vs annual subs"
+
+- id: user
+  label: User
+  category: entity
+  aliases: [user, "end user", "seat"]
+  examples:
+    - "users per account"
+    - "active user count"
+
+- id: plan
+  label: Plan
+  category: entity
+  aliases: [plan, "pricing plan", "tier", "package"]
+  examples:
+    - "plans available"
+    - "users on enterprise plan"
+
+- id: invoice
+  label: Invoice
+  category: entity
+  aliases: [invoice, "bill", "stripe invoice"]
+  examples:
+    - "open invoices"
+    - "past due invoices"
+
+- id: payment
+  label: Payment
+  category: entity
+  aliases: [payment, "charge", "transaction"]
+  examples:
+    - "failed payments today"
+    - "payment success rate"
+
+- id: trial
+  label: Trial
+  category: entity
+  aliases: [trial, "free trial", "trial user"]
+  examples:
+    - "trial conversion rate"
+    - "active trials"
+
+- id: org
+  label: Organization
+  category: entity
+  aliases: [org, "organization", "tenant", "workspace"]
+  examples:
+    - "orgs by plan"
+    - "active orgs"
+
+- id: team
+  label: Team
+  category: entity
+  aliases: [team, "team account"]
+  examples:
+    - "teams per org"
+
+# -- EVENTS (9) -------------------------------------------------------
+- id: signup
+  label: Signup
+  category: event
+  aliases: [signup, "signups", "sign up", "registration", "sign-up"]
+  examples:
+    - "signups this week"
+
+- id: activation
+  label: Activation
+  category: event
+  aliases: [activation, "activated", "first value"]
+  examples:
+    - "activation rate"
+
+- id: conversion
+  label: Conversion
+  category: event
+  aliases: [conversion, "convert", "trial-to-paid"]
+  examples:
+    - "trial conversion %"
+
+- id: upgrade
+  label: Upgrade
+  category: event
+  aliases: [upgrade, "upsell", "tier upgrade"]
+  examples:
+    - "upgrades last month"
+
+- id: downgrade
+  label: Downgrade
+  category: event
+  aliases: [downgrade, "downsell", "tier downgrade"]
+  examples:
+    - "downgrades trend"
+
+- id: cancellation
+  label: Cancellation
+  category: event
+  aliases: [cancel, "cancellation", "cancelled", "cancel sub"]
+  examples:
+    - "cancellations this week"
+
+- id: renewal
+  label: Renewal
+  category: event
+  aliases: [renewal, "renewals", "renew", "renewed", "auto-renew"]
+  examples:
+    - "renewals coming up"
+
+- id: login
+  label: Login
+  category: event
+  aliases: [login, "log in", "sign in", "auth"]
+  examples:
+    - "login frequency"
+
+- id: purchase
+  label: Purchase
+  category: event
+  aliases: [purchase, "buy", "order", "transaction"]
+  examples:
+    - "purchases per user"
+
+# -- DIMENSIONS (6) ---------------------------------------------------
+- id: segment
+  label: Segment
+  category: dimension
+  aliases: [segment, "customer segment", "tier segment"]
+  examples:
+    - "segment by ARR band"
+
+- id: cohort
+  label: Cohort
+  category: dimension
+  aliases: [cohort, "signup cohort", "monthly cohort"]
+  examples:
+    - "cohort retention curves"
+
+- id: channel
+  label: Acquisition Channel
+  category: dimension
+  aliases: [channel, "acquisition channel", "marketing channel"]
+  examples:
+    - "channel attribution"
+
+- id: geography
+  label: Geography
+  category: dimension
+  aliases: [geo, "geography", "region", "country"]
+  examples:
+    - "by geography"
+
+- id: plan_tier
+  label: Plan Tier
+  category: dimension
+  aliases: [plan_tier, "tier", "pricing tier"]
+  examples:
+    - "by plan tier"
+
+- id: billing_cycle
+  label: Billing Cycle
+  category: dimension
+  aliases: [billing_cycle, "cycle", "monthly vs annual"]
+  examples:
+    - "split by billing cycle"
+
+# -- SOURCE ARCHETYPES (8) -------------------------------------------
+- id: stripe
+  label: Stripe
+  category: source_archetype
+  aliases: [stripe, "Stripe", "stripe billing", "stripe data"]
+  examples:
+    - "we should pull from Stripe"
+    - "Stripe events"
+    - "import Stripe billing"
+
+- id: billing_table
+  label: Billing Table
+  category: source_archetype
+  aliases: [billing_table, "billing", "billing csv", "invoices table"]
+  examples:
+    - "billing table dump"
+
+- id: accounts_table
+  label: Accounts Table
+  category: source_archetype
+  aliases: [accounts_table, "accounts", "accounts csv"]
+  examples:
+    - "accounts.csv ingest"
+
+- id: events_jsonl
+  label: Events JSONL
+  category: source_archetype
+  aliases: [events_jsonl, "events stream", "jsonl events"]
+  examples:
+    - "we have events.jsonl"
+
+- id: salesforce
+  label: Salesforce
+  category: source_archetype
+  aliases: [salesforce, "sfdc", "Salesforce"]
+  examples:
+    - "Salesforce CRM export"
+    - "pipe Salesforce data"
+
+- id: segment_io
+  label: Segment.io Stream
+  category: source_archetype
+  aliases: [segment_io, "segment events", "Segment stream", "segment.io", "Segment", "segment data", "segment now"]
+  examples:
+    - "our Segment events"
+    - "Segment pipeline"
+
+- id: subscriptions_csv
+  label: Subscriptions CSV
+  category: source_archetype
+  aliases: [subscriptions_csv, "subscriptions.csv", "subs csv"]
+  examples:
+    - "subscriptions.csv uploaded"
+
+- id: usage_logs
+  label: Usage Logs
+  category: source_archetype
+  aliases: [usage_logs, "usage", "product usage logs"]
+  examples:
+    - "usage logs from last week"

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WormBase — Design System Vol. I</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300..700;1,8..60,300..700&family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #EDE7D7; }
+  body { font-family: "Source Serif 4", Georgia, serif; color: #2A2A2A; }
+  @keyframes wb-spin { to { transform: rotate(360deg); } }
+  /* soften the design-canvas grid to match paper tone */
+  .design-canvas { background: #EDE7D7 !important; }
+
+  /* Tweaks panel */
+  .wb-tweaks {
+    position: fixed; right: 20px; bottom: 20px; z-index: 1000;
+    background: #FAF7F0; border: 1px solid #2A2A2A; padding: 14px 16px 14px;
+    font-family: "Source Serif 4", Georgia, serif; color: #2A2A2A;
+    min-width: 260px; box-shadow: 3px 3px 0 #2A2A2A;
+    display: none;
+  }
+  .wb-tweaks.open { display: block; }
+  .wb-tweaks h3 {
+    margin: 0 0 12px; font-family: "JetBrains Mono", monospace;
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #7A7A7A;
+    border-bottom: 1px solid #2A2A2A; padding-bottom: 8px;
+  }
+  .wb-tweaks label {
+    display: block; font-family: "JetBrains Mono", monospace; font-size: 10px;
+    letter-spacing: 0.7px; text-transform: uppercase; color: #7A7A7A; margin: 10px 0 4px;
+  }
+  .wb-tweaks select, .wb-tweaks input[type=range] {
+    width: 100%; font-family: inherit; font-size: 13px;
+    border: 1px solid #E8E0CC; padding: 4px 6px; background: #FAF7F0;
+    border-radius: 0; box-sizing: border-box;
+  }
+  .wb-tweaks .row { display: flex; gap: 10px; align-items: center; font-size: 11px; color: #4A4842; }
+  .wb-tweaks .val { font-family: "JetBrains Mono", monospace; color: #2A2A2A; font-size: 11px; min-width: 36px; text-align: right; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="tokens.jsx"></script>
+<script type="text/babel" src="primitives.jsx"></script>
+<script type="text/babel" src="artboards-primitives.jsx"></script>
+
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "serif": "Source Serif 4",
+  "mono": "JetBrains Mono",
+  "paperWarmth": 0,
+  "density": "regular"
+}/*EDITMODE-END*/;
+
+const SERIF_OPTIONS = {
+  "Source Serif 4": 'ui-serif, "Source Serif 4", "Source Serif Pro", Georgia, serif',
+  "EB Garamond":    '"EB Garamond", "Source Serif 4", Georgia, serif',
+  "Libre Caslon":   '"Libre Caslon Text", "Source Serif 4", Georgia, serif',
+  "Iowan Old Style": '"Iowan Old Style", "Source Serif 4", Georgia, serif',
+};
+const MONO_OPTIONS = {
+  "JetBrains Mono": '"JetBrains Mono", ui-monospace, Menlo, monospace',
+  "IBM Plex Mono":  '"IBM Plex Mono", "JetBrains Mono", ui-monospace, monospace',
+  "Fira Code":      '"Fira Code", "JetBrains Mono", ui-monospace, monospace',
+};
+// Warmth offsets (oklch-ish shifts) — paper gets warmer, paper-edge follows.
+function warmthToPaper(w) {
+  // w ∈ [-20, 20]
+  // base #FAF7F0 ≈ hsl(44, 45%, 96%)
+  const h = 44 + (w > 0 ? 0 : -w * 0.2);
+  const s = Math.max(10, Math.min(60, 45 + w * 1.2));
+  const l = 96 + w * 0.05;
+  return `hsl(${h.toFixed(0)}, ${s.toFixed(0)}%, ${l.toFixed(1)}%)`;
+}
+function warmthToPaperDeep(w) {
+  const h = 44 + (w > 0 ? 0 : -w * 0.2);
+  const s = Math.max(10, Math.min(60, 38 + w * 1.0));
+  const l = 90 + w * 0.04;
+  return `hsl(${h.toFixed(0)}, ${s.toFixed(0)}%, ${l.toFixed(1)}%)`;
+}
+function warmthToEdge(w) {
+  const h = 44 + (w > 0 ? 0 : -w * 0.2);
+  const s = Math.max(10, Math.min(60, 32 + w * 0.8));
+  const l = 82 + w * 0.03;
+  return `hsl(${h.toFixed(0)}, ${s.toFixed(0)}%, ${l.toFixed(1)}%)`;
+}
+
+function applyTweaks(t) {
+  // Mutate T in place so running components re-read on next render.
+  window.T.serif = SERIF_OPTIONS[t.serif] || SERIF_OPTIONS["Source Serif 4"];
+  window.T.mono  = MONO_OPTIONS[t.mono]   || MONO_OPTIONS["JetBrains Mono"];
+  window.T.paper     = warmthToPaper(t.paperWarmth);
+  window.T.paperDeep = warmthToPaperDeep(t.paperWarmth);
+  window.T.paperEdge = warmthToEdge(t.paperWarmth);
+  document.body.style.background = warmthToPaper(t.paperWarmth - 3);
+  document.querySelectorAll('.design-canvas').forEach((el) => {
+    el.style.background = warmthToPaper(t.paperWarmth - 3);
+  });
+}
+
+function Tweaks({ onChange, initial }) {
+  const [open, setOpen] = React.useState(false);
+  const [t, setT] = React.useState(initial);
+
+  React.useEffect(() => {
+    const h = (e) => {
+      if (e.data?.type === '__activate_edit_mode')   setOpen(true);
+      if (e.data?.type === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', h);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', h);
+  }, []);
+
+  const patch = (p) => {
+    const next = { ...t, ...p };
+    setT(next);
+    onChange(next);
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: p }, '*');
+  };
+
+  return (
+    <div className={'wb-tweaks' + (open ? ' open' : '')}>
+      <h3>— Tweaks · Field Notebook</h3>
+
+      <label>Serif family</label>
+      <select value={t.serif} onChange={(e) => patch({ serif: e.target.value })}>
+        {Object.keys(SERIF_OPTIONS).map((k) => <option key={k}>{k}</option>)}
+      </select>
+
+      <label>Mono family</label>
+      <select value={t.mono} onChange={(e) => patch({ mono: e.target.value })}>
+        {Object.keys(MONO_OPTIONS).map((k) => <option key={k}>{k}</option>)}
+      </select>
+
+      <label>Paper warmth</label>
+      <div className="row">
+        <input type="range" min="-20" max="20" step="1" value={t.paperWarmth}
+          onChange={(e) => patch({ paperWarmth: +e.target.value })} />
+        <span className="val">{t.paperWarmth > 0 ? '+' + t.paperWarmth : t.paperWarmth}</span>
+      </div>
+
+      <label>Density</label>
+      <select value={t.density} onChange={(e) => patch({ density: e.target.value })}>
+        <option value="compact">compact</option>
+        <option value="regular">regular</option>
+        <option value="generous">generous</option>
+      </select>
+    </div>
+  );
+}
+
+function App() {
+  const [t, setT] = React.useState(TWEAK_DEFAULTS);
+  const [, force] = React.useReducer((x) => x + 1, 0);
+
+  React.useEffect(() => { applyTweaks(t); force(); }, [t]);
+
+  const gap = { compact: 32, regular: 48, generous: 72 }[t.density] || 48;
+
+  return (
+    <>
+      <DesignCanvas>
+        <DCSection id="cover" title="WormBase · Vol. I" subtitle="Design system tokens & six primitive components · Field Notebook direction">
+          <DCArtboard id="cover" label="00 · Cover plate" width={900} height={620}>
+            <CoverArtboard />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="tokens" title="Tokens" subtitle="Palette, typography, measure — the governing grammar" gap={gap}>
+          <DCArtboard id="colors"  label="01 · Palette"    width={680} height={720}><ColorsArtboard /></DCArtboard>
+          <DCArtboard id="type"    label="02 · Typography" width={760} height={720}><TypeArtboard /></DCArtboard>
+          <DCArtboard id="spacing" label="03 · Measure"    width={620} height={720}><SpacingArtboard /></DCArtboard>
+        </DCSection>
+
+        <DCSection id="primitives" title="Primitives" subtitle="Six components, each with variants and states" gap={gap}>
+          <DCArtboard id="button"  label="04 · Button"      width={680} height={700}><ButtonArtboard /></DCArtboard>
+          <DCArtboard id="input"   label="05 · Input"       width={720} height={700}><InputArtboard /></DCArtboard>
+          <DCArtboard id="card"    label="06 · Card"        width={760} height={780}><CardArtboard /></DCArtboard>
+          <DCArtboard id="receipt" label="07 · Receipt"     width={800} height={820}><ReceiptArtboard /></DCArtboard>
+          <DCArtboard id="gauge"   label="08 · Gauge"       width={820} height={820}><GaugeArtboard /></DCArtboard>
+          <DCArtboard id="ledger"  label="09 · LedgerEntry" width={820} height={780}><LedgerArtboard /></DCArtboard>
+        </DCSection>
+
+        <DCSection id="composed" title="Composition" subtitle="All six primitives, in concert" gap={gap}>
+          <DCArtboard id="composed" label="10 · Receipt card" width={1080} height={680}><ComposedArtboard /></DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+
+      <Tweaks onChange={setT} initial={TWEAK_DEFAULTS} />
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

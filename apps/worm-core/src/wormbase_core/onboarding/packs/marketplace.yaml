@@ -1,0 +1,73 @@
+# Marketplace domain pack — Onboarding Sub-wave C (2026-05-30).
+#
+# Two-sided marketplace shape: buyer / seller / ops / trust-safety /
+# finance. Classifications distinguish transactional vs identity vs
+# financial data.
+pack_id: marketplace
+pack_version: v1.0
+display_name: "Marketplace"
+description: "Two-sided marketplace pack: buyer, seller, ops, trust-safety, finance. Splits transactional vs identity vs financial data classification."
+
+domains:
+  - id: domain_buyer
+    name: Buyer
+    default_classification: internal
+    owner_role: tenancy.member
+    description: "Buyer-side: search, conversion, retention."
+  - id: domain_seller
+    name: Seller
+    default_classification: internal
+    owner_role: tenancy.member
+    description: "Seller-side: listings, inventory, supply liquidity."
+  - id: domain_ops
+    name: Ops
+    default_classification: internal
+    owner_role: tenancy.admin
+    description: "Order ops, fulfillment, logistics, disputes resolution."
+  - id: domain_trust_safety
+    name: Trust & Safety
+    default_classification: confidential
+    owner_role: tenancy.admin
+    description: "Fraud signals, abuse, refund policy enforcement."
+  - id: domain_finance
+    name: Finance
+    default_classification: confidential
+    owner_role: tenancy.admin
+    description: "Payouts, fees, escrow, reconciliation."
+
+policies:
+  - id: retention_default
+    name: "policy:data_retention_marketplace"
+    applies_to_domains: [domain_buyer, domain_seller, domain_ops, domain_trust_safety, domain_finance]
+    rule: "data_retention_days: 730"
+    gate_impl: wormbase_governance.gates.warmup_gate
+  - id: pii_redaction
+    name: "policy:pii_redaction_marketplace"
+    applies_to_domains: [domain_buyer, domain_seller, domain_ops]
+    rule: "Mask PII before any chat_sent payload leaves the worm."
+    gate_impl: wormbase_governance.gates.pii_redaction_gate
+  - id: trust_safety_gate
+    name: "policy:trust_safety_confidential_gate"
+    applies_to_domains: [domain_trust_safety]
+    rule: "Block reads against domain.trust_safety unless caller holds trust_safety role."
+    gate_impl: wormbase_governance.gates.knowledge_gate
+
+classification_defaults:
+  - pattern: "*email*"
+    classification: pii
+  - pattern: "*_pii"
+    classification: pii
+  - pattern: "phone*"
+    classification: pii
+  - pattern: "address*"
+    classification: pii
+  - pattern: "ssn*"
+    classification: regulated
+  - pattern: "payout*"
+    classification: confidential
+  - pattern: "bank_*"
+    classification: regulated
+  - pattern: "transaction*"
+    classification: confidential
+  - pattern: "dispute*"
+    classification: confidential

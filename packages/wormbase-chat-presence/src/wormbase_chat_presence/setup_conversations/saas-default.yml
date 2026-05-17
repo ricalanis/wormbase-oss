@@ -1,0 +1,48 @@
+# SaaS-default bot setup conversation (Block G5 / PRD §17.5).
+#
+# 5 steps: domain_pack → classification_default → invite_admins → first_kpi → done
+# Each step is parsed by SetupConversationLoop._handle_setup_answer.
+
+domain_pack: saas
+
+steps:
+  - id: domain_pack
+    bot_says: |
+      Welcome! What's your team's primary focus? Reply with one of:
+      saas, marketplace, fintech, custom.
+    expects: one_of
+    options: [saas, marketplace, fintech, custom]
+    on_answer: emit_domain_registered_for_pack
+    next: classification_default
+
+  - id: classification_default
+    bot_says: |
+      Got it. For your sales / customer / revenue data, default
+      classification: internal or confidential?
+    expects: one_of
+    options: [internal, confidential]
+    on_answer: emit_classification_default
+    next: invite_admins
+
+  - id: invite_admins
+    bot_says: |
+      Who else should be admin? Tag them, e.g. @bob @carol.
+      Or reply 'skip' to do this later.
+    expects: free_text
+    on_answer: parse_mentions_emit_role_assigned
+    next: first_kpi
+
+  - id: first_kpi
+    bot_says: |
+      What's your most important KPI for the next quarter? Free text — I'll
+      propose; you confirm in the dashboard.
+    expects: free_text
+    on_answer: emit_kpi_proposed
+    next: done
+
+  - id: done
+    bot_says: |
+      All set! Your dashboard is at $DASHBOARD_URL. The worm is now lurking
+      and will start helping. /research will show experiments for your
+      role within 24h.
+    on_answer: emit_setup_completed

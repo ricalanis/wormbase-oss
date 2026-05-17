@@ -1,0 +1,275 @@
+# ============================================================
+# install-arc-7beat.yml — CANONICAL INSTALL DEMO (~340s)
+#
+# The 7-beat install arc, mapping 1:1 onto PRD §10 of
+# docs/superpowers/specs/2026-04-26-production-dashboard-and-identity.md.
+#
+# Block I6 rewrite (PRD §17, REVISED 2026-04-27 minimal-friction
+# onboarding): Beat 1 inverts AGAIN — back to chat-platform connect.
+# The default local lake auto-provisions on install (Block I2 —
+# provision_local_lake), so /sources shows one row immediately after
+# OAuth completes. Beats 2-7 cover the user-driven source flows that
+# were previously the "before install" surface: file drop, mention →
+# DM credential, Q&A, multitenancy, autoresearch.
+#
+# Every beat is driven by real Slack events (or by the dashboard's
+# own writes that the worm reads back from the ledger). No
+# flow-bypass; no narrator crutches. Beats backed by a wire event are
+# narrated by the running wire; beats backed by the dashboard are
+# narrated by the engine waiting on the ledger projection it produces.
+#
+# Beat map (v3, chat-first with default lake visible at Beat 1):
+#   1. (  0- 30s) Slack OAuth on stage   → wait emit_install_completed +
+#                                          emit_source_proposed (default
+#                                          local lake auto-provisions),
+#                                          worm posts hi in #general
+#   2. ( 30- 90s) Persona drops a CSV (organic file_drop) → second
+#                                          source connects + cascades
+#   3. ( 90-150s) Persona mentions Stripe → proactive offer → DM
+#                                          credential → third source
+#                                          connects
+#   4. (150-220s) Q&A with citations
+#   5. (220-280s) Multitenancy + role-aware nav (dashboard-driven)
+#   6. (280-340s) /research opens — Carol's autoresearch wins
+#   7. (epilogue) (covered in narrator beat 6 wrap-up)
+#
+# On-thesis criteria fired (PRD §10.1):
+#   C1 (worm proposes Persons/sources/KPIs/experiments unprompted)
+#   C2 (deterministic install + cascades + receipts)
+#   C3 (lake + team + experiments compound through the demo)
+#   C5 (/research tab — autoresearch loop)
+#   C6 (every action receipted)
+#   C7 (role-aware nav, position-aware autoresearch)
+#   C8 (worm posts unprompted welcome + proactive Stripe offer)
+# ============================================================
+name: install-arc-7beat
+description: |
+  The 7-beat install arc, ~340s, mapping 1:1 onto the canonical 5-step
+  product arc (docs/superpowers/specs/2026-04-26-wormbase-product-arc.md)
+  and PRD §10. Block I6 inversion (REVISED 2026-04-27): Beat 1 is the
+  chat-platform install — Slack OAuth on stage. The default local lake
+  auto-provisions during install (Block I2) so /sources is non-empty
+  immediately after OAuth. Beats 2-6 are the user-driven source flows
+  (file drop, mention → DM, Q&A, multitenancy, autoresearch).
+
+  Every beat is driven by real Slack events or by the dashboard's own
+  writes that the worm reads back from the ledger. No flow-bypass; no
+  narrator crutches.
+default_channel: "#todo-baseworm"
+beats:
+  # ──────────────────────────────────────────────────────────────────
+  # failure_recovery semantics (W3.A11)
+  # ──────────────────────────────────────────────────────────────────
+  # Each beat carries an explicit `failure_recovery: <action>` so the
+  # demo orchestrator (`scripts/demo-orchestrator.py`) can auto-recover
+  # without operator intervention. The orchestrator interprets the
+  # recovery directive when a beat exceeds its timeout:
+  #
+  #   worm-restart      → `make worm-restart` then re-run the beat
+  #                        once. Beats that depend on the worm reading
+  #                        ledger entries (most wait_for beats) use this.
+  #   adapter-restart   → `make adapter-restart` then re-run the beat
+  #                        once. Beats driven by Slack wire events
+  #                        (say / drop / dm) use this — capture is what
+  #                        stalls.
+  #   wire-replay       → fall back to feeding the recorded JSONL
+  #                        fixture for this beat through the
+  #                        channel-adapter wire-replay primitive. Same
+  #                        code path as production; deterministic
+  #                        input. Used as the second-attempt fallback
+  #                        on every beat.
+  #   beat8-script      → run scripts/demo/mcp_beat8_run.sh as the
+  #                        canonical fallback for Beat 8 (Claude
+  #                        Desktop / external MCP client). Block J
+  #                        already shipped this; the orchestrator
+  #                        delegates to it on Beat 8 stalls.
+  #
+  # Quality bar: the orchestrator NEVER bypasses the wire — wire-replay
+  # through the live channel-adapter is the only acceptable
+  # determinism backstop. Recovery actions are timestamp-logged so the
+  # narrator can reference them on stage.
+  # ──────────────────────────────────────────────────────────────────
+
+  # Beat 1 (0-30s) — CHAT-FIRST install. Operator clicks "Connect Slack"
+  # on /onboarding. OAuth completes. complete_install writes 5 PEVR
+  # cycles (installer Person + role grants + emit_install_completed)
+  # AND auto-calls provision_local_lake (4 PEVR cycles) so the default
+  # lake source row materializes at /sources before the worm posts hi.
+  # Sim waits for both the install and the default-lake source-proposed.
+  - at: 0
+    wait_for: emit_install_completed
+    timeout_s: 30
+    # Recovery: install is worm-core driven; restart unblocks a stuck
+    # OAuth callback handler. wire-replay covers the chat-channel side
+    # if the worm itself is fine but the welcome post never lands.
+    failure_recovery: worm-restart
+    # W7.A3 — Beat 1a is the OAuth-click landing. The orchestrator
+    # cannot click the OAuth consent screen programmatically; if an
+    # install already exists for this tenant we short-circuit straight
+    # to Beat 2 so `make demo` runs unattended.
+    skippable_if_pre_installed: true
+
+  - at: 5
+    wait_for: emit_source_proposed
+    timeout_s: 25
+    failure_recovery: worm-restart
+    # W7.A3 — Beat 1b waits on the default-lake source row that
+    # complete_install auto-provisions. Once the install row is in
+    # place the lake row was always written alongside it, so this
+    # wait_for is necessarily already satisfied.
+    skippable_if_pre_installed: true
+
+  # Beat 2 (30-90s) — File drop (ORGANIC, no chat-first install
+  # blocker). Sim's Bob persona uploads sales-q3.csv. Triggers
+  # drop_and_profile + medallion cascade for a second source row at
+  # /sources alongside the default lake.
+  - at: 30
+    persona: bob
+    drop:
+      file: sales-q3.csv
+      caption: "Q3 sales export, raw — 20 rows, regional + product breakdown"
+    # Recovery: file_received is wire-driven; if the channel-adapter
+    # never captures the upload, restarting it (and thus reopening the
+    # OpenClaw log tail) is the right move.
+    failure_recovery: adapter-restart
+
+  # Beat 3 (90-150s) — Stripe mention + DM credential. Sim's Bob
+  # mentions Stripe; mentioned_in_conversation flow fires; worm
+  # proactively offers. Sim's Carol DMs the bot the Stripe key;
+  # credential_in_dm flow fires; cascade runs again for a third source.
+  - at: 90
+    persona: bob
+    say: "we should also pull our Stripe data so the gross-net rec is clean"
+    failure_recovery: adapter-restart
+
+  - at: 100
+    persona: carol
+    dm:
+      to: "@WormBase"
+      text: "here you go: sk_test_4eC39HqLyjWDarjtT1zdp7dcdemo"
+    failure_recovery: adapter-restart
+
+  # Beat 4 (150-220s) — Q&A with citations. Carol asks Q3 net; worm
+  # answers with receipts pinned to source hashes. F7 autonomous
+  # publish: the answer additionally drops a data-product
+  # (emit_data_product_proposed + emit_data_product_generated) that
+  # operator drills into at /data-products. Source hashes pinned;
+  # Replay button on the drawer regenerates against the same bytes;
+  # content_hash is bit-identical (PRD §16 acceptance gate m).
+  # Narrator note: "Worm answers Carol; the data product lands at
+  # /data-products in real time. Click to drill in. Notice the source
+  # hashes are pinned — that's how replay works."
+  - at: 150
+    persona: carol
+    say: "@WormBase what's our Q3 net revenue from the file Bob just dropped?"
+    failure_recovery: adapter-restart
+
+  # Beat 4b (170s) — second receipt across a different domain. Same
+  # F7 autonomous-publish pattern — Alice's question lands a second
+  # data product row at /data-products tagged with the retention domain.
+  - at: 170
+    persona: alice
+    say: "@WormBase any retention dip in the May or June cohort?"
+    failure_recovery: adapter-restart
+
+  # Beat 5 (220-280s) — Multitenancy. Driven by the dashboard tenant
+  # switcher. Sim waits for the dashboard's tenant_switched ledger
+  # entry (admin → member view flip happens in the same window).
+  - at: 220
+    wait_for: dashboard.tenant_switched
+    timeout_s: 60
+    # Recovery: dashboard click is server-side; the worm must read
+    # the ledger projection. Worm-restart is the unblock action.
+    failure_recovery: worm-restart
+
+  # Beat 6 (280-340s) — /research view. Driven by dashboard click;
+  # sim waits for the autoresearch loaded ledger entry (Carol's CFO
+  # autoresearch experiments — 8 keeps, 15 discards, +4% headline).
+  # F7 autonomous publish: each keep additionally writes
+  # emit_notebook_proposed + emit_notebook_run + emit_notebook_published
+  # so /notebooks shows the published wins for Carol's CFO position.
+  # Operator clicks one — cell-by-cell view; metric delta lives inside
+  # the notebook, not just on a dashboard tile. Narrator note:
+  # "/notebooks shows the published autoresearch wins for Carol's
+  # CFO position. Each run is signable; this is the loop output, not
+  # just a metric delta."
+  - at: 280
+    wait_for: dashboard.research_loaded
+    timeout_s: 60
+    failure_recovery: worm-restart
+
+  # Beat 8 (340-400s) — Claude Desktop queries WormBase via MCP.
+  # An external AI client (Claude Desktop / Cursor / Cline) connects
+  # to the worm-core MCP server (Streamable HTTP at :9911/mcp), runs
+  # the audit_decision prompt against an existing decision in the
+  # seeded baseworm ledger, and the response walks
+  # decision → process → KPIs → source bytes.
+  #
+  # The beat fires `mcp_call_received` audit entries on the same
+  # PEVR primitive every dashboard write uses (propose/execute/
+  # verify/resolve), so the call appears in /mcp's recent-calls
+  # table within ~1s of dispatch — same surface the audit-trail tab
+  # uses. The narrator alt-tabs to /mcp on the dashboard to show
+  # the live receipt.
+  #
+  # On-thesis criteria fired (PRD §10.1):
+  #   C1 (Claude Desktop initiates the call unprompted by the
+  #       WormBase operator — the AI client decides which prompt to
+  #       run based on the user's question).
+  #   C6 (every MCP call lands as a hash-chained audit entry —
+  #       caller_person_id, args_hash, latency_ms, outcome — visible
+  #       at /mcp's RecentCallsTable).
+  #   C7 (the audit_decision prompt walks WormBase domain primitives:
+  #       decisions, processes, KPIs, sources. Not generic JSON —
+  #       institutional ontology baked into the prompt template).
+  - at: 340
+    wait_for: emit_mcp_call_received
+    timeout_s: 60
+    # Beat 8 has its own canonical recovery script (Block J shipped
+    # scripts/demo/mcp_beat8_run.sh). The orchestrator delegates to
+    # it before falling back to wire-replay.
+    failure_recovery: beat8-script
+
+  # Beat 9 (400-460s) — Statement-to-Owner reactivity. Bob makes an
+  # offhand statement in the channel that semantic-matches the retention
+  # domain. The StatementToOwnerReactivity (W5.A2) fires: looks up
+  # Carol as retention owner, aggregates pinned resources (churn KPI,
+  # retention sources, last 3 decisions, related process map), DMs
+  # Carol with the statement + receipts. Carol replies in DM; the
+  # reply lands as `emit_resource_conversation_replied`. Operator
+  # alt-tabs to /people/<carol> on the dashboard to show the active
+  # Resource Conversations card surfacing the live thread.
+  #
+  # On-thesis criteria fired (PRD §10.1):
+  #   C1 (Bob made a statement; the worm DMed Carol unprompted by
+  #       any operator click).
+  #   C3 (the worm aggregated pinned resources from compounded state —
+  #       the KPI tree, the source projection, the decision history).
+  #   C6 (every step receipted: emit_resource_conversation_proposed,
+  #       emit_chat_sent for the DM, emit_reactivity_fired with
+  #       reactivity_id=statement_to_owner, source_seq, novelty_key).
+  #   C7 (domain-specialized — Topic{kind: 'domain', label: 'retention'}
+  #       resolved against the org's KPI tree, not generic NLP).
+  #   C8 (worm initiated the DM unprompted; Carol's reply is prompted
+  #       depth — she chooses what to do with the receipts).
+  - at: 400
+    persona: bob
+    say: "our churn looks ugly in Europe — Q3 is down 8% MoM"
+    failure_recovery: worm-restart
+
+  - at: 410
+    wait_for: emit_resource_conversation_proposed
+    timeout_s: 30
+    failure_recovery: worm-restart
+
+  - at: 430
+    persona: carol
+    dm:
+      to: "@WormBase"
+      text: "good catch — let's pull the cohort data + ping product. moving this to a decision."
+    failure_recovery: adapter-restart
+
+  - at: 450
+    wait_for: emit_resource_conversation_replied
+    timeout_s: 20
+    failure_recovery: worm-restart

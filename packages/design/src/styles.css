@@ -1,0 +1,177 @@
+/* ---------------------------------------------------------------
+ * WormBase Field Notebook — global styles.
+ *
+ * Source Serif 4 and JetBrains Mono are the production fallbacks for
+ * Tiempos and Berkeley Mono respectively (both of which are commercial).
+ * Both fallbacks are Google-Fonts-hosted and license-clean.
+ * --------------------------------------------------------------- */
+
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+:root {
+  /* colors — paper + tonal layers (Phase 1B) */
+  --wb-color-paper: #faf7f0;
+  --wb-color-paper-deep: #f2ecde;
+  --wb-color-paper-edge: #e8e0cc;
+  --wb-color-aged-ink: #2a2a2a;
+  --wb-color-aged-ink-soft: #4a4842;
+  --wb-color-ink-faint: #a8a49a;
+  --wb-color-botanical-green: #2c5f3e;
+  --wb-color-botanical-green-deep: #1f4a2e;
+  --wb-color-botanical-green-soft: #e6ede4;
+  --wb-color-sepia-warning: #b8603c;
+  --wb-color-sepia-warning-deep: #8e4525;
+  --wb-color-sepia-warning-soft: #f3e4da;
+  --wb-color-hash-gray: #7a7a7a;
+  --wb-color-hash-gray-soft: #9b9b9b;
+  /* back-compat aliases */
+  --wb-color-rule-line: #e8e0cc;
+  --wb-color-highlight: #e8e2cc;
+
+  /* rule conventions (Phase 1B) — explicit ledger semantics */
+  --wb-rule-thin: 1px solid var(--wb-color-paper-edge);
+  --wb-rule-strong: 1px solid var(--wb-color-aged-ink);
+  --wb-rule-double: 3px double var(--wb-color-aged-ink);
+  --wb-rule-dashed: 1px dashed var(--wb-color-hash-gray);
+
+  /* typography */
+  --wb-font-serif: "Tiempos Text", "Source Serif 4", "Source Serif Pro",
+    "GT Super", "Lora", Georgia, serif;
+  --wb-font-mono: "Berkeley Mono", "Tuesday Mono", "JetBrains Mono",
+    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --wb-text-xs: 12px;
+  --wb-text-sm: 14px;
+  --wb-text-base: 16px;
+  --wb-text-md: 20px;
+  --wb-text-lg: 25px;
+  --wb-text-xl: 32px;
+  --wb-text-2xl: 40px;
+  --wb-text-3xl: 51px;
+  --wb-text-4xl: 64px;
+
+  /* spacing */
+  --wb-space-0: 0px;
+  --wb-space-0_5: 2px;
+  --wb-space-1: 4px;
+  --wb-space-1_5: 6px;
+  --wb-space-2: 8px;
+  --wb-space-3: 12px;
+  --wb-space-4: 16px;
+  --wb-space-6: 24px;
+  --wb-space-8: 32px;
+  --wb-space-12: 48px;
+  --wb-space-16: 64px;
+
+  /* motion */
+  --wb-ease-breathing: cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  --wb-ease-entry: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --wb-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --wb-duration-entry: 420ms;
+  --wb-duration-standard: 180ms;
+  --wb-duration-breathing: 3000ms;
+  --wb-stagger-entry: 80ms;
+}
+
+/* base resets */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--wb-color-paper);
+  color: var(--wb-color-aged-ink);
+  font-family: var(--wb-font-serif);
+  font-size: var(--wb-text-base);
+  line-height: 1.5;
+  font-feature-settings: "kern", "liga", "onum";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* mono is semantic — explicit class marks "this is ledger content" */
+.wb-mono,
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--wb-font-mono);
+  font-feature-settings: "ss01", "zero", "calt";
+}
+
+/* keyframes — the breathing gauge pulse */
+@keyframes wb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.005);
+  }
+}
+
+@keyframes wb-entry {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Accessible focus ring — thin rule, botanical green, no glow */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--wb-color-botanical-green);
+  outline-offset: 2px;
+}
+
+/* Classification overlay (Phase 4 Task 4.12) — when [data-overlay="classification"]
+ * is set on a wrapping element, every Receipt grows a 4px left band whose color
+ * encodes the classification severity. The overlay reveals information that was
+ * always present; it does not introduce new chrome. */
+[data-overlay="classification"] [data-receipt] {
+  position: relative;
+  padding-left: 12px;
+}
+[data-overlay="classification"] [data-receipt]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--wb-color-hash-gray);
+}
+[data-overlay="classification"] [data-receipt][data-sev="warn"]::before {
+  background: var(--wb-color-sepia-warning);
+}
+[data-overlay="classification"] [data-receipt][data-sev="ok"]::before {
+  background: var(--wb-color-botanical-green);
+}
+
+/* Paper texture — subtle, print-publication feel, no gradient */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+  background-image: radial-gradient(
+      circle at 25% 15%,
+      rgba(42, 42, 42, 0.018) 0,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 60%,
+      rgba(42, 42, 42, 0.015) 0,
+      transparent 35%
+    );
+}

@@ -1,0 +1,46 @@
+[project]
+name = "wormbase-tools"
+version = "0.1.0"
+description = "WormBase OSS audit toolkit — replay a frozen ledger snapshot and reproduce KPI values bit-for-bit, without the hosted plane."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "WormBase", email = "ricardo.alanis@gmail.com" }]
+license = { text = "Apache-2.0" }
+
+# Pure-Python on purpose. An auditor must be able to `pip install wormbase-tools`
+# from a clean venv and replay a snapshot without booting Postgres, asyncpg,
+# SQLAlchemy, the dashboard, cloudflared, or the inference router. Every
+# dependency below is a hard runtime requirement of the replay path; nothing
+# here pulls Postgres or async I/O machinery.
+dependencies = [
+    "click>=8.1",
+    "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+# Auditor entrypoint. See `docs/oss-audit-replay.md`.
+wormbase-tools = "wormbase_tools.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/wormbase/wormbase"
+Documentation = "https://github.com/wormbase/wormbase/blob/main/docs/oss-audit-replay.md"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wormbase_tools"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+markers = [
+    "integration: end-to-end OSS audit replay tests",
+]

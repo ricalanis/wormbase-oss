@@ -1,0 +1,126 @@
+# ──────────────────────────────────────────────────────────────
+# Secrets — never commit
+# ──────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ──────────────────────────────────────────────────────────────
+# Python
+# ──────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+# `lib/` above is meant for Python venv internals — re-include the
+# dashboard's source `lib/` directory which holds typed ledger queries.
+!apps/dashboard/lib/
+!apps/dashboard/lib/**
+# Same hat-tip for the dashboard's lib-test directory.
+!apps/dashboard/tests/lib/
+!apps/dashboard/tests/lib/**
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+.uv/
+
+# Test / coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+# QA aggregator outputs
+.junit/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ──────────────────────────────────────────────────────────────
+# Node / pnpm
+# ──────────────────────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next/
+out/
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+dist/
+.turbo/
+
+# Vitest / Playwright
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+.playwright-state/
+
+# ──────────────────────────────────────────────────────────────
+# IDE / tooling
+# ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ──────────────────────────────────────────────────────────────
+# macOS
+# ──────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# ──────────────────────────────────────────────────────────────
+# Local dev artifacts
+# ──────────────────────────────────────────────────────────────
+*.log
+tmp/
+.cache/
+node_modules
+.next

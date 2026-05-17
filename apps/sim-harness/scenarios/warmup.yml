@@ -1,0 +1,24 @@
+# ============================================================
+# warmup.yml — FOR PRE-DEMO HEALTH CHECK ONLY
+# Not part of the investor narrative. Do not run on stage.
+#
+# Purpose: ~15s sanity ping to verify Slack post-message,
+# capture pipeline, and persona attribution work end-to-end.
+# Single persona. No file drops. No @-mentions.
+# ============================================================
+name: warmup
+description: |
+  Pre-demo health check. Three innocuous lines from a single persona
+  to verify the channel adapter, persona impersonation, and ledger
+  capture before running demo-c-plus-b. Ops use only.
+default_channel: "#todo-baseworm"
+beats:
+  - at: 0
+    persona: bob
+    say: "ping — checking the pipes before the standup"
+  - at: 6
+    persona: bob
+    say: "looks green from here"
+  - at: 12
+    persona: bob
+    say: "all set, going quiet"

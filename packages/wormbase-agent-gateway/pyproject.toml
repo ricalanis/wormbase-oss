@@ -1,0 +1,46 @@
+[project]
+name = "wormbase-agent-gateway"
+version = "0.1.0"
+description = "WormBase agent-gateway — control plane for governed MCP access to the semantic layer + §4.5 compounding query layer."
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.13",  # v2.A WebhookTransport outbound POST + retry/backoff
+    "anyio>=4.0",
+    "fastmcp>=3.0.0",
+    "httpx>=0.27.0",
+    "hvac>=2.3.0",
+    "mcp>=1.0.0",
+    "numpy>=1.26",  # 2026-05-14 carry-forward #3 — batch cosine + pre-bucketing in reactivities cluster_fn
+    "pydantic>=2.0",
+    "wormbase-catalog-mirror",
+    "wormbase-governance",
+    "wormbase-inference-router",
+    "wormbase-ledger",
+    "wormbase-reactivities",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pgvector>=0.3",       # client lib for embedding storage tests; server requires Postgres extension
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-mock>=3.14",
+]
+
+[tool.uv.sources]
+wormbase-catalog-mirror = { workspace = true }
+wormbase-governance = { workspace = true }
+wormbase-inference-router = { workspace = true }
+wormbase-ledger = { workspace = true }
+wormbase-reactivities = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wormbase_agent_gateway"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

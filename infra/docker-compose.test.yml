@@ -1,0 +1,106 @@
+# WormBase TEST docker-compose overlay (alternate file).
+#
+# Used by `make integration` and `make qa` to bring up an EPHEMERAL stack
+# alongside (not on top of) the dev compose:
+#
+#   - Postgres on 5433  (dev runs on 5432 — no conflict)
+#   - No persistent volumes; every run starts on a clean slate
+#   - Tightened healthchecks so tests can wait deterministically
+#   - Mock Slack endpoint placeholder (wired by integration tests when needed)
+#   - Same image tags as dev, so we don't double-build
+#
+# Run as:
+#   docker compose --project-directory . \
+#     --project-name wormbase-test \
+#     -f infra/docker-compose.test.yml up -d
+#
+# Tear down (also removes volumes):
+#   docker compose --project-directory . \
+#     --project-name wormbase-test \
+#     -f infra/docker-compose.test.yml down -v --remove-orphans
+
+name: wormbase-test
+
+services:
+  postgres-test:
+    image: postgres:16
+    container_name: wormbase-test-postgres
+    environment:
+      POSTGRES_USER: wormbase
+      POSTGRES_PASSWORD: wormbase
+      POSTGRES_DB: wormbase_test
+    ports:
+      # Different external port from dev (5432) so both stacks can run
+      # at once. Inside the test compose network we still address it as
+      # postgres-test:5432 (the standard internal port).
+      - "5433:5432"
+    tmpfs:
+      # All data lives in tmpfs — no persistent volume, no leftover
+      # rows between test runs.
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wormbase -d wormbase_test"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+      start_period: 1s
+
+  slack-mock:
+    # Placeholder for the mock Slack server (Web API + Socket Mode).
+    # We use mockoon's CLI so tests can drop a JSON spec file into
+    # ./infra/test-config/slack-mock.json. Until the spec lands, this
+    # service stays as a tail loop — integration tests that DON'T need
+    # Slack just don't depend on it. Tests that DO need it boot it via
+    # `slack_mock` fixture (see tests/conftest.py) which can also spin
+    # up a Python aiohttp shim if mockoon isn't desired.
+    image: node:22-alpine
+    container_name: wormbase-test-slack-mock
+    working_dir: /workspace
+    command: sh -c "echo 'slack-mock placeholder; tests boot real mock via fixture' && tail -f /dev/null"
+    ports:
+      - "18790:18790"  # mock Slack Web API endpoint
+      - "18791:18791"  # mock Socket Mode WS endpoint
+    volumes:
+      - ./infra/test-config:/workspace/test-config:ro
+
+  channel-adapter-test:
+    # Channel adapter pointed at the test Postgres. Reuses the dev image
+    # tag (wormbase-channel-adapter:local) so we don't double-build —
+    # `make integration` assumes `make adapter-build` has already run
+    # (or CI builds it once before the integration stage).
+    image: wormbase-channel-adapter:local
+    container_name: wormbase-test-channel-adapter
+    environment:
+      WORMBASE_LEDGER_DSN: postgresql+asyncpg://wormbase:wormbase@postgres-test:5432/wormbase_test
+      OPENCLAW_SESSIONS_PATH: /workspace/sessions
+      WORMBASE_ADAPTER_STATE_PATH: /tmp/wormbase-channel-adapter/state.json
+      WORMBASE_TENANT_ID: test-tenant
+    volumes:
+      # Test sessions JSONL fixtures get bind-mounted in by the
+      # `compose_test` fixture before bringing the stack up.
+      - ./tests/fixtures/slack_events:/workspace/sessions:ro
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+
+  worm-core-test:
+    image: wormbase-worm-core:local
+    container_name: wormbase-test-worm-core
+    environment:
+      WORMBASE_LEDGER_DSN: postgresql+asyncpg://wormbase:wormbase@postgres-test:5432/wormbase_test
+      WORMBASE_TENANT_ID: test-tenant
+      WORM_CORE_LOOP_INTERVAL_S: "5"
+      WORM_CORE_LOG_LEVEL: DEBUG
+      ONTOLOGY_SEED_PATH: /opt/wormbase/ontology-seed
+      # Disable the Slack lurker for tests; channel-adapter feeds chat
+      # events via fixture-mounted session files.
+      WORMBASE_DISABLE_LURKER: "1"
+    volumes:
+      - ./packages/ontology-seed/data:/opt/wormbase/ontology-seed:ro
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+
+# No top-level volumes block — everything is tmpfs or bind-mounted from
+# the repo. Each `up` is a clean slate; each `down -v` is a no-op for
+# data because nothing persisted.

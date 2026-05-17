@@ -1,0 +1,102 @@
+# ============================================================
+# proactivity-demo.yml — FOCUSED HERO BEAT (~60s)
+#
+# Single-purpose scenario: showcase the source-proactivity →
+# credential-in-DM → MedallionCascade hero arc end-to-end.
+# This is the proof point that the worm builds infrastructure
+# autonomously: a teammate THINKS OUT LOUD about a data source,
+# and the worm wires it up.
+#
+# Maps to canonical product arc Step 2 (GROW THE LAKE) — exercises
+# the `mentioned_in_conversation` and `credential_offered_in_dm`
+# source-building flows in tandem, then closes with a Step 4a/4b
+# data-product receipt for the new source.
+#
+# Use cases:
+#   - 60-second elevator-pitch demo when the full 5-step run is
+#     too long
+#   - W3.G runbook fallback if the main demo wedges
+#   - Press / partner walkthroughs that need ONE memorable beat
+#
+# On-thesis criteria coverage:
+#   C1 unprompted action       (worm proposes the connection)
+#   C2 deterministic output    (cited answer with hash)
+#   C3 compounding state       (Stripe source persists post-demo)
+#   C6 auditable governance    (every step a ledger entry)
+#   C7 domain specialization   (Stripe = revenue domain, classified)
+#   C8 unprompted surface       (worm initiates without @-mention)
+#
+# Narrator runbook notes:
+#   - Beat 2 (Bob: "we should integrate"): "Bob did NOT @ the worm.
+#     Watch the next post — that's the worm interrupting."
+#   - Beat 3 (worm proactive): EXPECTED bot reply, NOT scripted here.
+#   - Beat 4 (Carol DM, narrated): the harness can't drive a DM yet,
+#     so dashboard /sources fires credential_offered_in_dm from a
+#     pre-recorded ledger insert. Narrate the DM exchange off-stage.
+#   - Beat 6 (Bob @ MRR): the worm's reply must cite the just-loaded
+#     stripe-payouts.csv. THE CITATION IS THE DEMO.
+# ============================================================
+name: proactivity-demo
+description: |
+  60-second focused scenario for the source-proactivity hero beat:
+  Bob mentions Stripe → worm proactively offers → Carol DMs the key
+  → MedallionCascade fires → bot answers MRR question with a sourced
+  receipt. Use as a fallback or fast-pitch demo.
+default_channel: "#todo-baseworm"
+beats:
+  # T+0 — innocuous opener.
+  - at: 0
+    persona: alice
+    say: "morning"
+
+  # T+5 — context for the mention. CFO is digging into Q3.
+  - at: 5
+    persona: bob
+    say: "yeah pulling Q3, the gross-net rec is messy without the gateway data"
+
+  # T+10 — [C1, C8] mentioned_in_conversation trigger. Bob does
+  # NOT @ the worm. The worm's relevance gate must fire on its own.
+  - at: 10
+    persona: bob
+    say: "we should integrate our Stripe data — would close the gap"
+
+  # T+15 — [C1] EXPECTED proactive worm reply (not scripted; the
+  # worm posts this itself when the relevance gate fires).
+  # >>> "Worm: I can wire Stripe up — DM me a read-only API key
+  # >>>  and I'll connect, profile, and propose a gold view."
+
+  # T+25 — Carol picks it up.
+  - at: 25
+    persona: carol
+    say: "yes, let me grab the key"
+
+  # T+30 — [C6] credential_offered_in_dm flow. Narrator beat:
+  # the harness can't drive a Slack DM, so /sources panel fires
+  # credential_offered_in_dm from a pre-recorded ledger insert.
+  # The Stripe payouts CSV stands in for the API stream.
+  - at: 30
+    persona: carol
+    say: "@WormBase DMed you the read-only key — should be ingesting now"
+
+  # >>> NARRATOR: "Behind the scenes the bot just pulled the API,
+  # >>>  staged stripe-payouts.csv as the bronze layer, ran silver
+  # >>>  type-inference, and built the gold weekly-net aggregate.
+  # >>>  Watch /sources — three rows just lit up green."
+
+  # T+45 — [C2] worm confirms (EXPECTED reply, not scripted):
+  # >>> "Worm: Stripe live. 10 payouts (Sep–Nov '26). Gold view:
+  # >>>  stripe.payouts.weekly_net. Hash 3b7c1f0a. Receipt in /sources."
+
+  # T+50 — [C2, C7] the payoff: a question that requires the
+  # just-wired source. The bot's reply must cite the new receipt.
+  - at: 50
+    persona: bob
+    say: "@WormBase what's our MRR run-rate based on the Stripe payouts?"
+
+  # T+55 — [C2, C6] EXPECTED final reply (not scripted):
+  # >>> "Worm: MRR run-rate ≈ $80,440/mo (4-week trailing net average).
+  # >>>  Source: stripe.payouts.weekly_net (hash 3b7c1f0a), computed
+  # >>>  09:14 today. Replay produces the same hash. Receipt #..."
+  - at: 55
+    persona: alice
+    say: "nice — that closes the loop"

@@ -1,0 +1,95 @@
+# PII / regulated-data regex patterns. Each compiles via re.compile and is
+# applied by the PII gate. The credit-card pattern is followed by a Luhn
+# check downstream (the PIIGate rejects matches that fail the checksum).
+
+- id: email
+  name: Email
+  regex: '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'
+  classification: pii
+
+- id: phone_us
+  name: Phone (US)
+  # Require explicit separators or a leading +1 / parenthesis to avoid eating
+  # raw digit runs (which credit-card / SSN patterns own).
+  regex: '(?:\+1[-.\s]?)?\(\d{3}\)\s?\d{3}[-.\s]\d{4}\b|(?:\+?1[-.\s])?\d{3}[-.\s]\d{3}[-.\s]\d{4}\b'
+  classification: pii
+
+- id: phone_intl
+  name: Phone (International E.164)
+  regex: '\+\d{1,3}\s?\d{4,14}'
+  classification: pii
+
+- id: ssn
+  name: Social Security Number (US)
+  regex: '\b\d{3}-\d{2}-\d{4}\b'
+  classification: regulated
+
+- id: credit_card
+  name: Credit Card
+  regex: '\b(?:\d[ -]*?){13,19}\b'
+  classification: regulated
+
+- id: iban
+  name: IBAN
+  regex: '\b[A-Z]{2}\d{2}[A-Z0-9]{10,30}\b'
+  classification: regulated
+
+- id: ipv4
+  name: IPv4 Address
+  regex: '\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b'
+  classification: pii
+
+- id: dob
+  name: Date of Birth
+  regex: '\b(?:0?[1-9]|1[0-2])[/-](?:0?[1-9]|[12]\d|3[01])[/-](?:19|20)\d{2}\b'
+  classification: pii
+
+- id: passport
+  name: Passport Number
+  regex: '\b[A-Z]{1,2}\d{6,9}\b'
+  classification: regulated
+
+- id: drivers_license
+  name: Driver License
+  regex: '\b[A-Z]{1}\d{7,8}\b'
+  classification: regulated
+
+- id: api_key_stripe_live
+  name: API Key (Stripe live)
+  regex: '\bsk_live_[A-Za-z0-9]{16,}\b'
+  classification: regulated
+
+- id: api_key_stripe_test
+  name: API Key (Stripe test)
+  regex: '\bsk_test_[A-Za-z0-9]{16,}\b'
+  classification: regulated
+
+- id: api_key_pk
+  name: API Key (publishable)
+  regex: '\bpk_(?:live|test)_[A-Za-z0-9]{16,}\b'
+  classification: regulated
+
+- id: db_uri_postgres
+  name: Database URI (Postgres)
+  regex: 'postgres(?:ql)?://[^\s]+'
+  classification: regulated
+
+- id: db_uri_mysql
+  name: Database URI (MySQL)
+  regex: 'mysql://[^\s]+'
+  classification: regulated
+
+- id: db_uri_mongo
+  name: Database URI (MongoDB)
+  regex: 'mongodb(?:\+srv)?://[^\s]+'
+  classification: regulated
+
+- id: db_uri_sqlite
+  name: Database URI (SQLite)
+  regex: 'sqlite:///[^\s]+'
+  classification: regulated
+
+- id: s3_uri
+  name: S3 URI
+  regex: 's3://[^\s]+'
+  classification: regulated

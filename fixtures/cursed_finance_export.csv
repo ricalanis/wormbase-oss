@@ -1,0 +1,222 @@
+row_id,deal_id,customer_name,customer_email,region,department,product,sales_rep,Q3 Rev (final)(USE THIS),net_revenue,customer_count,recorded_at,recorded_at_utc,notes
+row_id,deal_id,customer_name,customer_email,region,department,product,sales_rep,Q3 Rev (final)(USE THIS),net_revenue,customer_count,recorded_at,recorded_at_utc,notes
+1,D-2026Q3-01001,Customer 001 Inc.,contact001@acme.example,LATAM,Customer Success,Worm Pro,José Álvarez,#REF!,#N/A,-9999,2026-08-15 00:53:00,2026-08-15T00:53:00Z,upsell
+2,D-2026Q3-01002,Customer 002 Inc.,contact002@acme.example,NA,Customer Success,Worm Enterprise,Jürgen Müller,446759.51,417689.05,12,2026-07-14 15:30:00,2026-07-14T15:30:00Z,expansion — multi-year
+3,D-2026Q3-01003,Customer 003 Inc.,contact003@globex.example,LATAM,Customer Success,Worm Pro,Élise Dupont,220850.94,187080.11,115,2026-07-25 17:47:00,2026-07-25T17:47:00Z,expansion — multi-year
+4,D-2026Q3-01004,Customer 004 Inc.,contact004@globex.example,LATAM,Marketing,Worm Audit,José Álvarez,416379.19,329390.74,137,2026-09-10 02:03:00,2026-09-10T02:03:00Z,upsell
+5,D-2026Q3-01005,Customer 005 Inc.,contact005@globex.example,LATAM,Finance,Worm Core,André Chen,200676.29,180070.17,236,2026-08-11 23:55:00,2026-08-11T23:55:00Z,expansion — multi-year
+6,D-2026Q3-01006,Customer 006 Inc.,contact006@initech.example,NA,Customer Success,Worm Core,Mario Rossi,301989.28,277316.61,129,2026-09-21 15:50:00,2026-09-21T15:50:00Z,new logo
+7,D-2026Q3-01007,Customer 007 Inc.,contact007@umbrella.example,EMEA,Customer Success,Worm Core,Sofía Martínez,348783.84,308542.97,229,2026-08-03 04:51:00,2026-08-03T04:51:00Z,churn risk
+8,D-2026Q3-01008,Customer 008 Inc.,contact008@umbrella.example,APAC,Sales,Worm Core,José Álvarez,430136.59,347994.99,232,2026-08-21 11:15:00,2026-08-21T11:15:00Z,—
+9,D-2026Q3-01009,Customer 009 Inc.,contact009@initech.example,LATAM,Sales,Worm Core,Chloé O'Brien,469353.56,430945.11,97,2026-08-27 21:12:00,2026-08-27T21:12:00Z,churn risk
+10,D-2026Q3-01010,Customer 010 Inc.,contact010@acme.example,NA,Product,Worm Pro,François Dubois,379960.9,329245.85,202,2026-09-13 15:47:00,2026-09-13T15:47:00Z,pilot — eval phase
+11,D-2026Q3-01011,Customer 011 Inc.,contact011@stark.example,LATAM,Marketing,Worm Audit,Renée García,220551.41,172937.29,44,2026-08-18 16:53:00,2026-08-18T16:53:00Z,pilot — eval phase
+12,D-2026Q3-01012,Customer 012 Inc.,contact012@initech.example,EMEA,Sales,Worm Lite,Chloé O'Brien,415188.45,350840.71,174,2026-09-02 22:26:00,2026-09-02T22:26:00Z,new logo
+13,D-2026Q3-01013,Customer 013 Inc.,contact013@stark.example,LATAM,Product,Worm Audit,José Álvarez,359692.08,326165.59,204,2026-08-16 10:21:00,2026-08-16T10:21:00Z,expansion — multi-year
+14,D-2026Q3-01014,Customer 014 Inc.,contact014@acme.example,EMEA,Sales,Worm Core,Renée García,424678.08,359378.73,240,2026-09-22 09:28:00,2026-09-22T09:28:00Z,churn risk
+15,D-2026Q3-01015,Customer 015 Inc.,contact015@acme.example,EMEA,Marketing,Worm Lite,André Chen,109835.51,90201.96,208,2026-08-15 09:36:00,2026-08-15T09:36:00Z,upsell
+16,D-2026Q3-01016,Customer 016 Inc.,contact016@globex.example,EMEA,Product,Worm Audit,José Álvarez,127976.12,119612.17,8,2026-07-23 03:52:00,2026-07-23T03:52:00Z,upsell
+17,D-2026Q3-01017,Customer 017 Inc.,contact017@umbrella.example,NA,Sales,Worm Lite,André Chen,123503.04,101864.36,210,2026-08-15 19:03:00,2026-08-15T19:03:00Z,—
+18,D-2026Q3-01018,Customer 018 Inc.,contact018@stark.example,LATAM,Product,Worm Core,Fátima Hassan,88546.85,69520.62,75,2026-07-18 15:29:00,2026-07-18T15:29:00Z,expansion — multi-year
+19,D-2026Q3-01019,Customer 019 Inc.,contact019@stark.example,NA,Product,Worm Pro,Chloé O'Brien,360789.74,285891.81,5,2026-07-04 21:23:00,2026-07-04T21:23:00Z,expansion — multi-year
+20,D-2026Q3-01020,Customer 020 Inc.,contact020@initech.example,LATAM,Product,Worm Pro,José Álvarez,373442.18,307761.21,51,2026-09-26 15:09:00,2026-09-26T15:09:00Z,new logo
+21,D-2026Q3-01021,Customer 021 Inc.,contact021@stark.example,LATAM,Product,Worm Enterprise,Jürgen Müller,383470.46,346089.11,50,2026-07-02 05:32:00,2026-07-02T05:32:00Z,—
+22,D-2026Q3-01022,Customer 022 Inc.,contact022@initech.example,LATAM,Finance,Worm Audit,Élise Dupont,104185.25,83157.18,229,2026-07-21 11:07:00,2026-07-21T11:07:00Z,new logo
+23,D-2026Q3-01023,Customer 023 Inc.,contact023@umbrella.example,NA,Sales,Worm Lite,Renée García,17962.19,16616.42,93,2026-08-26 19:09:00,2026-08-26T19:09:00Z,churn risk
+24,D-2026Q3-01024,Customer 024 Inc.,contact024@globex.example,APAC,Finance,Worm Pro,François Dubois,447295.11,384050.86,-9999,2026-08-05 10:54:00,2026-08-05T10:54:00Z,upsell
+25,D-2026Q3-01025,Customer 025 Inc.,contact025@umbrella.example,NA,Customer Success,Worm Lite,André Chen,164249.49,140551.15,22,2026-09-06 20:09:00,2026-09-06T20:09:00Z,churn risk
+26,D-2026Q3-01026,Customer 026 Inc.,contact026@acme.example,LATAM,Marketing,Worm Enterprise,Chloé O'Brien,45047.72,42314.42,180,2026-08-27 17:41:00,2026-08-27T17:41:00Z,renewal
+27,D-2026Q3-01027,Customer 027 Inc.,contact027@globex.example,APAC,Product,Worm Core,Chloé O'Brien,230418.54,193178.38,150,2026-09-22 08:59:00,2026-09-22T08:59:00Z,—
+28,D-2026Q3-01028,Customer 028 Inc.,contact028@umbrella.example,NA,Customer Success,Worm Lite,Jürgen Müller,131587.67,124525.92,136,2026-08-13 03:44:00,2026-08-13T03:44:00Z,renewal
+29,D-2026Q3-01029,Customer 029 Inc.,contact029@initech.example,EMEA,Marketing,Worm Audit,Sofía Martínez,290740.26,248234.8,128,2026-09-05 22:40:00,2026-09-05T22:40:00Z,churn risk
+30,D-2026Q3-01030,Customer 030 Inc.,contact030@initech.example,EMEA,Sales,Worm Core,François Dubois,334291.14,308499.94,122,2026-08-12 21:53:00,2026-08-12T21:53:00Z,pilot — eval phase
+31,D-2026Q3-01031,Customer 031 Inc.,contact031@stark.example,NA,Finance,Worm Enterprise,Mario Rossi,189446.91,173884.62,191,2026-09-08 03:41:00,2026-09-08T03:41:00Z,renewal
+32,D-2026Q3-01032,Customer 032 Inc.,contact032@acme.example,NA,Product,Worm Pro,François Dubois,275124.58,240936.84,87,2026-08-11 22:36:00,2026-08-11T22:36:00Z,réquête en cours
+33,D-2026Q3-01033,Customer 033 Inc.,contact033@stark.example,LATAM,Sales,Worm Core,André Chen,264916.43,212314.21,64,2026-09-19 04:59:00,2026-09-19T04:59:00Z,renewal
+34,D-2026Q3-01034,Customer 034 Inc.,contact034@globex.example,LATAM,Sales,Worm Core,Fátima Hassan,252799.68,210620.52,47,2026-07-26 06:40:00,2026-07-26T06:40:00Z,—
+35,D-2026Q3-01035,Customer 035 Inc.,contact035@stark.example,APAC,Finance,Worm Enterprise,Renée García,142311.49,116691.63,133,2026-08-14 06:41:00,2026-08-14T06:41:00Z,churn risk
+36,D-2026Q3-01036,Customer 036 Inc.,contact036@initech.example,NA,Marketing,Worm Lite,André Chen,59255.26,53520.22,84,2026-08-23 05:50:00,2026-08-23T05:50:00Z,renewal
+37,D-2026Q3-01037,Customer 037 Inc.,contact037@acme.example,NA,Product,Worm Lite,Jürgen Müller,167428.54,144892.8,202,2026-08-20 06:24:00,2026-08-20T06:24:00Z,expansion — multi-year
+38,D-2026Q3-01038,Customer 038 Inc.,contact038@umbrella.example,LATAM,Customer Success,Worm Enterprise,Mario Rossi,#REF!,#N/A,8,2026-09-15 04:38:00,2026-09-15T04:38:00Z,pilot — eval phase
+39,D-2026Q3-01039,Customer 039 Inc.,contact039@acme.example,LATAM,Sales,Worm Pro,Chloé O'Brien,460881.79,362901.15,120,2026-09-19 22:30:00,2026-09-19T22:30:00Z,—
+40,D-2026Q3-01040,Customer 040 Inc.,contact040@stark.example,NA,Customer Success,Worm Core,José Álvarez,129380.74,104517.59,177,2026-07-16 19:04:00,2026-07-16T19:04:00Z,expansion — multi-year
+41,D-2026Q3-01041,Customer 041 Inc.,contact041@acme.example,EMEA,Customer Success,Worm Pro,José Álvarez,356181.87,321533.41,74,2026-08-28 05:56:00,2026-08-28T05:56:00Z,renewal
+42,D-2026Q3-01042,Customer 042 Inc.,contact042@stark.example,EMEA,Product,Worm Pro,Mario Rossi,426646.06,#N/A,36,2026-08-19 22:50:00,2026-08-19T22:50:00Z,churn risk
+43,D-2026Q3-01043,Customer 043 Inc.,contact043@initech.example,APAC,Marketing,Worm Core,Chloé O'Brien,41210.86,35608.1,116,2026-09-19 09:19:00,2026-09-19T09:19:00Z,renewal
+44,D-2026Q3-01044,Customer 044 Inc.,contact044@globex.example,EMEA,Customer Success,Worm Enterprise,José Álvarez,462287.63,381641.61,4,2026-08-10 16:04:00,2026-08-10T16:04:00Z,upsell
+45,D-2026Q3-01045,Customer 045 Inc.,contact045@globex.example,LATAM,Marketing,Worm Pro,Jürgen Müller,386804.07,345669.52,35,2026-08-29 17:53:00,2026-08-29T17:53:00Z,—
+46,D-2026Q3-01046,Customer 046 Inc.,contact046@globex.example,NA,Customer Success,Worm Pro,Renée García,231945.42,181303.59,201,2026-08-20 21:52:00,2026-08-20T21:52:00Z,new logo
+47,D-2026Q3-01047,Customer 047 Inc.,contact047@globex.example,EMEA,Customer Success,Worm Core,Fátima Hassan,312047.71,270121.42,-9999,2026-09-04 07:16:00,2026-09-04T07:16:00Z,pilot — eval phase
+48,D-2026Q3-01048,Customer 048 Inc.,contact048@globex.example,EMEA,Sales,Worm Pro,André Chen,462482.68,386968.71,87,2026-09-10 01:29:00,2026-09-10T01:29:00Z,—
+49,D-2026Q3-01049,Customer 049 Inc.,contact049@acme.example,NA,Marketing,Worm Enterprise,Mario Rossi,270970.4,246977.46,26,2026-08-30 21:26:00,2026-08-30T21:26:00Z,pilot — eval phase
+50,D-2026Q3-01050,Customer 050 Inc.,contact050@initech.example,NA,Finance,Worm Core,Élise Dupont,478465.29,440472.31,226,2026-08-04 00:21:00,2026-08-04T00:21:00Z,churn risk
+51,D-2026Q3-01051,Customer 051 Inc.,contact051@umbrella.example,APAC,Product,Worm Pro,Mario Rossi,213627.15,185469.32,216,2026-08-02 12:06:00,2026-08-02T12:06:00Z,renewal
+52,D-2026Q3-01052,Customer 052 Inc.,contact052@initech.example,LATAM,Finance,Worm Lite,André Chen,454418.4,403215.64,86,2026-08-17 18:28:00,2026-08-17T18:28:00Z,expansion — multi-year
+53,D-2026Q3-01053,Customer 053 Inc.,contact053@acme.example,APAC,Marketing,Worm Lite,Chloé O'Brien,161435.41,146454.11,155,2026-07-29 17:15:00,2026-07-29T17:15:00Z,churn risk
+54,D-2026Q3-01054,Customer 054 Inc.,contact054@initech.example,LATAM,Sales,Worm Pro,Fátima Hassan,75769.43,#REF!,108,2026-08-29 21:16:00,2026-08-29T21:16:00Z,réquête en cours
+55,D-2026Q3-01055,Customer 055 Inc.,contact055@umbrella.example,LATAM,Marketing,Worm Audit,Mario Rossi,84470.06,77940.5,212,2026-09-23 00:00:00,2026-09-23T00:00:00Z,renewal
+56,D-2026Q3-01056,Customer 056 Inc.,contact056@globex.example,EMEA,Product,Worm Lite,Jürgen Müller,352629.55,317678.03,11,2026-09-18 14:32:00,2026-09-18T14:32:00Z,new logo
+57,D-2026Q3-01057,Customer 057 Inc.,contact057@globex.example,NA,Sales,Worm Audit,José Álvarez,457772.76,416328.83,35,2026-09-24 12:10:00,2026-09-24T12:10:00Z,pilot — eval phase
+58,D-2026Q3-01058,Customer 058 Inc.,contact058@initech.example,EMEA,Marketing,Worm Lite,Sofía Martínez,16166.46,12854.65,195,2026-07-11 13:01:00,2026-07-11T13:01:00Z,renewal
+59,D-2026Q3-01059,Customer 059 Inc.,contact059@globex.example,APAC,Customer Success,Worm Pro,Sofía Martínez,444376.56,404029.14,208,2026-08-02 21:54:00,2026-08-02T21:54:00Z,renewal
+60,D-2026Q3-01060,Customer 060 Inc.,contact060@umbrella.example,APAC,Sales,Worm Audit,André Chen,420349.96,396638.06,88,2026-09-25 08:37:00,2026-09-25T08:37:00Z,pilot — eval phase
+61,D-2026Q3-01061,Customer 061 Inc.,contact061@acme.example,NA,Finance,Worm Lite,Renée García,162073.02,140695.6,52,2026-09-17 01:47:00,2026-09-17T01:47:00Z,renewal
+62,D-2026Q3-01062,Customer 062 Inc.,contact062@acme.example,APAC,Sales,Worm Audit,Jürgen Müller,184206.53,156329.23,107,2026-08-31 04:12:00,2026-08-31T04:12:00Z,pilot — eval phase
+63,D-2026Q3-01063,Customer 063 Inc.,contact063@initech.example,LATAM,Marketing,Worm Core,François Dubois,312590.68,259995.49,83,2026-08-09 02:56:00,2026-08-09T02:56:00Z,—
+64,D-2026Q3-01064,Customer 064 Inc.,contact064@stark.example,EMEA,Product,Worm Lite,José Álvarez,170910.88,144326.7,96,2026-07-04 04:08:00,2026-07-04T04:08:00Z,réquête en cours
+65,D-2026Q3-01065,Customer 065 Inc.,contact065@globex.example,LATAM,Product,Worm Enterprise,André Chen,210996.07,178684.05,126,2026-08-30 22:30:00,2026-08-30T22:30:00Z,new logo
+66,D-2026Q3-01066,Customer 066 Inc.,contact066@acme.example,NA,Customer Success,Worm Lite,Fátima Hassan,464344.2,439129.56,117,2026-09-20 09:56:00,2026-09-20T09:56:00Z,—
+67,D-2026Q3-01067,Customer 067 Inc.,contact067@initech.example,EMEA,Product,Worm Audit,Mario Rossi,180320.67,145525.23,79,2026-08-18 10:03:00,2026-08-18T10:03:00Z,new logo
+68,D-2026Q3-01068,Customer 068 Inc.,contact068@acme.example,NA,Sales,Worm Pro,Mario Rossi,37206.04,30342.52,33,2026-09-07 21:12:00,2026-09-07T21:12:00Z,upsell
+69,D-2026Q3-01069,Customer 069 Inc.,contact069@initech.example,APAC,Customer Success,Worm Core,Fátima Hassan,149765.84,123507.78,181,2026-09-12 15:44:00,2026-09-12T15:44:00Z,expansion — multi-year
+70,D-2026Q3-01070,Customer 070 Inc.,contact070@acme.example,APAC,Sales,Worm Enterprise,José Álvarez,111991.32,92942.28,-9999,2026-07-18 21:45:00,2026-07-18T21:45:00Z,pilot — eval phase
+71,D-2026Q3-01071,Customer 071 Inc.,contact071@umbrella.example,NA,Marketing,Worm Enterprise,Chloé O'Brien,445835.78,360751.93,28,2026-08-29 00:21:00,2026-08-29T00:21:00Z,—
+72,D-2026Q3-01072,Customer 072 Inc.,contact072@acme.example,EMEA,Marketing,Worm Audit,Mario Rossi,304522.01,253631.3,209,2026-07-02 08:38:00,2026-07-02T08:38:00Z,expansion — multi-year
+73,D-2026Q3-01073,Customer 073 Inc.,contact073@initech.example,LATAM,Customer Success,Worm Audit,Mario Rossi,335445.62,286511.91,57,2026-09-23 07:44:00,2026-09-23T07:44:00Z,renewal
+74,D-2026Q3-01074,Customer 074 Inc.,contact074@stark.example,EMEA,Marketing,Worm Audit,François Dubois,372999.62,322546.05,170,2026-09-13 20:09:00,2026-09-13T20:09:00Z,new logo
+75,D-2026Q3-01075,Customer 075 Inc.,contact075@stark.example,EMEA,Product,Worm Pro,Renée García,#REF!,#N/A,97,2026-08-02 17:39:00,2026-08-02T17:39:00Z,upsell
+76,D-2026Q3-01076,Customer 076 Inc.,contact076@umbrella.example,NA,Marketing,Worm Audit,André Chen,122097.42,112582.65,118,2026-08-22 01:49:00,2026-08-22T01:49:00Z,—
+77,D-2026Q3-01077,Customer 077 Inc.,contact077@initech.example,APAC,Sales,Worm Audit,Mario Rossi,280698.84,229670.41,59,2026-09-10 02:48:00,2026-09-10T02:48:00Z,—
+78,D-2026Q3-01078,Customer 078 Inc.,contact078@stark.example,EMEA,Customer Success,Worm Audit,André Chen,469245.83,388161.08,73,2026-07-16 23:52:00,2026-07-16T23:52:00Z,churn risk
+79,D-2026Q3-01079,Customer 079 Inc.,contact079@stark.example,EMEA,Product,Worm Core,Élise Dupont,138270.54,125834.02,33,2026-08-18 20:57:00,2026-08-18T20:57:00Z,pilot — eval phase
+80,D-2026Q3-01080,Customer 080 Inc.,contact080@globex.example,EMEA,Product,Worm Audit,Renée García,310737.75,283255.82,42,2026-09-04 09:46:00,2026-09-04T09:46:00Z,upsell
+81,D-2026Q3-01081,Customer 081 Inc.,contact081@umbrella.example,APAC,Customer Success,Worm Enterprise,Sofía Martínez,90097.32,76458.29,210,2026-07-02 20:51:00,2026-07-02T20:51:00Z,upsell
+82,D-2026Q3-01082,Customer 082 Inc.,contact082@acme.example,APAC,Product,Worm Enterprise,Fátima Hassan,74129.35,69435.17,85,2026-08-15 17:47:00,2026-08-15T17:47:00Z,upsell
+83,D-2026Q3-01083,Customer 083 Inc.,contact083@umbrella.example,LATAM,Marketing,Worm Audit,Renée García,104629.46,#N/A,37,2026-08-21 11:18:00,2026-08-21T11:18:00Z,—
+84,D-2026Q3-01084,Customer 084 Inc.,contact084@initech.example,APAC,Sales,Worm Pro,Renée García,63611.39,51832.69,106,2026-07-02 13:42:00,2026-07-02T13:42:00Z,churn risk
+85,D-2026Q3-01085,Customer 085 Inc.,contact085@umbrella.example,LATAM,Customer Success,Worm Audit,André Chen,4816.3,4033.32,35,2026-08-30 18:26:00,2026-08-30T18:26:00Z,churn risk
+86,D-2026Q3-01086,Customer 086 Inc.,contact086@globex.example,APAC,Customer Success,Worm Enterprise,François Dubois,3343.36,2907.72,89,2026-09-22 00:55:00,2026-09-22T00:55:00Z,upsell
+87,D-2026Q3-01087,Customer 087 Inc.,contact087@acme.example,LATAM,Marketing,Worm Audit,André Chen,131325.72,113229.74,30,2026-09-14 04:39:00,2026-09-14T04:39:00Z,new logo
+88,D-2026Q3-01088,Customer 088 Inc.,contact088@globex.example,NA,Sales,Worm Core,Chloé O'Brien,130728.48,114414.63,223,2026-08-16 09:18:00,2026-08-16T09:18:00Z,renewal
+89,D-2026Q3-01089,Customer 089 Inc.,contact089@umbrella.example,NA,Marketing,Worm Core,Fátima Hassan,131745.0,111435.81,165,2026-09-16 09:47:00,2026-09-16T09:47:00Z,réquête en cours
+90,D-2026Q3-01090,Customer 090 Inc.,contact090@acme.example,APAC,Product,Worm Lite,Renée García,77732.28,61197.03,177,2026-09-12 07:12:00,2026-09-12T07:12:00Z,churn risk
+91,D-2026Q3-01091,Customer 091 Inc.,contact091@acme.example,EMEA,Customer Success,Worm Audit,André Chen,239189.78,207629.87,77,2026-08-28 03:09:00,2026-08-28T03:09:00Z,new logo
+92,D-2026Q3-01092,Customer 092 Inc.,contact092@acme.example,EMEA,Finance,Worm Pro,Renée García,365483.76,339881.48,231,2026-09-10 04:03:00,2026-09-10T04:03:00Z,pilot — eval phase
+93,D-2026Q3-01093,Customer 093 Inc.,contact093@acme.example,EMEA,Marketing,Worm Core,José Álvarez,52714.22,42846.2,-9999,2026-08-27 17:03:00,2026-08-27T17:03:00Z,expansion — multi-year
+94,D-2026Q3-01094,Customer 094 Inc.,contact094@acme.example,APAC,Marketing,Worm Pro,André Chen,46068.09,36166.74,220,2026-07-28 15:14:00,2026-07-28T15:14:00Z,churn risk
+95,D-2026Q3-01095,Customer 095 Inc.,contact095@stark.example,LATAM,Sales,Worm Audit,Jürgen Müller,129552.38,109163.92,6,2026-08-12 07:32:00,2026-08-12T07:32:00Z,expansion — multi-year
+96,D-2026Q3-01096,Customer 096 Inc.,contact096@stark.example,NA,Customer Success,Worm Pro,Chloé O'Brien,195286.27,174738.56,36,2026-09-02 00:18:00,2026-09-02T00:18:00Z,pilot — eval phase
+97,D-2026Q3-01097,Customer 097 Inc.,contact097@stark.example,LATAM,Customer Success,Worm Pro,Élise Dupont,304785.97,286818.15,14,2026-09-22 04:16:00,2026-09-22T04:16:00Z,—
+98,D-2026Q3-01098,Customer 098 Inc.,contact098@umbrella.example,LATAM,Finance,Worm Audit,José Álvarez,367485.06,304061.16,177,2026-09-20 12:23:00,2026-09-20T12:23:00Z,expansion — multi-year
+99,D-2026Q3-01099,Customer 099 Inc.,contact099@umbrella.example,EMEA,Marketing,Worm Audit,André Chen,209235.63,177997.87,75,2026-07-16 23:36:00,2026-07-16T23:36:00Z,new logo
+100,D-2026Q3-01100,Customer 100 Inc.,contact100@acme.example,NA,Customer Success,Worm Core,Mario Rossi,155966.26,128001.21,185,2026-09-22 15:10:00,2026-09-22T15:10:00Z,new logo
+101,D-2026Q3-01101,Customer 101 Inc.,contact101@globex.example,APAC,Customer Success,Worm Core,Élise Dupont,327636.96,279996.73,164,2026-09-16 02:30:00,2026-09-16T02:30:00Z,—
+102,D-2026Q3-01102,Customer 102 Inc.,contact102@acme.example,APAC,Customer Success,Worm Audit,Fátima Hassan,305601.39,271664.1,85,2026-07-30 23:04:00,2026-07-30T23:04:00Z,upsell
+103,D-2026Q3-01103,Customer 103 Inc.,contact103@globex.example,LATAM,Marketing,Worm Audit,François Dubois,152235.54,126101.24,194,2026-07-22 18:12:00,2026-07-22T18:12:00Z,renewal
+104,D-2026Q3-01104,Customer 104 Inc.,contact104@acme.example,APAC,Product,Worm Enterprise,Renée García,419829.92,395859.28,229,2026-07-12 08:16:00,2026-07-12T08:16:00Z,renewal
+105,D-2026Q3-01105,Customer 105 Inc.,contact105@umbrella.example,NA,Product,Worm Audit,Renée García,302460.68,269282.04,98,2026-07-21 05:07:00,2026-07-21T05:07:00Z,new logo
+106,D-2026Q3-01106,Customer 106 Inc.,contact106@initech.example,EMEA,Sales,Worm Audit,Mario Rossi,179744.66,146584.65,173,2026-08-17 12:25:00,2026-08-17T12:25:00Z,upsell
+107,D-2026Q3-01107,Customer 107 Inc.,contact107@initech.example,APAC,Sales,Worm Pro,François Dubois,156982.79,#REF!,196,2026-07-24 21:19:00,2026-07-24T21:19:00Z,—
+108,D-2026Q3-01108,Customer 108 Inc.,contact108@stark.example,NA,Customer Success,Worm Enterprise,Élise Dupont,3626.71,3109.61,66,2026-07-14 14:15:00,2026-07-14T14:15:00Z,—
+109,D-2026Q3-01109,Customer 109 Inc.,contact109@acme.example,NA,Marketing,Worm Lite,André Chen,343474.13,320738.83,183,2026-09-18 14:39:00,2026-09-18T14:39:00Z,new logo
+110,D-2026Q3-01110,Customer 110 Inc.,contact110@globex.example,LATAM,Customer Success,Worm Enterprise,Jürgen Müller,359125.41,315669.37,56,2026-07-30 01:57:00,2026-07-30T01:57:00Z,—
+111,D-2026Q3-01111,Customer 111 Inc.,contact111@umbrella.example,EMEA,Customer Success,Worm Audit,Jürgen Müller,61286.78,54737.84,174,2026-07-10 08:16:00,2026-07-10T08:16:00Z,expansion — multi-year
+112,D-2026Q3-01112,Customer 112 Inc.,contact112@acme.example,APAC,Finance,Worm Core,Jürgen Müller,#REF!,#N/A,117,2026-07-25 06:49:00,2026-07-25T06:49:00Z,pilot — eval phase
+113,D-2026Q3-01113,Customer 113 Inc.,contact113@initech.example,APAC,Sales,Worm Audit,Renée García,474627.73,396526.67,175,2026-09-24 03:35:00,2026-09-24T03:35:00Z,pilot — eval phase
+114,D-2026Q3-01114,Customer 114 Inc.,contact114@umbrella.example,EMEA,Customer Success,Worm Enterprise,Mario Rossi,149650.8,138851.27,14,2026-08-08 07:49:00,2026-08-08T07:49:00Z,—
+115,D-2026Q3-01115,Customer 115 Inc.,contact115@initech.example,APAC,Finance,Worm Enterprise,François Dubois,284066.28,258089.71,78,2026-08-10 01:59:00,2026-08-10T01:59:00Z,pilot — eval phase
+116,D-2026Q3-01116,Customer 116 Inc.,contact116@umbrella.example,NA,Sales,Worm Enterprise,André Chen,268368.01,236676.12,-9999,2026-08-20 11:58:00,2026-08-20T11:58:00Z,pilot — eval phase
+117,D-2026Q3-01117,Customer 117 Inc.,contact117@initech.example,EMEA,Finance,Worm Enterprise,François Dubois,223956.81,183483.51,221,2026-09-21 00:29:00,2026-09-21T00:29:00Z,pilot — eval phase
+118,D-2026Q3-01118,Customer 118 Inc.,contact118@initech.example,LATAM,Product,Worm Core,Mario Rossi,356787.19,285824.1,30,2026-07-26 15:11:00,2026-07-26T15:11:00Z,new logo
+119,D-2026Q3-01119,Customer 119 Inc.,contact119@acme.example,LATAM,Marketing,Worm Enterprise,André Chen,66417.61,60276.16,163,2026-08-10 15:28:00,2026-08-10T15:28:00Z,new logo
+120,D-2026Q3-01120,Customer 120 Inc.,contact120@umbrella.example,NA,Marketing,Worm Pro,André Chen,163356.64,134726.47,205,2026-07-21 17:35:00,2026-07-21T17:35:00Z,churn risk
+121,D-2026Q3-01121,Customer 121 Inc.,contact121@globex.example,LATAM,Product,Worm Pro,André Chen,94602.35,78275.27,185,2026-09-21 02:49:00,2026-09-21T02:49:00Z,expansion — multi-year
+122,D-2026Q3-01122,Customer 122 Inc.,contact122@globex.example,LATAM,Sales,Worm Enterprise,Renée García,88666.03,78537.43,177,2026-08-24 02:33:00,2026-08-24T02:33:00Z,pilot — eval phase
+123,D-2026Q3-01123,Customer 123 Inc.,contact123@initech.example,EMEA,Sales,Worm Audit,François Dubois,52402.46,47639.54,60,2026-07-28 16:30:00,2026-07-28T16:30:00Z,pilot — eval phase
+124,D-2026Q3-01124,Customer 124 Inc.,contact124@stark.example,NA,Finance,Worm Core,Jürgen Müller,445976.67,#N/A,59,2026-07-14 07:33:00,2026-07-14T07:33:00Z,expansion — multi-year
+125,D-2026Q3-01125,Customer 125 Inc.,contact125@acme.example,EMEA,Product,Worm Enterprise,Élise Dupont,434171.82,355807.39,33,2026-09-10 05:18:00,2026-09-10T05:18:00Z,pilot — eval phase
+126,D-2026Q3-01126,Customer 126 Inc.,contact126@globex.example,APAC,Product,Worm Core,José Álvarez,136425.56,127895.72,218,2026-09-26 21:04:00,2026-09-26T21:04:00Z,new logo
+127,D-2026Q3-01127,Customer 127 Inc.,contact127@stark.example,LATAM,Product,Worm Lite,Renée García,455439.88,401960.65,120,2026-07-09 09:02:00,2026-07-09T09:02:00Z,réquête en cours
+128,D-2026Q3-01128,Customer 128 Inc.,contact128@acme.example,EMEA,Marketing,Worm Pro,Chloé O'Brien,232129.17,207883.49,58,2026-08-22 04:14:00,2026-08-22T04:14:00Z,renewal
+129,D-2026Q3-01129,Customer 129 Inc.,contact129@globex.example,LATAM,Customer Success,Worm Core,Fátima Hassan,149002.59,127124.2,95,2026-08-02 07:36:00,2026-08-02T07:36:00Z,churn risk
+130,D-2026Q3-01130,Customer 130 Inc.,contact130@stark.example,APAC,Customer Success,Worm Audit,Fátima Hassan,384645.43,302210.84,100,2026-07-10 15:40:00,2026-07-10T15:40:00Z,churn risk
+131,D-2026Q3-01131,Customer 131 Inc.,contact131@acme.example,LATAM,Marketing,Worm Pro,Sofía Martínez,182541.52,162544.68,26,2026-08-18 03:24:00,2026-08-18T03:24:00Z,—
+132,D-2026Q3-01132,Customer 132 Inc.,contact132@umbrella.example,EMEA,Customer Success,Worm Core,Chloé O'Brien,357050.46,279831.29,4,2026-08-06 17:34:00,2026-08-06T17:34:00Z,renewal
+133,D-2026Q3-01133,Customer 133 Inc.,contact133@stark.example,NA,Product,Worm Lite,Fátima Hassan,265429.22,244027.32,64,2026-09-09 16:06:00,2026-09-09T16:06:00Z,pilot — eval phase
+134,D-2026Q3-01134,Customer 134 Inc.,contact134@initech.example,LATAM,Product,Worm Core,André Chen,269338.32,238071.58,106,2026-09-22 09:24:00,2026-09-22T09:24:00Z,renewal
+135,D-2026Q3-01135,Customer 135 Inc.,contact135@umbrella.example,LATAM,Sales,Worm Pro,Mario Rossi,465781.16,404650.36,144,2026-08-24 10:49:00,2026-08-24T10:49:00Z,pilot — eval phase
+136,D-2026Q3-01136,Customer 136 Inc.,contact136@stark.example,LATAM,Customer Success,Worm Lite,Chloé O'Brien,360271.72,322261.75,234,2026-09-16 06:45:00,2026-09-16T06:45:00Z,pilot — eval phase
+137,D-2026Q3-01137,Customer 137 Inc.,contact137@initech.example,EMEA,Sales,Worm Lite,Sofía Martínez,126211.15,105038.05,211,2026-08-05 19:55:00,2026-08-05T19:55:00Z,expansion — multi-year
+138,D-2026Q3-01138,Customer 138 Inc.,contact138@acme.example,LATAM,Customer Success,Worm Pro,Chloé O'Brien,344910.54,286010.17,171,2026-08-05 08:31:00,2026-08-05T08:31:00Z,churn risk
+139,D-2026Q3-01139,Customer 139 Inc.,contact139@umbrella.example,NA,Sales,Worm Pro,Sofía Martínez,327158.11,298205.61,-9999,2026-07-15 18:21:00,2026-07-15T18:21:00Z,—
+140,D-2026Q3-01140,Customer 140 Inc.,contact140@umbrella.example,NA,Marketing,Worm Core,Sofía Martínez,17861.02,16253.4,30,2026-08-26 14:27:00,2026-08-26T14:27:00Z,upsell
+141,D-2026Q3-01141,Customer 141 Inc.,contact141@stark.example,NA,Marketing,Worm Audit,André Chen,324403.86,264399.76,233,2026-07-22 02:26:00,2026-07-22T02:26:00Z,churn risk
+142,D-2026Q3-01142,Customer 142 Inc.,contact142@globex.example,APAC,Sales,Worm Core,Chloé O'Brien,289491.49,265073.41,156,2026-09-14 22:29:00,2026-09-14T22:29:00Z,upsell
+143,D-2026Q3-01143,Customer 143 Inc.,contact143@initech.example,NA,Sales,Worm Enterprise,André Chen,160591.88,138930.33,121,2026-08-08 22:15:00,2026-08-08T22:15:00Z,réquête en cours
+144,D-2026Q3-01144,Customer 144 Inc.,contact144@stark.example,LATAM,Marketing,Worm Enterprise,José Álvarez,7845.44,7362.88,185,2026-08-25 13:47:00,2026-08-25T13:47:00Z,new logo
+145,D-2026Q3-01145,Customer 145 Inc.,contact145@stark.example,APAC,Sales,Worm Enterprise,André Chen,93212.62,79047.5,117,2026-08-22 18:28:00,2026-08-22T18:28:00Z,réquête en cours
+146,D-2026Q3-01146,Customer 146 Inc.,contact146@umbrella.example,NA,Customer Success,Worm Audit,François Dubois,213865.32,194365.48,165,2026-08-22 22:21:00,2026-08-22T22:21:00Z,upsell
+147,D-2026Q3-01147,Customer 147 Inc.,contact147@globex.example,EMEA,Finance,Worm Pro,Sofía Martínez,58286.02,51932.24,64,2026-07-03 20:44:00,2026-07-03T20:44:00Z,upsell
+148,D-2026Q3-01148,Customer 148 Inc.,contact148@acme.example,NA,Finance,Worm Enterprise,Sofía Martínez,317003.22,271380.35,78,2026-09-17 19:14:00,2026-09-17T19:14:00Z,—
+149,D-2026Q3-01149,Customer 149 Inc.,contact149@stark.example,EMEA,Marketing,Worm Core,Élise Dupont,#REF!,#N/A,75,2026-07-13 04:07:00,2026-07-13T04:07:00Z,churn risk
+150,D-2026Q3-01150,Customer 150 Inc.,contact150@globex.example,APAC,Finance,Worm Audit,François Dubois,343807.36,300745.92,176,2026-07-04 14:38:00,2026-07-04T14:38:00Z,renewal
+151,D-2026Q3-01151,Customer 151 Inc.,contact151@stark.example,NA,Marketing,Worm Pro,Fátima Hassan,438657.81,408697.99,68,2026-07-13 00:29:00,2026-07-13T00:29:00Z,réquête en cours
+152,D-2026Q3-01152,Customer 152 Inc.,contact152@umbrella.example,EMEA,Product,Worm Audit,Élise Dupont,102997.28,82539.59,123,2026-07-17 14:16:00,2026-07-17T14:16:00Z,réquête en cours
+153,D-2026Q3-01153,Customer 153 Inc.,contact153@acme.example,EMEA,Product,Worm Core,André Chen,67366.86,52969.56,75,2026-08-28 13:43:00,2026-08-28T13:43:00Z,—
+154,D-2026Q3-01154,Customer 154 Inc.,contact154@acme.example,NA,Marketing,Worm Enterprise,Élise Dupont,317191.93,292891.0,141,2026-08-25 07:11:00,2026-08-25T07:11:00Z,expansion — multi-year
+155,D-2026Q3-01155,Customer 155 Inc.,contact155@umbrella.example,EMEA,Marketing,Worm Enterprise,François Dubois,73402.4,62484.41,78,2026-09-06 07:11:00,2026-09-06T07:11:00Z,new logo
+156,D-2026Q3-01156,Customer 156 Inc.,contact156@stark.example,LATAM,Customer Success,Worm Enterprise,André Chen,238934.57,212903.84,67,2026-07-31 09:51:00,2026-07-31T09:51:00Z,churn risk
+157,D-2026Q3-01157,Customer 157 Inc.,contact157@globex.example,LATAM,Finance,Worm Enterprise,Renée García,342279.24,286266.02,76,2026-09-07 05:10:00,2026-09-07T05:10:00Z,renewal
+158,D-2026Q3-01158,Customer 158 Inc.,contact158@stark.example,APAC,Finance,Worm Lite,André Chen,254536.3,228048.09,29,2026-09-07 03:30:00,2026-09-07T03:30:00Z,réquête en cours
+159,D-2026Q3-01159,Customer 159 Inc.,contact159@acme.example,EMEA,Product,Worm Pro,Élise Dupont,61504.8,52318.44,107,2026-08-04 13:58:00,2026-08-04T13:58:00Z,pilot — eval phase
+160,D-2026Q3-01160,Customer 160 Inc.,contact160@globex.example,APAC,Finance,Worm Enterprise,Chloé O'Brien,40714.63,#REF!,44,2026-07-24 07:04:00,2026-07-24T07:04:00Z,upsell
+161,D-2026Q3-01161,Customer 161 Inc.,contact161@globex.example,APAC,Customer Success,Worm Audit,Mario Rossi,131846.01,113862.82,162,2026-09-18 04:38:00,2026-09-18T04:38:00Z,new logo
+162,D-2026Q3-01162,Customer 162 Inc.,contact162@initech.example,APAC,Marketing,Worm Enterprise,Élise Dupont,65026.39,57216.03,-9999,2026-08-12 17:58:00,2026-08-12T17:58:00Z,churn risk
+163,D-2026Q3-01163,Customer 163 Inc.,contact163@umbrella.example,EMEA,Customer Success,Worm Pro,José Álvarez,473877.54,416022.54,26,2026-07-10 08:43:00,2026-07-10T08:43:00Z,—
+164,D-2026Q3-01164,Customer 164 Inc.,contact164@stark.example,NA,Marketing,Worm Pro,Sofía Martínez,293752.68,260407.28,48,2026-08-23 18:07:00,2026-08-23T18:07:00Z,expansion — multi-year
+165,D-2026Q3-01165,Customer 165 Inc.,contact165@umbrella.example,APAC,Finance,Worm Core,François Dubois,113763.81,#N/A,82,2026-08-10 14:46:00,2026-08-10T14:46:00Z,—
+166,D-2026Q3-01166,Customer 166 Inc.,contact166@umbrella.example,LATAM,Customer Success,Worm Lite,José Álvarez,123966.57,100096.18,232,2026-07-10 12:59:00,2026-07-10T12:59:00Z,réquête en cours
+167,D-2026Q3-01167,Customer 167 Inc.,contact167@globex.example,APAC,Sales,Worm Audit,Sofía Martínez,477403.63,446271.34,78,2026-07-18 12:26:00,2026-07-18T12:26:00Z,—
+168,D-2026Q3-01168,Customer 168 Inc.,contact168@initech.example,LATAM,Finance,Worm Core,Fátima Hassan,148646.19,133728.16,45,2026-07-01 17:41:00,2026-07-01T17:41:00Z,expansion — multi-year
+169,D-2026Q3-01169,Customer 169 Inc.,contact169@globex.example,NA,Customer Success,Worm Core,Renée García,50193.71,43595.7,115,2026-07-29 19:19:00,2026-07-29T19:19:00Z,réquête en cours
+170,D-2026Q3-01170,Customer 170 Inc.,contact170@initech.example,APAC,Product,Worm Core,José Álvarez,459633.62,413164.3,146,2026-09-06 03:31:00,2026-09-06T03:31:00Z,—
+171,D-2026Q3-01171,Customer 171 Inc.,contact171@initech.example,NA,Customer Success,Worm Audit,François Dubois,413186.36,375210.17,168,2026-09-05 15:31:00,2026-09-05T15:31:00Z,new logo
+172,D-2026Q3-01172,Customer 172 Inc.,contact172@initech.example,APAC,Finance,Worm Enterprise,François Dubois,6896.45,5488.76,214,2026-08-03 02:49:00,2026-08-03T02:49:00Z,expansion — multi-year
+173,D-2026Q3-01173,Customer 173 Inc.,contact173@stark.example,APAC,Sales,Worm Lite,André Chen,383980.7,351743.84,204,2026-07-21 08:07:00,2026-07-21T08:07:00Z,réquête en cours
+174,D-2026Q3-01174,Customer 174 Inc.,contact174@initech.example,NA,Marketing,Worm Pro,Élise Dupont,112087.85,100109.74,43,2026-09-29 02:56:00,2026-09-29T02:56:00Z,churn risk
+175,D-2026Q3-01175,Customer 175 Inc.,contact175@acme.example,NA,Customer Success,Worm Lite,Jürgen Müller,270101.66,222658.29,6,2026-08-06 13:50:00,2026-08-06T13:50:00Z,pilot — eval phase
+176,D-2026Q3-01176,Customer 176 Inc.,contact176@initech.example,EMEA,Customer Success,Worm Core,Sofía Martínez,151402.43,122095.1,69,2026-07-08 17:06:00,2026-07-08T17:06:00Z,pilot — eval phase
+177,D-2026Q3-01177,Customer 177 Inc.,contact177@initech.example,APAC,Sales,Worm Lite,Mario Rossi,324334.42,267396.61,185,2026-08-28 00:26:00,2026-08-28T00:26:00Z,upsell
+178,D-2026Q3-01178,Customer 178 Inc.,contact178@umbrella.example,NA,Marketing,Worm Audit,Fátima Hassan,9580.97,9035.74,92,2026-08-30 01:28:00,2026-08-30T01:28:00Z,expansion — multi-year
+179,D-2026Q3-01179,Customer 179 Inc.,contact179@acme.example,APAC,Finance,Worm Audit,Fátima Hassan,70276.66,57515.68,109,2026-07-27 09:23:00,2026-07-27T09:23:00Z,renewal
+180,D-2026Q3-01180,Customer 180 Inc.,contact180@stark.example,APAC,Customer Success,Worm Enterprise,Renée García,350290.04,319676.16,220,2026-09-12 18:00:00,2026-09-12T18:00:00Z,réquête en cours
+181,D-2026Q3-01181,Customer 181 Inc.,contact181@globex.example,LATAM,Marketing,Worm Pro,André Chen,204024.46,180081.75,27,2026-07-03 00:43:00,2026-07-03T00:43:00Z,—
+182,D-2026Q3-01182,Customer 182 Inc.,contact182@globex.example,LATAM,Finance,Worm Pro,Renée García,365944.29,336785.18,50,2026-08-05 05:51:00,2026-08-05T05:51:00Z,—
+183,D-2026Q3-01183,Customer 183 Inc.,contact183@stark.example,APAC,Marketing,Worm Enterprise,André Chen,329368.55,257131.76,58,2026-07-08 15:30:00,2026-07-08T15:30:00Z,new logo
+184,D-2026Q3-01184,Customer 184 Inc.,contact184@initech.example,NA,Marketing,Worm Lite,François Dubois,198401.6,166993.56,105,2026-08-02 07:36:00,2026-08-02T07:36:00Z,expansion — multi-year
+185,D-2026Q3-01185,Customer 185 Inc.,contact185@initech.example,NA,Finance,Worm Lite,François Dubois,135126.67,108355.63,-9999,2026-09-17 11:31:00,2026-09-17T11:31:00Z,—
+186,D-2026Q3-01186,Customer 186 Inc.,contact186@initech.example,EMEA,Finance,Worm Enterprise,François Dubois,#REF!,#N/A,79,2026-07-26 12:55:00,2026-07-26T12:55:00Z,réquête en cours
+187,D-2026Q3-01187,Customer 187 Inc.,contact187@initech.example,EMEA,Product,Worm Enterprise,José Álvarez,137268.25,111105.14,145,2026-08-17 22:41:00,2026-08-17T22:41:00Z,upsell
+188,D-2026Q3-01188,Customer 188 Inc.,contact188@initech.example,NA,Sales,Worm Audit,Sofía Martínez,252272.43,237879.54,51,2026-09-24 05:13:00,2026-09-24T05:13:00Z,upsell
+189,D-2026Q3-01189,Customer 189 Inc.,contact189@initech.example,EMEA,Sales,Worm Enterprise,Mario Rossi,432260.85,408936.43,60,2026-08-16 08:17:00,2026-08-16T08:17:00Z,expansion — multi-year
+190,D-2026Q3-01190,Customer 190 Inc.,contact190@acme.example,NA,Customer Success,Worm Core,Fátima Hassan,264646.28,237666.72,91,2026-08-19 06:43:00,2026-08-19T06:43:00Z,upsell
+191,D-2026Q3-01191,Customer 191 Inc.,contact191@umbrella.example,LATAM,Marketing,Worm Pro,José Álvarez,404339.57,358227.28,227,2026-07-12 17:30:00,2026-07-12T17:30:00Z,expansion — multi-year
+192,D-2026Q3-01192,Customer 192 Inc.,contact192@globex.example,LATAM,Customer Success,Worm Lite,Renée García,346168.65,311516.32,126,2026-07-26 07:09:00,2026-07-26T07:09:00Z,new logo
+193,D-2026Q3-01193,Customer 193 Inc.,contact193@initech.example,APAC,Customer Success,Worm Pro,Fátima Hassan,255969.69,209048.57,135,2026-07-06 21:32:00,2026-07-06T21:32:00Z,upsell
+194,D-2026Q3-01194,Customer 194 Inc.,contact194@stark.example,NA,Customer Success,Worm Enterprise,François Dubois,150290.04,122818.91,201,2026-07-03 03:47:00,2026-07-03T03:47:00Z,réquête en cours
+195,D-2026Q3-01195,Customer 195 Inc.,contact195@acme.example,LATAM,Marketing,Worm Audit,André Chen,115598.69,105725.43,125,2026-07-14 09:54:00,2026-07-14T09:54:00Z,—
+196,D-2026Q3-01196,Customer 196 Inc.,contact196@stark.example,APAC,Sales,Worm Enterprise,Chloé O'Brien,159473.48,149956.26,56,2026-07-24 18:22:00,2026-07-24T18:22:00Z,pilot — eval phase
+197,D-2026Q3-01197,Customer 197 Inc.,contact197@acme.example,LATAM,Customer Success,Worm Lite,Élise Dupont,247418.8,201121.57,226,2026-07-10 13:10:00,2026-07-10T13:10:00Z,expansion — multi-year
+198,D-2026Q3-01198,Customer 198 Inc.,contact198@stark.example,APAC,Customer Success,Worm Lite,Sofía Martínez,332231.17,304516.97,156,2026-08-23 02:16:00,2026-08-23T02:16:00Z,—
+199,D-2026Q3-01199,Customer 199 Inc.,contact199@umbrella.example,APAC,Marketing,Worm Lite,André Chen,121374.4,110670.47,32,2026-08-04 16:24:00,2026-08-04T16:24:00Z,expansion — multi-year
+200,D-2026Q3-01200,Customer 200 Inc.,contact200@acme.example,APAC,Sales,Worm Enterprise,Élise Dupont,256080.07,241839.42,141,2026-08-11 09:13:00,2026-08-11T09:13:00Z,pilot — eval phase
+201,D-2026Q3-01201,Customer 201 Inc.,contact201@initech.example,NA,Customer Success,Worm Core,Fátima Hassan,300143.09,255057.21,20,2026-08-08 12:56:00,2026-08-08T12:56:00Z,new logo
+202,D-2026Q3-01202,Customer 202 Inc.,contact202@initech.example,EMEA,Sales,Worm Pro,Renée García,283361.19,246321.03,177,2026-07-31 22:58:00,2026-07-31T22:58:00Z,churn risk
+203,D-2026Q3-01203,Customer 203 Inc.,contact203@initech.example,APAC,Sales,Worm Enterprise,Chloé O'Brien,233218.36,197611.49,100,2026-09-21 11:15:00,2026-09-21T11:15:00Z,new logo
+204,D-2026Q3-01204,Customer 204 Inc.,contact204@globex.example,NA,Marketing,Worm Audit,José Álvarez,376971.72,351682.07,146,2026-08-15 21:25:00,2026-08-15T21:25:00Z,upsell
+205,D-2026Q3-01205,Customer 205 Inc.,contact205@initech.example,NA,Marketing,Worm Pro,Jürgen Müller,58511.63,53210.35,111,2026-09-24 07:08:00,2026-09-24T07:08:00Z,réquête en cours
+206,D-2026Q3-01206,Customer 206 Inc.,contact206@stark.example,EMEA,Marketing,Worm Audit,François Dubois,62856.44,#N/A,175,2026-09-16 00:22:00,2026-09-16T00:22:00Z,upsell
+207,D-2026Q3-01207,Customer 207 Inc.,contact207@initech.example,APAC,Marketing,Worm Core,Mario Rossi,365069.99,285973.02,37,2026-09-07 19:44:00,2026-09-07T19:44:00Z,renewal
+208,D-2026Q3-01208,Customer 208 Inc.,contact208@initech.example,EMEA,Finance,Worm Audit,José Álvarez,257631.43,213752.61,-9999,2026-07-27 21:35:00,2026-07-27T21:35:00Z,new logo
+209,D-2026Q3-01209,Customer 209 Inc.,contact209@umbrella.example,APAC,Marketing,Worm Audit,José Álvarez,230370.04,187835.47,77,2026-08-13 12:20:00,2026-08-13T12:20:00Z,upsell
+210,D-2026Q3-01210,Customer 210 Inc.,contact210@stark.example,APAC,Finance,Worm Lite,Mario Rossi,93849.24,82059.61,73,2026-07-02 18:29:00,2026-07-02T18:29:00Z,renewal
+211,D-2026Q3-01211,Customer 211 Inc.,contact211@umbrella.example,EMEA,Finance,Worm Pro,Élise Dupont,171419.93,137500.42,161,2026-07-24 03:32:00,2026-07-24T03:32:00Z,expansion — multi-year
+212,D-2026Q3-01212,Customer 212 Inc.,contact212@acme.example,LATAM,Product,Worm Pro,José Álvarez,356792.66,293558.81,33,2026-07-12 18:27:00,2026-07-12T18:27:00Z,pilot — eval phase
+213,D-2026Q3-01213,Customer 213 Inc.,contact213@acme.example,LATAM,Sales,Worm Audit,François Dubois,262313.86,#REF!,149,2026-09-24 10:18:00,2026-09-24T10:18:00Z,pilot — eval phase
+214,D-2026Q3-01214,Customer 214 Inc.,contact214@stark.example,APAC,Product,Worm Core,Renée García,136595.11,122947.35,94,2026-08-21 05:12:00,2026-08-21T05:12:00Z,renewal
+215,D-2026Q3-01215,Customer 215 Inc.,contact215@stark.example,APAC,Product,Worm Lite,Chloé O'Brien,63941.65,55043.2,38,2026-09-26 06:22:00,2026-09-26T06:22:00Z,churn risk
+216,D-2026Q3-01216,Customer 216 Inc.,contact216@stark.example,LATAM,Customer Success,Worm Pro,Élise Dupont,181234.48,144084.79,26,2026-07-14 16:06:00,2026-07-14T16:06:00Z,upsell
+217,D-2026Q3-01217,Customer 217 Inc.,contact217@acme.example,NA,Customer Success,Worm Audit,José Álvarez,97157.26,77427.24,69,2026-09-22 19:02:00,2026-09-22T19:02:00Z,renewal
+218,D-2026Q3-01218,Customer 218 Inc.,contact218@initech.example,NA,Finance,Worm Lite,André Chen,276275.78,230412.45,103,2026-08-16 12:07:00,2026-08-16T12:07:00Z,renewal
+219,D-2026Q3-01219,Customer 219 Inc.,contact219@initech.example,LATAM,Sales,Worm Pro,Élise Dupont,225751.82,204852.58,76,2026-08-04 23:53:00,2026-08-04T23:53:00Z,upsell
+220,D-2026Q3-01220,Customer 220 Inc.,contact220@stark.example,NA,Marketing,Worm Pro,José Álvarez,375310.38,339058.93,148,2026-07-27 16:27:00,2026-07-27T16:27:00Z,churn risk

@@ -1,0 +1,52 @@
+# Pre-seeded domain templates per pack. Loaded by CompanyWarmup.
+
+saas:
+  - id: domain_product
+    name: Product
+    default_classification: internal
+    description: "Product analytics, activation, retention, feature usage."
+    suggested_owner_role: product_lead
+  - id: domain_finance
+    name: Finance
+    default_classification: confidential
+    description: "Revenue, billing, ARR/MRR, cash."
+    suggested_owner_role: finance_lead
+  - id: domain_customer_success
+    name: Customer Success
+    default_classification: internal
+    description: "Renewals, churn, NPS, account health."
+    suggested_owner_role: cs_lead
+
+marketplace:
+  - id: domain_supply
+    name: Supply
+    default_classification: internal
+    description: "Sellers, listings, inventory, supply liquidity."
+    suggested_owner_role: supply_lead
+  - id: domain_demand
+    name: Demand
+    default_classification: internal
+    description: "Buyers, search, conversion, demand growth."
+    suggested_owner_role: demand_lead
+  - id: domain_trust
+    name: Trust & Safety
+    default_classification: confidential
+    description: "Disputes, fraud signals, refund policy."
+    suggested_owner_role: trust_lead
+
+fintech:
+  - id: domain_ledger
+    name: Ledger
+    default_classification: confidential
+    description: "General ledger, accounting postings."
+    suggested_owner_role: ledger_lead
+  - id: domain_compliance
+    name: Compliance
+    default_classification: regulated
+    description: "KYC, AML, sanctions, regulatory reporting."
+    suggested_owner_role: compliance_lead
+  - id: domain_risk
+    name: Risk
+    default_classification: confidential
+    description: "Underwriting, fraud, default risk."
+    suggested_owner_role: risk_lead

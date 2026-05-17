@@ -1,0 +1,27 @@
+# Focused Beat 9 — drive ONLY the Statement-to-Owner reactivity.
+#
+# Bob makes a chat statement that semantically matches the retention
+# domain (which Carol owns by default in the saas pack). The
+# StatementToOwnerReactivity (W5.A2) should:
+#   1. Match the statement via topic_extractor (deterministic ontology)
+#   2. Resolve Carol as retention owner via owner_lookup
+#   3. Aggregate pinned resources via resource_aggregator
+#   4. Send the DM via channel-adapter
+#   5. Write emit_resource_conversation_proposed to the ledger
+#
+# Purpose: canonical wire-level verification of the W5 reactivity stack
+# without needing the full 9-beat install arc (which depends on a live
+# OAuth click for Beat 1 — not programmatically driveable).
+name: beat9-focused
+description: |
+  Single-beat scenario: Bob mentions churn in #todo-baseworm; we wait
+  for the Statement-to-Owner reactivity to write
+  emit_resource_conversation_proposed.
+default_channel: "#todo-baseworm"
+beats:
+  - at: 0
+    persona: bob
+    say: "our churn looks ugly in Europe — Q3 is down 8% MoM"
+  - at: 5
+    wait_for: emit_resource_conversation_proposed
+    timeout_s: 30

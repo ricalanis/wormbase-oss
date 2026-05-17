@@ -1,0 +1,39 @@
+[project]
+name = "wormbase-reactivities"
+version = "0.1.0"
+description = "WormBase Reactivity Protocol — composable predicates, conditions, registry + runner."
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.7",
+    "aiohttp>=3.10",
+    "sqlalchemy[asyncio]>=2.0.30",
+    "wormbase-ledger",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.5",
+    "mypy>=1.10",
+]
+
+[tool.uv.sources]
+wormbase-ledger = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "integration: end-to-end tests that touch external services",
+    "reproducibility: hash-chain and replay determinism tests",
+    "service: single-service integration with real dependencies",
+    "slow: tests that take >5s",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wormbase_reactivities"]
