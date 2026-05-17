@@ -78,7 +78,7 @@ disposition record itself.
 - **Deep spec:** `docs/superpowers/specs/2026-06-09-lake-side-compounding-l2-design.md`
 - **Dashboard:** `/lake/catalog-drift`
 
-## L3 — semantic-type inference
+## L3 — lineage discovery
 
 L3 continuously infers semantic relationships at the table and column
 level — the cross-table dependencies and naming-or-overlap signals that

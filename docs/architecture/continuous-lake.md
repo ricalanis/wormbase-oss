@@ -219,7 +219,7 @@ below is the index; click through for the per-loop spec.
 |---|---|---|
 | **L1** | Continuously triages candidate sources mentioned in conversation → proposes new surfaces | [L1](./lake-side-loops.md#l1--source-candidate-triage) |
 | **L2** | Continuously detects catalog drift in connected surfaces → acknowledges or flags | [L2](./lake-side-loops.md#l2--catalog-drift-detection) |
-| **L3** | Continuously infers semantic types of columns → confirms or revises | [L3](./lake-side-loops.md#l3--semantic-type-inference) |
+| **L3** | Continuously discovers lineage edges between tables and columns → confirms or revises | [L3](./lake-side-loops.md#l3--lineage-discovery) |
 | **L4** | Continuously computes schema-impact when surfaces change → elevates governance | [L4](./lake-side-loops.md#l4--schema-impact-analysis) |
 | **L5** | Continuously fingerprints columns → identifies semantic types across the lake | [L5](./lake-side-loops.md#l5--column-fingerprinting) |
 | **L6** | Continuously classifies columns (PII / confidential / regulated) → confirms or escalates | [L6](./lake-side-loops.md#l6--column-classification) |
