@@ -331,7 +331,7 @@ async def _skeletal_fixture(kind: str) -> tuple[SurfaceDriver, Any]:
     return cls(), None
 
 
-# MCP preset — uses the same fake-session pattern as packages/connectors tests.
+# MCP preset — uses the same fake-session pattern as packages/lake-surfaces tests.
 async def _mcp_notion_fixture() -> tuple[SurfaceDriver, Any]:
     from wormbase_lake_surfaces.mcp import MCPSurfaceDriver
     from wormbase_lake_surfaces.mcp_presets.notion_preset import NotionMCPSurfaceDriver

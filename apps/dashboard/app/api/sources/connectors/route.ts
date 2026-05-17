@@ -6,7 +6,7 @@
  * Returns the static dashboard-side catalog (apps/dashboard/lib/
  * lake-surfaces-catalog.ts). For Thursday this is the source of truth
  * for the picker UI; cross-language sync with the Python registry
- * (packages/connectors/registry.py) is a post-Thursday delta.
+ * (packages/lake-surfaces/registry.py) is a post-Thursday delta.
  */
 import { NextResponse } from "next/server";
 import { CONNECTOR_CATALOG } from "../../../../lib/lake-surfaces-catalog";

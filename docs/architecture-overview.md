@@ -309,7 +309,7 @@ flowchart TB
 - **Reactivity loops** — chat poller, file poller, identity discovery,
   process extractor, autoresearch loop, setup conversation loop.
 - **Source builder** — implements the six source-building flows; calls into
-  `packages/connectors/` for per-source profiling.
+  `packages/lake-surfaces/` for per-source profiling.
 - **Write-actions API** — `POST /api/v1/installs`, `POST /api/v1/people`,
   `POST /api/v1/kpis/propose`, `POST /api/v1/data-products/{id}/replay`,
   etc. Every write goes through a write-action that wraps the work in a PEVR
@@ -420,13 +420,13 @@ picks up `WORMBASE_DASHBOARD_URL` on restart.
 
 ---
 
-## 5. The Connector Protocol
+## 5. The SurfaceDriver Protocol
 
 Every data source — internal or external, push or pull, file or stream —
 implements one Protocol:
 
 ```python
-class Connector(Protocol):
+class SurfaceDriver(Protocol):
     kind: str                          # "stripe" | "snowflake" | "csv" | ...
     capability: set[Capability]        # {discover, profile, sample, watch}
     classification_hints: list[Hint]   # PII patterns, regulated-data signals
@@ -439,18 +439,18 @@ class Connector(Protocol):
     async def watch(self, handle, resource_id) -> AsyncIterator[Change]: ...
 ```
 
-Day-one connectors at `packages/connectors/`: `csv_local`, `postgres`,
-`snowflake`, `bigquery`, `s3_csv`, `stripe`, `salesforce`, `hubspot`,
-`gsheets`, `http_csv`. Plus the default `local_lake` connector that ships
-auto-provisioned per tenant during install (writes
+Day-one surface drivers at `packages/lake-surfaces/`: `csv_local`,
+`postgres`, `snowflake`, `bigquery`, `s3_csv`, `stripe`, `salesforce`,
+`hubspot`, `gsheets`, `http_csv`. Plus the default `local_lake` surface
+driver that ships auto-provisioned per tenant during install (writes
 `emit_source_proposed → emit_source_confirmed → emit_source_connected →
 emit_source_profiled` for `local-lake://{tenant_id}`).
 
-Adding a connector = adding a class + JSON-schema config + a registry entry.
-**No core code ever changes.** Source-building flows
+Adding a lake surface = adding a class + JSON-schema config + a registry
+entry. **No core code ever changes.** Source-building flows
 (`drop_and_profile`, `credential_in_dm`, `mentioned_in_conversation`,
 `dashboard_form`, `kpi_gap_triggered`, `lake_discovery`) are
-connector-agnostic.
+surface-driver-agnostic.
 
 ### Reactivity: infrastructure → semantic → relevance
 
@@ -538,19 +538,21 @@ Auth is bearer-token v1 (per-Person tokens issued from
 Indicators (RFC 8707) for public remote deployments. Multi-tenant routing
 is token-encoded for v1, path-encoded (`/api/v1/tenants/{id}/mcp`) for v2.
 
-### 7.2. Inbound — `MCPConnector(Connector)`
+### 7.2. Inbound — `MCPSurfaceDriver(SurfaceDriver)`
 
-`packages/connectors/src/wormbase_connectors/mcp.py`. An `MCPConnector`
-implementation lets the worm consume *any* external MCP server (Notion,
-Atlassian, Linear, GitHub, Google Workspace, HubSpot, dbt Cloud, Atlan,
-Glean, Monte Carlo) through the **same Connector contract** every other
-source uses. From the rest of the codebase's perspective, an MCP-backed
-source is indistinguishable from a Postgres source.
+`packages/lake-surfaces/src/wormbase_lake_surfaces/mcp.py`. An
+`MCPSurfaceDriver` implementation lets the worm consume *any* external
+MCP server (Notion, Atlassian, Linear, GitHub, Google Workspace, HubSpot,
+dbt Cloud, Atlan, Glean, Monte Carlo) through the **same SurfaceDriver
+contract** every other source uses. From the rest of the codebase's
+perspective, an MCP-backed source is indistinguishable from a Postgres
+source.
 
 This preserves the PRD §2 invariant: **no core code ever changes** to add
-a connector. Six MCP presets register via the same `register_connector(...)`
-pattern — `mcp:notion`, `mcp:atlassian`, `mcp:linear`, `mcp:github`,
-`mcp:google_workspace`, `mcp:hubspot`. Each preset is ~30 LOC.
+a lake surface. Six MCP presets register via the same
+`register_surface_driver(...)` pattern — `mcp:notion`, `mcp:atlassian`,
+`mcp:linear`, `mcp:github`, `mcp:google_workspace`, `mcp:hubspot`. Each
+preset is ~30 LOC.
 
 ### 7.3. The audit substrate is the wedge
 

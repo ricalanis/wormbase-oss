@@ -158,9 +158,7 @@ A lake surface is a managed face of the continuous lake. Adding one is
 how new data substrates (Postgres flavor, SaaS API, file format) become
 tendable.
 
-- **File location.** `packages/lake-surfaces/src/wormbase_lake_surfaces/<your_kind>.py`
-  (post-Wave-D path; pre-Wave-D the path is still
-  `packages/connectors/src/wormbase_connectors/<your_kind>.py`).
+- **File location.** `packages/lake-surfaces/src/wormbase_lake_surfaces/<your_kind>.py`.
 - **Protocol to implement.** `SurfaceDriver` — `authenticate`,
   `discover`, `profile`, `sample`. Declare `kind`, `capability`,
   `classification_hints`, `status`, `status_note` so the dashboard

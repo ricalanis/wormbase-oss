@@ -88,7 +88,7 @@ expected status per kind. The tests fail loudly on drift.
 
 > Note: the package / catalog paths above are the post-Wave-D layout.
 > Wave D performs the Python package rename
-> (`packages/connectors/` → `packages/lake-surfaces/`) and the TS
+> (`packages/lake-surfaces/` → `packages/lake-surfaces/`) and the TS
 > catalog rename (`connectors-catalog.ts` → `lake-surfaces-catalog.ts`)
 > in lockstep. Until Wave D lands, the legacy paths are the source of
 > truth in-tree; this doc reflects the target state.

@@ -21,7 +21,7 @@ Mapping:
   v1 (per §6.4). Returns an empty async iterator.
 
 Presets configure per-server URLs + auth shape + classification hints
-(``packages/connectors/src/wormbase_lake_surfaces/mcp_presets/``). The
+(``packages/lake-surfaces/src/wormbase_lake_surfaces/mcp_presets/``). The
 core ``MCPSurfaceDriver`` class is preset-agnostic — it accepts a
 :class:`MCPServerConfig` describing where to connect and how.
 

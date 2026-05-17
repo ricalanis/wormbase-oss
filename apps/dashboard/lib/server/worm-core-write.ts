@@ -963,7 +963,7 @@ export interface RegisterMcpPresetResult extends WriteResultEnvelope {
  * Records the operator's intent to wire up an external MCP server (e.g.
  * Notion, Atlassian) as a ledger-tracked ``source_proposed`` entry with
  * ``source_kind=mcp:<kind>``. The actual ``MCPConnector`` preset class
- * lives in ``packages/connectors`` and self-registers at import; this
+ * lives in ``packages/lake-surfaces`` and self-registers at import; this
  * endpoint surfaces the operator's intent so it's auditable, multi-
  * tenant scoped, and visible alongside native sources in /sources.
  */

@@ -153,7 +153,7 @@ export default async function OnboardSourcePage(): Promise<JSX.Element> {
           testId="onboard-source-empty"
           eyebrow="no connectors registered"
           title="The connector registry returned no kinds."
-          description="Verify worm-core is reachable and the Python registry packages/connectors/ is importable."
+          description="Verify worm-core is reachable and the Python registry packages/lake-surfaces/ is importable."
           cta={{ label: "See /activity", href: "/activity" }}
         />
       ) : (

@@ -4,7 +4,7 @@
  *
  * Inbound MCP preset registration wizard. The worm consumes external
  * MCP servers (Notion, Atlassian, GitHub, Linear, …) by registering a
- * preset under ``packages/connectors/.../mcp_presets`` — each preset
+ * preset under ``packages/lake-surfaces/.../mcp_presets`` — each preset
  * is an ``MCPConnector`` subclass with a fixed kind + server URL +
  * required-secrets list. The runtime presets are in code; this wizard
  * captures the operator's intent in the ledger.

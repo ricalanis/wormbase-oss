@@ -95,7 +95,7 @@ def test_report_types_are_dataclasses() -> None:
 
 
 def test_resource_proposal_carries_kind_and_resource_id() -> None:
-    # Live shape per packages/connectors/src/wormbase_lake_surfaces/types.py:58-72:
+    # Live shape per packages/lake-surfaces/src/wormbase_lake_surfaces/types.py:58-72:
     # ResourceProposal(resource_id, name, kind, classification_hint?, metadata?).
     # No `uri` field — file/object identification is connector-internal via
     # resource_id. The plan's stub used `uri=` which doesn't exist.

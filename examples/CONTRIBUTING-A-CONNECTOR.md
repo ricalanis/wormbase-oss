@@ -123,7 +123,7 @@ Create one file: `parquet_local.py`. We'll fill it in step by step.
 ## 4. Step 1 — the dataclasses
 
 The Connector Protocol uses five dataclasses to shape its inputs and
-outputs. You can either import them from `wormbase_connectors.types`
+outputs. You can either import them from `wormbase_lake_surfaces.types`
 (if you're working inside the WormBase monorepo) or define them
 locally. We'll define them locally so this file is fully self-contained.
 
@@ -651,11 +651,11 @@ hash of the secret.
 
 If your connector targets the WormBase monorepo:
 
-1. Drop your file in `packages/connectors/src/wormbase_connectors/<kind>.py`.
+1. Drop your file in `packages/lake-surfaces/src/wormbase_lake_surfaces/<kind>.py`.
 2. Decorate the class with `@register_connector` from
-   `wormbase_connectors.registry`.
+   `wormbase_lake_surfaces.registry`.
 3. Replace your local `SecretBundle`/`AuthHandle`/`ResourceProposal`/
-   `Profile`/`Change` imports with `from wormbase_connectors.types
+   `Profile`/`Change` imports with `from wormbase_lake_surfaces.types
    import …`.
 4. Add a fixture entry in
    `tests/contract/test_connector_protocol_conformance.py`'s
@@ -681,7 +681,7 @@ invariants and you're done.
 
 - **The reference file:** `examples/connectors/parquet_local.py` — the
   exact code we built above, in a single ~140-line file.
-- **The csv_local connector:** `packages/connectors/src/wormbase_connectors/csv_local.py`
+- **The csv_local connector:** `packages/lake-surfaces/src/wormbase_lake_surfaces/csv_local.py`
   — production-grade `Connector` for local CSV files. Same shape;
   more robust handling of dtype inference and PII heuristics.
 - **The Postgres connector:** same directory, `postgres.py`. Worth

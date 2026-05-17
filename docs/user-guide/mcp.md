@@ -140,4 +140,4 @@ Full design (10 dimensions + 5-phase plan) in
 | Token works in curl but not Claude Desktop | Streamable HTTP transport mismatch | Confirm Claude Desktop ≥ release with Streamable HTTP support; v0.x clients used HTTP+SSE which is deprecated |
 | Audit log empty after Claude calls | Token's `company_id` doesn't match the cookie's tenant | Re-issue token from the right tenant |
 | Rate-limit fires on every call | Budget set too tight | Raise via `/settings/mcp`; defaults are 1000 calls / hour |
-| Add MCP server wizard rejects URL | Connector preset not registered | Add to `packages/connectors/mcp_presets/`; restart worm-core |
+| Add MCP server wizard rejects URL | Connector preset not registered | Add to `packages/lake-surfaces/mcp_presets/`; restart worm-core |

@@ -321,7 +321,7 @@ manifest field. Discovered at load, registered in config, validated
 against JSON Schema.
 
 **Institutional analog:** WormBase already has
-`wormbase_connectors.registry` and `wormbase_channel_adapters.registry`.
+`wormbase_lake_surfaces.registry` and `wormbase_channel_adapters.registry`.
 Extends to **governance policy templates** (`wormbase_policies.registry`),
 **domain packs** (`wormbase_domain_packs.registry`), **agent skill
 packs** (`wormbase_agent_skills.registry`). Each is additive; core stays
@@ -691,7 +691,7 @@ institutional onboarding adds.
 Generalize the OpenClaw plugin model from one extension surface to four
 or five. The institutional plugin ecosystem ships:
 
-- Connector kinds (already in `wormbase_connectors`)
+- Lake-surface kinds (already in `wormbase_lake_surfaces`)
 - Channel adapters (already in `wormbase_channel_adapters`)
 - Domain packs (new)
 - Policy templates (new)

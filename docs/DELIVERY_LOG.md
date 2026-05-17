@@ -411,3 +411,28 @@ As of 2026-06-10:
 | ASML demo arc | **6/6** stable across all commits in the project |
 
 The eight-axis lake-side compounding architecture is production-ready. Every axis ships default-OFF, each strategy is per-knob-gated, all banners are honest about upstream-richness gaps, and the orchestration substrate (ledger + projections + reactivities) is uniform across the entire family.
+
+---
+
+## 2026-05-17 — Continuous-lake philosophy + lake-surfaces rename complete
+
+ADR-0013 issued. Wave A (anchor docs: `continuous-lake.md`,
+`lake-side-loops.md`, ADR-0013), Wave B (README + ARCHITECTURE +
+landing + DEVELOPERS rewrites), Wave C (polish across architecture
+docs, ADR-0003 protocols-rehomed addendum), and Wave D (code rename
+in 7 sub-tasks D1–D7) all shipped.
+
+Wave D rolled out as 7 atomic commits with green tests between each:
+
+| Commit | Sub-task |
+|---|---|
+| D1 | Rename `packages/connectors/` → `packages/lake-surfaces/`; rename Python module `wormbase_connectors` → `wormbase_lake_surfaces`; move `AcquirableSource` / `MaintainableSource` / `LakeStore` Protocols + `AcquirableSourceImpl` / `ConversationSource` / `EvidenceSource` impls + maintenance types from `lake-maintainer/` to `lake-surfaces/`; 47 Python files swept; `uv.lock` regenerated. |
+| D2 | Rename Protocol `Connector` → `SurfaceDriver`; rename 15 concrete `*Connector` → `*SurfaceDriver` classes; rename registry `ConnectorRegistry` → `SurfaceDriverRegistry` and `register_connector` → `register_surface_driver`; 71 files touched. |
+| D3 | TS catalog rename `connectors-catalog.ts` → `lake-surfaces-catalog.ts`; rename dashboard route `/lake/connectors` → `/lake/surfaces`; sweep all dashboard imports + UI strings (tab label, picker title, status copy, empty-state copy, testIds); 30 files touched. |
+| D4 | Audit found no `*connector*` MCP tool names today; add `aliases.py` + smoke tests for the alias-mapping mechanism so future renames can register one-release aliases; new migration doc `docs/setup/migration-from-pre-rename.md`. |
+| D5 | Full-regression run: 1153 pytest passed, 29 skipped, 14 pre-existing failures (verified against main, all unrelated to rename). 15/15 wire-replay determinism tests pass — ledger replay hashes unchanged. 2030/2030 dashboard tests pass. Lint sweep clean. |
+| D6 | DB column audit: no `connector_kind` / `connector_type` columns in any migration or projection — no additive migration needed. Empty close-out commit. |
+| D7 | Docs cleanup: `architecture-overview.md` §5 + §7.2 reframed to SurfaceDriver, `case-studies/openclaw-integration-patterns.md` reframed, `CONTRIBUTING-A-CONNECTOR.md` paths updated, ADR-0013 historic note. Lint final sweep returns empty for `class Connector(` and the legacy module name outside the spec/plan and the migration doc. |
+
+Approximate delta: ~3000 LOC renamed (Python + TS), ~2400 LOC of new
+docs (Waves A/B/C) earlier this week. Vocabulary stack fully migrated.

@@ -142,12 +142,14 @@ migration cost for external clients; aliases drop at v1.0.
 
 ### Negative
 
-- Wave D rename has a real blast radius. Fifteen concrete driver
-  classes, the `Connector` Protocol, the `packages/connectors/` package
-  directory, the Python module name, the dashboard catalog file, every
-  TS import, every MCP preset, and every doc that mentions
-  `wormbase_connectors` get touched in a single coordinated commit.
-  Estimated 60–90 min wall-clock under parallel subagent dispatch.
+- Wave D rename shipped 2026-05-17. Fifteen concrete driver classes,
+  the legacy driver Protocol, the legacy package directory, the legacy
+  Python module name, the dashboard catalog file, every TS import,
+  every MCP preset, and every doc mentioning the legacy module name
+  were renamed to the SurfaceDriver / `wormbase_lake_surfaces`
+  vocabulary in a single coordinated commit series (D1 through D7).
+  Empirical wall-clock under parallel subagent dispatch matched the
+  60–90 min estimate.
 - Readers migrate from "connector" to "lake surface" in vocabulary. The
   industry word for what we ship is "connector"; the rename trades
   industry-search-engine alignment for thesis-alignment. A migration

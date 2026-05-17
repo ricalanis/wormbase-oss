@@ -442,7 +442,7 @@ class RegisterMcpPresetBody(_Body):
     consumes from). The preset is recorded as a ``source_proposed``
     ledger entry with ``source_kind=mcp:<kind>`` and provenance tagged
     ``dashboard_form``. The actual ``MCPSurfaceDriver`` preset class lives
-    in code (``packages/connectors/src/wormbase_lake_surfaces/mcp_presets``)
+    in code (``packages/lake-surfaces/src/wormbase_lake_surfaces/mcp_presets``)
     and self-registers at import; this endpoint surfaces the operator's
     intent so it's audited, multi-tenant scoped, and visible in /sources.
     """

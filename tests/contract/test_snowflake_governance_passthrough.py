@@ -22,7 +22,7 @@ That property is purely a function of (a) the connector's profile
 output shape and (b) the gate's behavior over that shape — neither of
 which depends on the warehouse runtime. We therefore mock the Snowflake
 cursor at the ``snowflake.connector.connect`` boundary (the same
-strategy ``packages/connectors/tests/test_snowflake.py`` already uses)
+strategy ``packages/lake-surfaces/tests/test_snowflake.py`` already uses)
 and assert the property end-to-end through the WormBase ledger.
 
 A real-Snowflake variant of this test (gated on a ``WORMBASE_LIVE_SNOW``

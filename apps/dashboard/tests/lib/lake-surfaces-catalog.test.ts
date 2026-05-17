@@ -2,7 +2,7 @@
  * Capability-honesty: every connector in the catalog declares
  * ``status`` + ``statusNote``.
  *
- * Mirrors packages/connectors/tests/test_connector_status.py — both
+ * Mirrors packages/lake-surfaces/tests/test_connector_status.py — both
  * sides of the cross-language schema sync are enforced.
  */
 import { describe, it, expect } from "vitest";
