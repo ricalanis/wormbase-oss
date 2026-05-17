@@ -5,7 +5,7 @@
  *
  *   1. The Connector registry (the catalog of kinds the platform knows
  *      how to talk to). Source of truth is the Python registry in
- *      ``packages/connectors/src/wormbase_connectors/`` exposed via
+ *      ``packages/lake-surfaces/src/wormbase_lake_surfaces/`` exposed via
  *      worm-core's ``GET /api/v1/connectors`` endpoint.  We forward via
  *      the dashboard proxy at ``/api/v1/connectors/list``. On worm-core
  *      unreachable we fall back to the static catalog in

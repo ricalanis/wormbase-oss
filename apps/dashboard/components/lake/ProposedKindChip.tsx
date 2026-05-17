@@ -6,7 +6,7 @@
  * Unlike L8's ``EntityKindChip`` (8 strict Literal values), L1's
  * ``proposed_kind`` is a free-form connector-registry string — the
  * ledger payload validates it at write time against
- * ``wormbase_connectors.registry.default_registry()`` but the type is
+ * ``wormbase_lake_surfaces.registry.default_registry()`` but the type is
  * NOT a Literal (per spec §4.2 — connector kinds are configuration,
  * not KIND_REGISTRY entries). New connectors can ship without dashboard
  * churn.
