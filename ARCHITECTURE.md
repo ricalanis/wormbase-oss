@@ -98,13 +98,18 @@ packages/
 ├── governance/                     # governance worm — gates that compose into other worms
 ├── ledger/                         # substrate (entry kinds + projections + replay)
 ├── reactivities/                   # Reactivity Protocol — registry / runner / primitives
-├── connectors/                     # data-source adapters (Connector Protocol)
+├── lake-surfaces/                  # lake-surface drivers (SurfaceDriver Protocol)¹
 ├── channel-adapters/               # channel-platform adapters (ChannelAdapter Protocol)
 └── ...
 
 apps/
 └── worm-core/                      # the hub — CLI / HTTP / MCP / boot orchestration
 ```
+
+¹ Post-Wave-D rename per [ADR-0013](docs/architecture/decisions/ADR-0013-continuous-lake-philosophy.md);
+see the [design spec](docs/superpowers/specs/2026-05-17-continuous-lake-philosophy-design.md)
+for the full rename scope, which lifts the lake-surfaces package, module,
+Protocol, and registry helper into a single naming family.
 
 ### The hub's responsibilities
 
@@ -166,36 +171,292 @@ decomposition was planned and executed across six waves, see
 
 ---
 
-## 3. The Connector contract — data sources are pluggable
+## 3. The continuous lake — agent-installable, co-emergent
 
-Every data source implements one Protocol:
+The **continuous lake** is the unit of WormBase's operation. It is not a
+substrate that pre-exists the agent and then receives an agent layer; it
+is co-emergent with the agent from t=0 of install. The chat install
+brings the first managed surface (the conversation stream). The lake
+install — either by **building** a default local lake or by **connecting**
+to an existing warehouse / lakehouse / object store — brings the second.
+From that moment forward the lake is continuous and agent-tended: eight
+lake-side loops run concurrently, a per-source lake-maintainer detects
+drift and refreshes classification, a catalog-mirror folds discovered
+structure into the ledger, and the worm-core operates inside the lake
+rather than consuming from outside it.
+
+Every tending act materializes through projections over the ledger. The
+substrate (§1) and the worm decomposition (§2) are the machinery; the
+continuous lake is the shape that machinery takes when the worm is
+operating. For the umbrella narrative and the industry-positioning
+landscape, see
+[`docs/architecture/continuous-lake.md`](docs/architecture/continuous-lake.md)
+and [ADR-0013](docs/architecture/decisions/ADR-0013-continuous-lake-philosophy.md).
+This section is the engineering-facing index into that material.
+
+### 3.1 What the continuous lake is
+
+The continuous lake is four things at once, and the framing is precise.
+
+**It is a lake.** Medallion-tiered (bronze / silver / gold), federated
+across whatever surfaces the worm has installed into. The lake may live
+locally under `~/.wormbase/lake/{bronze,silver,gold}/`, in a customer's
+Snowflake account, in their Postgres warehouse, in an S3 bucket, or
+across several of these at once. There is no privileged backing store;
+the lake is the union of every surface the worm tends.
+
+**It is continuous.** There is no "lake-build phase" followed by a
+"lake-serve phase." From the moment of install, eight lake-side loops
+run concurrently and a lake-maintainer is wired per source. The lake's
+state is always being tended; "idle" is not a phase the lake passes
+through.
+
+**It is agent-operated.** The worm tends the lake; the worm does not
+consume from it. Drift detection, classification refresh, lineage
+discovery, schema-impact analysis, quality checks, and entity stitching
+are lake-side behaviors — not bolt-on observability layers reaching in.
+Humans interact with the lake through the chat surface and the
+dashboard; both are reads over the same ledger that the worm's tending
+behaviors write.
+
+**It is co-emergent.** There is no pre-existing lake that the agent then
+arrives to maintain. The chat install brings the first surface; the lake
+install brings the second; everything thereafter is tended from t=0.
+Install IS the first act of maintenance. The lake exists because the
+agent is tending it.
+
+This framing is the inversion of the 2026 industry shared assumption that
+"agentic maintenance" is a bolt-on layer over a pre-existing lake. The
+distinction is load-bearing — it shapes the install flow, the source
+families, and the rename scope.
+
+### 3.2 The two installations
+
+A WormBase install is two acts, not one. Both must complete before the
+worm is operational; the order is the user's choice.
+
+**Chat install** wires a `ChannelAdapter` to the worm-core. After the
+adapter's OAuth completes, the conversation stream becomes the first
+managed surface of the continuous lake. Lurking is bronze ingestion;
+threads become silver topics; decisions / processes / mentions become
+gold. See §4.
+
+**Lake install** acquires the first non-conversation surface, and has
+two paths.
+
+*Build (greenfield).* The default `csv_local` `SurfaceDriver` bootstraps
+`~/.wormbase/lake/{bronze,silver,gold}/` (or the container-equivalent
+path). Intended for prospects who don't yet have a warehouse — most
+SMBs, demo runs, first-time installs.
+
+*Connect (brownfield).* A production-ready `SurfaceDriver` (`postgres`,
+`snowflake`, `bigquery`, `s3_csv`, `http_csv`, `stripe`) or an
+MCP-bridged surface (`notion`, `hubspot`, `linear`, `atlassian`)
+acquires read-side access to an existing lake. Write-side is governed
+by Policy.
+
+**Both paths end at the same substrate state.**
+
+- Both produce a `Source` instance with `family` ∈ {`external`,
+  `filedrop`, `conversation`, `evidence`}.
+- Both trigger the `propose → execute → verify → resolve → trace`
+  ledger sequence (the PEVR primitive from §1).
+- Both activate the same eight lake-side loops (L1–L8).
+- Both become equally tended from t=0 of install.
+
+The hybrid case (default-local lake bootstrapped on day 1, customer's
+Postgres connected on day 8) is the common one. The continuous lake
+spans both surfaces; the worm tends both equally. The lake is
+**federated by default** — surfaces can live wherever a `SurfaceDriver`
+can reach, and the ledger projects state from all surfaces uniformly.
+There is no privileged surface and no "primary" lake; the continuous
+lake is the union of every surface the worm has installed into, and
+the ledger is the only thing that knows the union.
+
+The engineering implication of "same end-state, same code-path" is
+concrete: the install lifecycle (§7), the role grant defaults (§6),
+the projection runners (§1), and every ledger entry written during
+install are identical across build and connect. There is no
+"greenfield-only" path through the code and no "brownfield-only"
+path. A demo run hitting `csv_local` exercises the same code that a
+pilot connecting Snowflake does. This is why hybrid is the common case
+without requiring a separate code branch: the build path and the
+connect path produce the same `Source` shape with the same
+provenance.
+
+### 3.3 Four kinds of surfaces
+
+A **surface** is a managed face of the continuous lake. Every surface
+the worm tends belongs to one of four source families. They differ in
+how the worm *acquires* from them; they do not differ in how the worm
+*tends* them.
+
+| Family | Examples | `AcquirableSource` | `MaintainableSource` |
+|---|---|---|---|
+| **external** | Postgres, Snowflake, BigQuery, S3, Stripe, Notion via MCP, HubSpot via MCP | ✅ | ✅ |
+| **filedrop** | CSVs / PDFs dropped in channels, one-off evidence uploads | ✅ | ✅ |
+| **conversation** | The chat stream itself — every message, mention, thread, decision | ❌ (read from the ledger, not tabular-acquirable) | ✅ |
+| **evidence** | Autoresearch-published notebooks, data products | ❌ (produced internally, not acquired) | ✅ |
+
+All four families are equally lake-resident. None is more "real" than
+the others — the conversation lake and the evidence lake are first-class
+sources, not auxiliary streams hanging off a primary lake of "real
+data." A process map mined from six months of Slack lurking is as much
+a lake artifact as a Postgres table; both produce ledger entries, both
+are governed, both are tended by the same eight loops.
+
+The critical engineering consequence: **the chat stream IS a source
+family**, not an auxiliary channel. Lurking is bronze ingestion. The
+same medallion cascade applies. The conversation surface is the first
+surface in the continuous lake; the lake install adds the second. The
+older OSS framing that put "connector sources" on one side and "chat"
+on the other is wrong by this design.
+
+### 3.4 Eight tending behaviors
+
+Eight lake-side loops run continuously from t=0 of install. Each is one
+way the worm is tending the lake's state. None of them is a pipeline
+stage; none is a background job in the legacy sense. Each is a persistent
+behavior that the lake exhibits because the worm is operating inside it.
+The deep reference is
+[`docs/architecture/lake-side-loops.md`](docs/architecture/lake-side-loops.md);
+the table below is the index.
+
+| Loop | Tending behavior |
+|---|---|
+| [**L1**](docs/architecture/lake-side-loops.md#l1--source-candidate-triage) | Continuously triages candidate sources mentioned in conversation → proposes new surfaces |
+| [**L2**](docs/architecture/lake-side-loops.md#l2--catalog-drift-detection) | Continuously detects catalog drift in connected surfaces → acknowledges or flags |
+| [**L3**](docs/architecture/lake-side-loops.md#l3--lineage-discovery) | Continuously discovers lineage edges between tables and columns → confirms or revises |
+| [**L4**](docs/architecture/lake-side-loops.md#l4--schema-impact-analysis) | Continuously computes schema-impact when surfaces change → elevates governance |
+| [**L5**](docs/architecture/lake-side-loops.md#l5--column-fingerprinting) | Continuously fingerprints columns → identifies semantic types across the lake |
+| [**L6**](docs/architecture/lake-side-loops.md#l6--column-classification) | Continuously classifies columns (PII / confidential / regulated) → confirms or escalates |
+| [**L7**](docs/architecture/lake-side-loops.md#l7--quality-checks) | Continuously runs quality checks → emits findings to the ledger |
+| [**L8**](docs/architecture/lake-side-loops.md#l8--entity-stitching) | Continuously stitches entities across surfaces → resolves identity |
+
+All eight run concurrently from t=0. All eight write ledger entries that
+fold into the dashboard's `/lake/*` pages as projection views. Each loop
+shares the same shape: trigger → strategies → proposals → admin
+disposition → confirmed state. The `LakeLoopComposite[T]` pattern is the
+implementation surface; the loops differ only in what `T` is and which
+strategies tend it.
+
+**Cross-axis chains are the point.** L5 → L7 means "a confirmed
+semantic type for a column enables sharper quality checks on it." L6 →
+L4 means "a column reclassified as PII elevates the schema-impact of
+any change to it." L5 → L4 means "a confirmed semantic type changes
+what counts as a schema-impact event." L4 ↦ L2 means "schema-impact
+findings inform what counts as drift worth flagging." The loops are
+not independent agents running in parallel — they are continuous
+tending behaviors that compose, and the composition is what produces
+the lake's compounding intelligence over time. The full chain
+documentation lives in `lake-side-loops.md`.
+
+The translation against the industry vocabulary is exact and worth
+naming. Drift detection (L2) is the underlying primitive vendors call
+"self-healing." Classification refresh (L6) is what "active metadata"
+vendors describe. Quality checks (L7) are "data observability." Lineage
+discovery (L3) and schema-impact (L4) together are what "active lineage"
+products sell. WormBase does not invent the capabilities; it re-homes
+them into the lake-side framing, so that the lake — not a bolt-on layer
+on top of the lake — is the unit of operation. The chains then compose
+behaviors that no bolt-on vendor can compose, because the bolt-on
+products do not share a substrate.
+
+### 3.5 The SurfaceDriver Protocol
+
+Every external or filedrop surface is acquired through one Protocol:
 
 ```python
-class Connector(Protocol):
-    kind: str                          # "stripe" | "snowflake" | "csv" | ...
-    capability: set[Capability]        # {discover, profile, sample, watch}
-    classification_hints: list[Hint]
+class SurfaceDriver(Protocol):
+    kind: str                          # "stripe" | "postgres" | "snowflake" | ...
 
-    async def authenticate(self, secrets) -> AuthHandle: ...
+    async def authenticate(self, config: Config) -> Handle: ...
     async def discover(self, handle) -> list[ResourceProposal]: ...
     async def profile(self, handle, resource_id) -> Profile: ...
     async def sample(self, handle, resource_id, n) -> bytes: ...
-    async def watch(self, handle, resource_id) -> AsyncIterator[Change]: ...
 ```
 
-Implementations live in `packages/connectors/`. Day-one connectors include
-`csv_local`, `postgres`, `snowflake`, `bigquery`, `s3_csv`, `stripe`,
-`salesforce`, `hubspot`, `gsheets`, `http_csv`.
+Implementations live in `packages/lake-surfaces/` (post-Wave-D rename
+per ADR-0013; see the [design spec](docs/superpowers/specs/2026-05-17-continuous-lake-philosophy-design.md)
+for the rename scope). Day-one drivers shipping in the OSS release:
 
-Adding a new connector means adding a class, a JSON-schema config, and a
-registry entry. No core code changes to add a connector. The source-building
-flows (drop-and-profile, credential-in-DM, mentioned-in-conversation,
-dashboard-form, KPI-gap-triggered, lake-discovery) are connector-agnostic.
+- **Production**: `csv_local`, `postgres`, `snowflake`, `s3_csv`,
+  `http_csv`, `stripe`.
+- **Coming-soon skeletons**: `bigquery`, `salesforce`, `hubspot`,
+  `gsheets`, `notion`, `linear`.
+- **MCP presets**: `atlassian`, `gworkspace`, `notion`, `hubspot`,
+  `github`, `linear` — each a SurfaceDriver wired against a specific
+  MCP server, surfaced as an external-family surface.
 
-For the broader semantic-layer story that the connector contract feeds
-— the agent-gateway MCP surface, `QuerySpec`, the compounding query
-loop, and how the design relates to the 2026 industry zeitgeist — see
+Adding a new lake surface is a class + JSON-schema config + a registry
+entry in `register_surface_driver(...)`. No core code changes. The
+lake-install flows — drop-and-profile, credential-in-DM,
+mentioned-in-conversation, dashboard "Add a lake surface" form,
+KPI-gap-triggered, lake-discovery — are SurfaceDriver-agnostic. Every
+flow writes the same `source_proposed → source_confirmed →
+source_connected → source_profiled` ledger sequence; every source
+carries provenance reconstructable from the ledger.
+
+The capability-honesty discipline (which `SurfaceDriver` is production
+vs. preview vs. coming-soon, and what the promotion bar is for each)
+lives in [`docs/architecture/surfaces.md`](docs/architecture/surfaces.md)
+(post-Wave-C rename name). For the broader semantic-layer story —
+agent-gateway MCP surface, `QuerySpec`, the compounding query loop, and
+how the design relates to the 2026 industry zeitgeist — see
 [semantic-layer-best-practices.md](docs/architecture/synthesis/semantic-layer-best-practices.md).
+
+### 3.6 Composition with lake-maintainer
+
+The split between *acquisition* and *maintenance* was made explicit in
+[ADR-0003](docs/architecture/decisions/ADR-0003-lake-maintainer-pattern.md)
+and is what lets the four source families share one tending machinery
+without conflating their acquisition faces. Before the split,
+"connector" and "maintainer" were entangled in a single Protocol that
+made sense for external surfaces but not for conversation or evidence
+— neither of which is "acquired" in the tabular sense. After the split,
+each family is honest about what it can do.
+
+Two Protocols, both home in `packages/lake-surfaces/` (post-Wave-D per
+ADR-0013):
+
+- **`AcquirableSource`** — the acquisition face. External and filedrop
+  surfaces implement it; conversation and evidence do not.
+- **`MaintainableSource`** — the universal tending face. All four
+  families implement it. Methods include `detect_drift`,
+  `refresh_classification`, `staleness_signal`, and `lineage_health`.
+
+The `SurfaceDriver` is the *driver* — kind="stripe", stateless, owns
+the wire protocol against a specific provider. A `Source` instance
+(per-instance metadata: id, domain, owner) wraps the driver with the
+governance attributes that make the surface auditable. Sources implement
+zero or both Protocols depending on family.
+
+The `lake-maintainer` package (still home of the Reactivity-driven
+dispatch machinery) imports both Protocols from `lake-surfaces/`,
+iterates `MaintainableSource` instances per source, and runs the
+tending loop. The dependency direction is one-way:
+`lake-maintainer/` depends on `lake-surfaces/`, never the reverse.
+`wire_maintenance_for_source` (the per-source factory inside
+`source_builder.py`) is the hub-level hookpoint that activates
+maintenance for every `Source` produced by every install path. There
+is no `wire_maintainer_for_install` because maintenance is a
+per-source concern, not a per-install concern; the boot path (§2)
+intentionally omits it for that reason.
+
+The composition matters because it is what makes the four source
+families uniformly tendable. The lake-maintainer does not know — or
+need to know — whether the `MaintainableSource` it is iterating is a
+Postgres table, a dropped CSV, a Slack channel's conversation, or an
+autoresearch-published notebook. The tending behaviors fire identically
+across all four; the acquisition shape (or its absence) is the
+family-specific concern, factored out into `AcquirableSource` where it
+belongs. This is the engineering expression of "all four families are
+equally lake-resident" from §3.3.
+
+See [ADR-0003](docs/architecture/decisions/ADR-0003-lake-maintainer-pattern.md)
+for the Protocol-split rationale and
+[ADR-0013](docs/architecture/decisions/ADR-0013-continuous-lake-philosophy.md)
+for why the Protocols' home is `lake-surfaces/` post-rename.
 
 ---
 
@@ -368,8 +629,8 @@ Core surfaces include:
   grants across all three facets, audit log.
 - `/channels` — install per platform, channel roster, lurk-vs-respond per
   channel.
-- `/sources` and `/sources/new` — source list and a connector picker
-  generated from the `Connector` registry.
+- `/sources` and `/sources/new` — source list and a lake-surface picker
+  generated from the `SurfaceDriver` registry.
 - `/kpis`, `/domains`, `/policies`, `/decisions`, `/processes`,
   `/system-map`, `/research`, `/activity`, `/trace`, `/dashboard`,
   `/onboarding` — the substrate views.
@@ -406,7 +667,7 @@ path; the codebase actively pushes back on them. Standing invariants:
 - No platform-specific assumptions in code that claims to be
   channel-agnostic. Extract to the relevant `ChannelAdapter`.
 - No source-type-specific code paths in source-builders. Extract to
-  `Connector` implementations.
+  `SurfaceDriver` implementations.
 - No hardcoded persona or user lists in the dashboard. Read from the
   ledger.
 - No `fixtures/` references in production code. Fixtures are sim-only or
