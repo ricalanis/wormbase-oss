@@ -353,9 +353,15 @@ with) closed Foundry-style ontologies.
 
 ## Cross-references
 
-- [`ARCHITECTURE.md` §3](../../../ARCHITECTURE.md) — Connector contract
-  and catalog-mirror.
+- [`ARCHITECTURE.md` §3](../../../ARCHITECTURE.md) — The continuous lake
+  (surfaces, `SurfaceDriver`, catalog-mirror).
+- [`docs/architecture/continuous-lake.md`](../continuous-lake.md) —
+  Umbrella narrative on the continuous-lake framing (agent-installable,
+  co-emergent, four surface families).
+- [`docs/architecture/surfaces.md`](../surfaces.md) — Capability-honesty
+  reference for the `SurfaceDriver` Protocol.
 - [ADR-0002: Agent Gateway as in-band MCP server](../decisions/ADR-0002-mcp-server-in-band-with-governance-gates.md)
 - [ADR-0012: Semantic layer foundations](../decisions/ADR-0012-semantic-layer-foundations.md)
+- [ADR-0013: Continuous-lake philosophy](../decisions/ADR-0013-continuous-lake-philosophy.md)
 - `docs/superpowers/specs/2026-05-10-semantic-layer-design.md` — the
   detailed semantic-layer design spec this synthesis informed.
