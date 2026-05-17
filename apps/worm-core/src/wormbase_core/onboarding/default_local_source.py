@@ -38,7 +38,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
-from wormbase_connectors.csv_local import detect_encoding
+from wormbase_lake_surfaces.csv_local import detect_encoding
 
 if TYPE_CHECKING:
     from wormbase_ledger import InMemoryLedger, Ledger

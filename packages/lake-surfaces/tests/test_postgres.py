@@ -7,13 +7,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.postgres import (
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.postgres import (
     PostgresConnector,
     _dsn_from_secrets,
     _normalize_dsn,
 )
-from wormbase_connectors.types import AuthHandle, SecretBundle
+from wormbase_lake_surfaces.types import AuthHandle, SecretBundle
 
 
 def test_postgres_implements_protocol() -> None:

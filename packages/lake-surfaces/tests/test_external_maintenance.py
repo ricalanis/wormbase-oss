@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from wormbase_lake_maintainer.external_source import AcquirableSourceImpl
+from wormbase_lake_surfaces.external_source import AcquirableSourceImpl
 from wormbase_lake_maintainer.protocols import MaintainableSource
 
 
@@ -33,7 +33,7 @@ class _FakeConnectorWithProfile:
         return []
 
     async def profile(self, handle, resource_id):
-        from wormbase_connectors.types import Profile
+        from wormbase_lake_surfaces.types import Profile
         return Profile(
             row_count=10,
             column_count=2,

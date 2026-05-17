@@ -5,12 +5,12 @@ for the architecture and the GO-WITH-CAVEATS design rationale.
 """
 from __future__ import annotations
 
-from wormbase_lake_maintainer.protocols import (
+from wormbase_lake_surfaces.protocols import (
     AcquirableSource,
     LakeStore,
     MaintainableSource,
 )
-from wormbase_lake_maintainer.types import (
+from wormbase_lake_surfaces.types import (
     Capability,
     Change,
     Classification,

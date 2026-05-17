@@ -37,11 +37,11 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
-from wormbase_connectors.snowflake import (
+from wormbase_lake_surfaces.snowflake import (
     SNOWFLAKE_TAG_MAPPINGS,
     SnowflakeConnector,
 )
-from wormbase_connectors.types import AuthHandle
+from wormbase_lake_surfaces.types import AuthHandle
 from wormbase_governance.policies.masked_column_refusal import (
     GATE_NAME,
     POLICY_NAME,

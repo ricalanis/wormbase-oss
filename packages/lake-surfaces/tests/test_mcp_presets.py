@@ -15,33 +15,33 @@ from __future__ import annotations
 
 import pytest
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.mcp import MCPConnector, MCPServerConfig
-from wormbase_connectors.mcp_presets.atlassian_preset import (
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.mcp import MCPConnector, MCPServerConfig
+from wormbase_lake_surfaces.mcp_presets.atlassian_preset import (
     ATLASSIAN_CONFIG,
     AtlassianMCPConnector,
 )
-from wormbase_connectors.mcp_presets.github_preset import (
+from wormbase_lake_surfaces.mcp_presets.github_preset import (
     GITHUB_CONFIG,
     GithubMCPConnector,
 )
-from wormbase_connectors.mcp_presets.gworkspace_preset import (
+from wormbase_lake_surfaces.mcp_presets.gworkspace_preset import (
     GWORKSPACE_CONFIG,
     GworkspaceMCPConnector,
 )
-from wormbase_connectors.mcp_presets.hubspot_preset import (
+from wormbase_lake_surfaces.mcp_presets.hubspot_preset import (
     HUBSPOT_CONFIG,
     HubspotMCPConnector,
 )
-from wormbase_connectors.mcp_presets.linear_preset import (
+from wormbase_lake_surfaces.mcp_presets.linear_preset import (
     LINEAR_CONFIG,
     LinearMCPConnector,
 )
-from wormbase_connectors.mcp_presets.notion_preset import (
+from wormbase_lake_surfaces.mcp_presets.notion_preset import (
     NOTION_CONFIG,
     NotionMCPConnector,
 )
-from wormbase_connectors.registry import default_registry
+from wormbase_lake_surfaces.registry import default_registry
 
 PRESETS: list[tuple[MCPServerConfig, type[MCPConnector]]] = [
     (NOTION_CONFIG, NotionMCPConnector),

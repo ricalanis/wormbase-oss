@@ -89,7 +89,7 @@ class SourceHandleRecord:
       * ``source_id`` — the tenant-scoped source UUID.
       * ``connector_kind`` — registry key (``"csv_local"`` / ``"postgres"``
         / ``"snowflake"`` / ...). Looked up against
-        :func:`wormbase_connectors.registry.default_registry`.
+        :func:`wormbase_lake_surfaces.registry.default_registry`.
       * ``auth_handle`` — opaque blob the connector kind understands.
         For csv_local this is an :class:`AuthHandle` reconstructed from
         the source's ``uri``; for DSN-backed connectors it carries the
@@ -100,7 +100,7 @@ class SourceHandleRecord:
         ``resource_id`` understood by ``Connector.sample``. Today's
         single-table connectors (csv_local) map their lone resource
         under the ``uri`` key, mirroring how
-        :meth:`wormbase_connectors.csv_local.CsvLocalConnector.discover`
+        :meth:`wormbase_lake_surfaces.csv_local.CsvLocalConnector.discover`
         returns ``resource_id = str(path)``.
     """
 
@@ -178,13 +178,13 @@ def _reconstruct_auth_handle_from_uri(
 ) -> object | None:
     """Re-build an ``AuthHandle`` for URI-shaped connectors.
 
-    Returns ``None`` only when the late ``wormbase_connectors`` import
+    Returns ``None`` only when the late ``wormbase_lake_surfaces`` import
     fails (shouldn't happen in production); otherwise always returns a
     real handle — these connector kinds are deterministically
     reconstructable from ``uri`` alone.
     """
     try:
-        from wormbase_connectors.types import AuthHandle
+        from wormbase_lake_surfaces.types import AuthHandle
     except ImportError:
         return None
 
@@ -230,14 +230,14 @@ def _assemble_stripe_handle(
 ) -> object | None:
     """Assemble a stripe AuthHandle from broker-resolved secrets.
 
-    Matches :meth:`wormbase_connectors.stripe.StripeConnector.authenticate`
+    Matches :meth:`wormbase_lake_surfaces.stripe.StripeConnector.authenticate`
     output shape: ``handle.extra`` carries ``api_key``, optional
     ``api_version``, and the precomputed ``auth_header`` so the
     connector's HTTP path runs verbatim.
     """
     try:
-        from wormbase_connectors.stripe import _basic_auth_header
-        from wormbase_connectors.types import AuthHandle
+        from wormbase_lake_surfaces.stripe import _basic_auth_header
+        from wormbase_lake_surfaces.types import AuthHandle
     except ImportError:
         return None
     import hashlib
@@ -263,7 +263,7 @@ def _assemble_salesforce_handle(
 ) -> object | None:
     """Assemble a salesforce AuthHandle from broker-resolved secrets.
 
-    Matches :class:`wormbase_connectors.salesforce.SalesforceConnector`'s
+    Matches :class:`wormbase_lake_surfaces.salesforce.SalesforceConnector`'s
     ``required_secrets = ("instance_url", "access_token")`` contract.
     Since SalesforceConnector is :class:`SkeletalConnector`, its
     ``sample()`` raises ``NotImplementedError`` today — the handle is
@@ -271,7 +271,7 @@ def _assemble_salesforce_handle(
     is already wired.
     """
     try:
-        from wormbase_connectors.types import AuthHandle
+        from wormbase_lake_surfaces.types import AuthHandle
     except ImportError:
         return None
     import hashlib
@@ -301,11 +301,11 @@ def _assemble_hubspot_handle(
 ) -> object | None:
     """Assemble a hubspot AuthHandle from broker-resolved secrets.
 
-    Matches :class:`wormbase_connectors.hubspot.HubspotConnector`'s
+    Matches :class:`wormbase_lake_surfaces.hubspot.HubspotConnector`'s
     ``required_secrets = ("access_token",)`` contract.
     """
     try:
-        from wormbase_connectors.types import AuthHandle
+        from wormbase_lake_surfaces.types import AuthHandle
     except ImportError:
         return None
     import hashlib
@@ -326,11 +326,11 @@ def _assemble_gsheets_handle(
 ) -> object | None:
     """Assemble a gsheets AuthHandle from broker-resolved secrets.
 
-    Matches :class:`wormbase_connectors.gsheets.GsheetsConnector`'s
+    Matches :class:`wormbase_lake_surfaces.gsheets.GsheetsConnector`'s
     ``required_secrets = ("service_account_json",)`` contract.
     """
     try:
-        from wormbase_connectors.types import AuthHandle
+        from wormbase_lake_surfaces.types import AuthHandle
     except ImportError:
         return None
     import hashlib

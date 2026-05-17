@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.csv_local import CsvLocalConnector
-from wormbase_connectors.types import SecretBundle
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.csv_local import CsvLocalConnector
+from wormbase_lake_surfaces.types import SecretBundle
 
 
 def test_csv_local_implements_connector_protocol() -> None:

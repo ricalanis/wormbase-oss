@@ -1,6 +1,6 @@
 """Connector Protocol conformance suite (W6.A4).
 
-Every Connector implementation in :mod:`wormbase_connectors` is the
+Every Connector implementation in :mod:`wormbase_lake_surfaces` is the
 extensibility surface of the source-building flows. Adding one is a
 class + registry entry; nothing forces it to pass the same battery of
 tests as its peers. This module is that battery.
@@ -50,9 +50,9 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from wormbase_connectors import default_registry
-from wormbase_connectors.base import Connector
-from wormbase_connectors.types import (
+from wormbase_lake_surfaces import default_registry
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.types import (
     AuthHandle,
     Profile,
     ResourceProposal,
@@ -96,7 +96,7 @@ class ConnectorFixture:
 
 # csv_local — local-file connector, no network.
 async def _csv_local_fixture(tmp_path) -> tuple[Connector, Any]:
-    from wormbase_connectors.csv_local import CsvLocalConnector
+    from wormbase_lake_surfaces.csv_local import CsvLocalConnector
 
     csv_path = tmp_path / "fixture.csv"
     csv_path.write_text("id,name\n1,Alice\n2,Bob\n")
@@ -105,7 +105,7 @@ async def _csv_local_fixture(tmp_path) -> tuple[Connector, Any]:
 
 # postgres — asyncpg.connect mocked at module level.
 async def _postgres_fixture() -> tuple[Connector, Any]:
-    from wormbase_connectors.postgres import PostgresConnector
+    from wormbase_lake_surfaces.postgres import PostgresConnector
 
     _DISCOVER_ROWS = [
         {
@@ -171,7 +171,7 @@ async def _postgres_fixture() -> tuple[Connector, Any]:
 
 # snowflake — patches snowflake.connector.connect.
 async def _snowflake_fixture() -> tuple[Connector, Any]:
-    from wormbase_connectors.snowflake import SnowflakeConnector
+    from wormbase_lake_surfaces.snowflake import SnowflakeConnector
 
     fake_cursor = MagicMock()
     fake_cursor.execute = MagicMock()
@@ -202,7 +202,7 @@ async def _snowflake_fixture() -> tuple[Connector, Any]:
 
 # s3_csv — patches aioboto3 Session.client.
 async def _s3_csv_fixture() -> tuple[Connector, Any]:
-    from wormbase_connectors.s3_csv import S3CsvConnector
+    from wormbase_lake_surfaces.s3_csv import S3CsvConnector
     from datetime import datetime, timezone
 
     csv_body = b"id,name\n1,A\n2,B\n"
@@ -255,7 +255,7 @@ async def _s3_csv_fixture() -> tuple[Connector, Any]:
 
 # stripe — patches httpx.AsyncClient via MockTransport.
 async def _stripe_fixture() -> tuple[Connector, Any]:
-    from wormbase_connectors.stripe import StripeConnector
+    from wormbase_lake_surfaces.stripe import StripeConnector
 
     canned_data = {
         "data": [
@@ -284,7 +284,7 @@ async def _stripe_fixture() -> tuple[Connector, Any]:
         return real_async_client(*args, **kwargs)
 
     patcher = patch(
-        "wormbase_connectors.stripe.httpx.AsyncClient", new=_wrapped
+        "wormbase_lake_surfaces.stripe.httpx.AsyncClient", new=_wrapped
     )
     patcher.start()
     return StripeConnector(), patcher
@@ -292,7 +292,7 @@ async def _stripe_fixture() -> tuple[Connector, Any]:
 
 # http_csv — same MockTransport pattern.
 async def _http_csv_fixture() -> tuple[Connector, Any]:
-    from wormbase_connectors.http_csv import HttpCsvConnector
+    from wormbase_lake_surfaces.http_csv import HttpCsvConnector
 
     csv_body = b"id,name\n1,Alice\n2,Bob\n3,Carol\n"
 
@@ -318,7 +318,7 @@ async def _http_csv_fixture() -> tuple[Connector, Any]:
         return real_async_client(*args, **kwargs)
 
     patcher = patch(
-        "wormbase_connectors.http_csv.httpx.AsyncClient", new=_wrapped
+        "wormbase_lake_surfaces.http_csv.httpx.AsyncClient", new=_wrapped
     )
     patcher.start()
     return HttpCsvConnector(), patcher
@@ -333,8 +333,8 @@ async def _skeletal_fixture(kind: str) -> tuple[Connector, Any]:
 
 # MCP preset — uses the same fake-session pattern as packages/connectors tests.
 async def _mcp_notion_fixture() -> tuple[Connector, Any]:
-    from wormbase_connectors.mcp import MCPConnector
-    from wormbase_connectors.mcp_presets.notion_preset import NotionMCPConnector
+    from wormbase_lake_surfaces.mcp import MCPConnector
+    from wormbase_lake_surfaces.mcp_presets.notion_preset import NotionMCPConnector
 
     @dataclass
     class _Res:

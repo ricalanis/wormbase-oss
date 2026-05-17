@@ -6,9 +6,9 @@ from collections.abc import AsyncIterator
 
 import pytest
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.registry import ConnectorRegistry, register_connector
-from wormbase_connectors.types import (
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.registry import ConnectorRegistry, register_connector
+from wormbase_lake_surfaces.types import (
     AuthHandle,
     Change,
     Profile,
@@ -109,7 +109,7 @@ def test_fake_satisfies_connector_protocol() -> None:
 
 def test_register_connector_decorator() -> None:
     """The decorator returns the class and registers in default_registry."""
-    from wormbase_connectors.registry import default_registry
+    from wormbase_lake_surfaces.registry import default_registry
 
     @register_connector
     class _DecoratedConnector(_FakeConnector):

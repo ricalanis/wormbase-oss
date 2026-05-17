@@ -21,7 +21,7 @@ at 3.
   when a strategy (``kpi_gap`` / ``channel_mention`` /
   ``complementarity``) surfaces a candidate data source for triage.
   Carries a ``proposed_kind`` connector-registry string (runtime-
-  validated against ``wormbase_connectors.registry.default_registry()``
+  validated against ``wormbase_lake_surfaces.registry.default_registry()``
   per spec §4.2 — NOT a ``Literal[...]``).
 * ``SourceCandidatePromotedPayload`` (kind
   ``source_candidate_promoted``) — operator promotion of a previously-
@@ -63,8 +63,8 @@ from pydantic import ValidationError
 # ``SourceCandidateProposedPayload`` has the canonical kinds available
 # (csv_local, postgres, snowflake, stripe, etc.) for the positive
 # tests below.
-import wormbase_connectors  # noqa: F401
-from wormbase_connectors.registry import default_registry
+import wormbase_lake_surfaces  # noqa: F401
+from wormbase_lake_surfaces.registry import default_registry
 
 from wormbase_ledger.entries import (
     ALL_KINDS,
@@ -350,7 +350,7 @@ def test_source_candidate_proposed_accepts_every_registered_connector_kind() -> 
     # Smoke: at least the day-one connectors should be present so this
     # test exercises the positive path on something real.
     assert len(known) > 0, (
-        "connector registry empty — wormbase_connectors should auto-register "
+        "connector registry empty — wormbase_lake_surfaces should auto-register "
         "built-in connectors at import time"
     )
     for kind in known:

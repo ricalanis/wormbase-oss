@@ -4760,7 +4760,7 @@ class EntityStitchRejectedPayload(EntryPayload):
 #   when a strategy (``kpi_gap`` / ``channel_mention`` /
 #   ``complementarity``) surfaces a candidate data source. Carries a
 #   ``proposed_kind`` connector-registry string (runtime-validated
-#   against ``wormbase_connectors.registry.default_registry()`` — NOT
+#   against ``wormbase_lake_surfaces.registry.default_registry()`` — NOT
 #   a ``Literal[...]`` so connector registry growth does NOT churn the
 #   ledger schema, per spec §4.2 and Addendum 4 §B "Connector registry
 #   kinds are NOT KIND_REGISTRY entries; they are configuration."),
@@ -4853,7 +4853,7 @@ class SourceCandidateProposedPayload(EntryPayload):
     connector-registry kinds are configuration (Addendum 4 §B), not
     KIND_REGISTRY entries, so the ledger schema must not couple to
     connector add/remove cadence. Validation happens at runtime
-    against ``wormbase_connectors.registry.default_registry()`` —
+    against ``wormbase_lake_surfaces.registry.default_registry()`` —
     unknown kinds raise a ValidationError. Strategies should consult
     ``default_registry().all_kinds()`` before proposing.
 
@@ -4906,7 +4906,7 @@ class SourceCandidateProposedPayload(EntryPayload):
         evolution to connector add/remove cadence; connectors are
         additive-only and grow independently. Instead, the kind
         string is checked against the live
-        ``wormbase_connectors.registry.default_registry()`` at write
+        ``wormbase_lake_surfaces.registry.default_registry()`` at write
         time. Unknown kinds raise a ValidationError. Import-local so
         the entries module stays connector-import-cheap (the registry
         import resolves quickly once the connectors package has been
@@ -4927,7 +4927,7 @@ class SourceCandidateProposedPayload(EntryPayload):
         # surface the ValidationError at higher layers if the kind
         # is genuinely unknown.
         try:
-            from wormbase_connectors.registry import default_registry
+            from wormbase_lake_surfaces.registry import default_registry
         except ImportError:
             return v
         registry = default_registry()

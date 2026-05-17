@@ -1,7 +1,7 @@
 [project]
-name = "wormbase-connectors"
+name = "wormbase-lake-surfaces"
 version = "0.1.0"
-description = "WormBase Connector Protocol + day-one connectors (csv_local, postgres, snowflake, bigquery, s3_csv, http_csv, stripe, salesforce, hubspot, gsheets, notion, linear)."
+description = "WormBase SurfaceDriver Protocol + lake-side Protocols + day-one surface drivers (csv_local, postgres, snowflake, bigquery, s3_csv, http_csv, stripe, salesforce, hubspot, gsheets, notion, linear, mcp presets) and per-family Source impls (Acquirable / Conversation / Evidence)."
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.7",
@@ -9,11 +9,14 @@ dependencies = [
     "asyncpg>=0.29",
     "aioboto3>=13.0",
     "snowflake-connector-python>=3.10",
+    "sqlalchemy[asyncio]>=2.0.30",
+    "wormbase-ledger",
     # MCP integration (Block J4 — 2026-04-27 mcp-integration spec §6).
-    # MCPConnector(Connector) speaks MCP under the hood; the SDK ships
-    # in ``mcp`` ≥1.27.0 (the official Anthropic SDK). Imported lazily
-    # inside MCPConnector method bodies so the rest of the connector
-    # surface doesn't pay the import cost when MCP isn't in use.
+    # MCPSurfaceDriver(SurfaceDriver) speaks MCP under the hood; the SDK
+    # ships in ``mcp`` ≥1.27.0 (the official Anthropic SDK). Imported
+    # lazily inside MCPSurfaceDriver method bodies so the rest of the
+    # lake-surfaces surface doesn't pay the import cost when MCP isn't
+    # in use.
     "mcp>=1.27.0",
 ]
 
@@ -27,6 +30,9 @@ dev = [
     "ruff>=0.5",
     "mypy>=1.10",
 ]
+
+[tool.uv.sources]
+wormbase-ledger = { workspace = true }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -42,4 +48,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/wormbase_connectors"]
+packages = ["src/wormbase_lake_surfaces"]

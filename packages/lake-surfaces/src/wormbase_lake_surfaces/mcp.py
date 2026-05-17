@@ -21,7 +21,7 @@ Mapping:
   v1 (per §6.4). Returns an empty async iterator.
 
 Presets configure per-server URLs + auth shape + classification hints
-(``packages/connectors/src/wormbase_connectors/mcp_presets/``). The
+(``packages/connectors/src/wormbase_lake_surfaces/mcp_presets/``). The
 core ``MCPConnector`` class is preset-agnostic — it accepts a
 :class:`MCPServerConfig` describing where to connect and how.
 
@@ -81,7 +81,7 @@ from .types import (
 class MCPServerConfig:
     """Per-server preset config.
 
-    Presets live in :mod:`wormbase_connectors.mcp_presets` and bind a
+    Presets live in :mod:`wormbase_lake_surfaces.mcp_presets` and bind a
     ``kind`` (e.g. ``"mcp:notion"``) to a server URL + auth shape +
     classification hints. The dashboard's connector picker (D4) reads
     ``required_secrets`` to render the credential form.

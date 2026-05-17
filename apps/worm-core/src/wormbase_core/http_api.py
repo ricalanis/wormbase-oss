@@ -442,7 +442,7 @@ class RegisterMcpPresetBody(_Body):
     consumes from). The preset is recorded as a ``source_proposed``
     ledger entry with ``source_kind=mcp:<kind>`` and provenance tagged
     ``dashboard_form``. The actual ``MCPConnector`` preset class lives
-    in code (``packages/connectors/src/wormbase_connectors/mcp_presets``)
+    in code (``packages/connectors/src/wormbase_lake_surfaces/mcp_presets``)
     and self-registers at import; this endpoint surfaces the operator's
     intent so it's audited, multi-tenant scoped, and visible in /sources.
     """
@@ -3432,7 +3432,7 @@ async def get_connectors(request: web.Request) -> web.Response:
     the dashboard's "test connection" affordance exercises the real
     path, not a stub. Bearer-auth required for the test variant.
     """
-    from wormbase_connectors import default_registry
+    from wormbase_lake_surfaces import default_registry
 
     registry = default_registry()
     kinds_payload: list[dict[str, Any]] = []
@@ -3493,7 +3493,7 @@ async def post_connector_test(request: web.Request) -> web.Response:
     real connection (DSN, API key) and we don't want anonymous probes.
     """
     _check_auth(request)
-    from wormbase_connectors import SecretBundle, default_registry
+    from wormbase_lake_surfaces import SecretBundle, default_registry
 
     kind = request.match_info.get("kind", "")
     if not kind:
@@ -6985,7 +6985,7 @@ async def get_connector_probe(request: web.Request) -> web.Response:
 
     Read-only, no auth required (parallel to ``GET /api/v1/connectors``).
     """
-    from wormbase_connectors import default_registry
+    from wormbase_lake_surfaces import default_registry
 
     kind = request.match_info.get("kind", "").strip()
     if not kind:

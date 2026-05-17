@@ -14,7 +14,7 @@ dependencies = [
     "wormbase-governance",
     "wormbase-ontology-seed",
     "wormbase-channel-adapters",
-    "wormbase-connectors",
+    "wormbase-lake-surfaces",
     "wormbase-lake-maintainer",
     "wormbase-catalog-mirror",
     "wormbase-reactivities",
@@ -52,7 +52,7 @@ wormbase-inference-router = { workspace = true }
 wormbase-governance = { workspace = true }
 wormbase-ontology-seed = { workspace = true }
 wormbase-channel-adapters = { workspace = true }
-wormbase-connectors = { workspace = true }
+wormbase-lake-surfaces = { workspace = true }
 wormbase-lake-maintainer = { workspace = true }
 wormbase-catalog-mirror = { workspace = true }
 wormbase-reactivities = { workspace = true }

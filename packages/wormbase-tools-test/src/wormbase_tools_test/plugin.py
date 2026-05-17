@@ -171,7 +171,7 @@ def connector_valid_secrets(connector_instance: Any) -> Any:
     """
     # Attempt to get a SecretBundle-shaped object from the same module
     # the connector lives in (mirrors how csv_local imports its types
-    # from wormbase_connectors.types).
+    # from wormbase_lake_surfaces.types).
     SecretBundle = _resolve_secret_bundle(connector_instance)
     return SecretBundle(payload={})
 
@@ -212,7 +212,7 @@ def _resolve_secret_bundle(connector_instance: Any) -> Any:
     Searches in this order:
 
     1. The module the connector class is defined in (its ``SecretBundle``).
-    2. ``wormbase_connectors.types.SecretBundle`` (monorepo).
+    2. ``wormbase_lake_surfaces.types.SecretBundle`` (monorepo).
     3. A fallback dataclass with a ``payload`` attribute.
     """
     cls = type(connector_instance)
@@ -221,7 +221,7 @@ def _resolve_secret_bundle(connector_instance: Any) -> Any:
     if sb is not None:
         return sb
     try:
-        types_mod = importlib.import_module("wormbase_connectors.types")
+        types_mod = importlib.import_module("wormbase_lake_surfaces.types")
         return types_mod.SecretBundle
     except ImportError:
         pass

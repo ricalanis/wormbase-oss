@@ -53,7 +53,7 @@ members = [
     "packages/inference-router",
     "packages/governance",
     "packages/ontology-seed",
-    "packages/connectors",
+    "packages/lake-surfaces",
     "packages/channel-adapters",
     "packages/reactivities",
     "packages/lake-maintainer",
@@ -75,7 +75,7 @@ wormbase-channel-adapter = { workspace = true }
 wormbase-worm-core = { workspace = true }
 wormbase-sim-harness = { workspace = true }
 wormbase-voice-agent = { workspace = true }
-wormbase-connectors = { workspace = true }
+wormbase-lake-surfaces = { workspace = true }
 wormbase-channel-adapters = { workspace = true }
 wormbase-reactivities = { workspace = true }
 wormbase-lake-maintainer = { workspace = true }

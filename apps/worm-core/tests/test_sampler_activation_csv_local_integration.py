@@ -115,7 +115,7 @@ async def test_csv_local_end_to_end_roundtrip(tmp_path: Path) -> None:
     # ------------------------------------------------------------------
     # NB: must import csv_local connector module so its
     # @register_connector decorator runs.
-    from wormbase_connectors import csv_local  # noqa: F401
+    from wormbase_lake_surfaces import csv_local  # noqa: F401
 
     provider = LedgerSourceHandleProvider(ledger=ledger)
     sampler = ConnectorSampler(
@@ -212,7 +212,7 @@ async def test_csv_local_missing_column_returns_empty(
         resolve_fn=lambda _v: {"outcome": "keep", "rationale": "test"},
     )
 
-    from wormbase_connectors import csv_local  # noqa: F401
+    from wormbase_lake_surfaces import csv_local  # noqa: F401
 
     sampler = ConnectorSampler(
         handle_provider=LedgerSourceHandleProvider(ledger=ledger),

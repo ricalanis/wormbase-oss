@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 
-from wormbase_lake_maintainer.external_source import AcquirableSourceImpl
+from wormbase_lake_surfaces.external_source import AcquirableSourceImpl
 from wormbase_lake_maintainer.protocols import AcquirableSource
 
 
@@ -26,7 +26,7 @@ class _FakeConnector:
 
     async def discover(self, handle):
         self.discover_calls += 1
-        from wormbase_connectors.types import ResourceProposal
+        from wormbase_lake_surfaces.types import ResourceProposal
         # > CORRECTED 2026-05-03: ResourceProposal has no `uri` field.
         # > resource_id doubles as the URI per the day-one-connector
         # > convention (csv_local.py:154, postgres.py:122, +6 others).
@@ -39,7 +39,7 @@ class _FakeConnector:
 
     async def profile(self, handle, resource_id):
         self.profile_calls.append(resource_id)
-        from wormbase_connectors.types import Profile
+        from wormbase_lake_surfaces.types import Profile
         # > CORRECTED 2026-05-03: Profile uses column_count (not col_count),
         # > columns: list[dict] (not list[str]), schema_hash: str (not bytes),
         # > and has no byte_count/mime fields.

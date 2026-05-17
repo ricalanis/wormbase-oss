@@ -13,14 +13,14 @@ from typing import Any
 
 import pytest
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.mcp import (
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.mcp import (
     MCPConnector,
     MCPServerConfig,
     make_mcp_preset,
 )
-from wormbase_connectors.registry import default_registry
-from wormbase_connectors.types import SecretBundle
+from wormbase_lake_surfaces.registry import default_registry
+from wormbase_lake_surfaces.types import SecretBundle
 
 
 # ---------------------------------------------------------------------------

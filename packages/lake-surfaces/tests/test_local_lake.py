@@ -17,12 +17,12 @@ from uuid import uuid4
 
 import pytest
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.local_lake import (
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.local_lake import (
     LOCAL_LAKE_RESOURCE_IDS,
     LocalLakeConnector,
 )
-from wormbase_connectors.types import SecretBundle
+from wormbase_lake_surfaces.types import SecretBundle
 
 
 # ---------------------------------------------------------------------------
@@ -52,7 +52,7 @@ def test_local_lake_advertises_production_status() -> None:
 def test_local_lake_self_registers() -> None:
     """The connector must appear in the default registry under its kind
     so the dashboard's connector picker (D4) can list it."""
-    from wormbase_connectors.registry import default_registry
+    from wormbase_lake_surfaces.registry import default_registry
 
     reg = default_registry()
     assert reg.get("local_lake") is LocalLakeConnector

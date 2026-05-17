@@ -19,7 +19,7 @@ Naming convention:
   ``mcp:`` namespace: ``mcp:notion``, ``mcp:atlassian``,
   ``mcp:linear``, etc. The ``mcp:`` prefix is reserved — do not
   register native connectors with that prefix. The base
-  :class:`wormbase_connectors.mcp.MCPConnector` declares
+  :class:`wormbase_lake_surfaces.mcp.MCPConnector` declares
   ``kind = "mcp"`` for documentation but is not directly
   registered (it requires per-server config); presets register
   per-server subclasses instead.

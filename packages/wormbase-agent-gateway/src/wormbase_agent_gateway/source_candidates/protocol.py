@@ -112,7 +112,7 @@ class ProposedSourceCandidate:
       * ``proposed_kind`` — connector-registry kind string (e.g.
         ``"csv_local"``, ``"postgres"``, ``"stripe"``, ``"mcp:notion"``).
         Validated at ledger boundary against
-        :func:`wormbase_connectors.registry.default_registry`. NOT a
+        :func:`wormbase_lake_surfaces.registry.default_registry`. NOT a
         Literal — connector registry kinds are configuration, not
         KIND_REGISTRY entries (per spec §4.2 + Addendum 4 §B).
       * ``proposed_identifier`` — free-form identifier carrying enough

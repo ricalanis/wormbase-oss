@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytest
 
 from wormbase_ledger.ledger_api import InMemoryLedger
-from wormbase_lake_maintainer.external_source import AcquirableSourceImpl
+from wormbase_lake_surfaces.external_source import AcquirableSourceImpl
 from wormbase_lake_maintainer.registry import (
     SourceRegistry,
     wire_maintenance_for_source,
@@ -34,7 +34,7 @@ def _fake_connector_with_drift():
             return []
 
         async def profile(self, handle, resource_id):
-            from wormbase_connectors.types import Profile
+            from wormbase_lake_surfaces.types import Profile
             self._calls += 1
             return Profile(
                 row_count=10,
@@ -155,8 +155,8 @@ async def test_e2e_one_source_per_family_all_register() -> None:
     """C1+C3+C5 confirmed at the integration layer: 4 Sources × 4 Reactivities = 16."""
     from sqlalchemy.ext.asyncio import create_async_engine
     from wormbase_ledger.schema import metadata as ledger_metadata
-    from wormbase_lake_maintainer.conversation_source import ConversationSource
-    from wormbase_lake_maintainer.evidence_source import EvidenceSource
+    from wormbase_lake_surfaces.conversation_source import ConversationSource
+    from wormbase_lake_surfaces.evidence_source import EvidenceSource
 
     company = uuid4()
     ledger = InMemoryLedger()

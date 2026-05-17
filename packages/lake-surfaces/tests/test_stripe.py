@@ -8,13 +8,13 @@ import json
 import pytest
 from pytest_httpx import HTTPXMock
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.stripe import (
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.stripe import (
     STRIPE_OBJECTS,
     StripeConnector,
     _basic_auth_header,
 )
-from wormbase_connectors.types import SecretBundle
+from wormbase_lake_surfaces.types import SecretBundle
 
 _API_KEY = "sk_test_abc123"
 

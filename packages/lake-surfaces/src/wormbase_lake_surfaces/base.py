@@ -31,7 +31,7 @@ class Connector(Protocol):
     """A pluggable data-source connector.
 
     Implementations register themselves via :func:`register_connector`
-    and live in :mod:`wormbase_connectors.<kind>`. The four operational
+    and live in :mod:`wormbase_lake_surfaces.<kind>`. The four operational
     methods are all async; capabilities not supported by a given
     connector should raise ``NotImplementedError`` (skeletal stubs) or
     return an empty result (e.g. ``watch`` for pull-only connectors).

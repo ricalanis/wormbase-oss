@@ -85,7 +85,7 @@ async def test_production_kind_without_wired_probe_returns_unknown(
     fake-positive for it; instead it returns ``unknown`` with a reason
     pointing operators at the source detail page.
     """
-    from wormbase_connectors import default_registry
+    from wormbase_lake_surfaces import default_registry
 
     registry = default_registry()
     # Pick any non-csv_local kind that's registered + not coming_soon.

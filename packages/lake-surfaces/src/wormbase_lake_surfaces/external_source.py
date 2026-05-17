@@ -16,10 +16,10 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 from uuid import UUID
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.types import Profile, ResourceProposal
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.types import Profile, ResourceProposal
 
-from wormbase_lake_maintainer.types import (
+from wormbase_lake_surfaces.types import (
     Classification,
     ClassificationUpdate,
     DriftReport,

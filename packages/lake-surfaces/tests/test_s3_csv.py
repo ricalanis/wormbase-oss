@@ -15,9 +15,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.s3_csv import S3CsvConnector
-from wormbase_connectors.types import SecretBundle
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.s3_csv import S3CsvConnector
+from wormbase_lake_surfaces.types import SecretBundle
 
 _BUCKET = "wb-test-bucket"
 _REGION = "us-east-1"

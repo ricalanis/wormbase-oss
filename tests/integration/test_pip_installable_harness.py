@@ -158,7 +158,7 @@ def test_invariants_module_is_importable_standalone() -> None:
 
     This is the cheap sibling of ``test_harness_pip_installable_in_clean_venv``:
     instead of spinning a venv, we just verify the package's surface
-    doesn't reach into ``wormbase_connectors`` or any other internal
+    doesn't reach into ``wormbase_lake_surfaces`` or any other internal
     package at import time. (Plugin defers that import to runtime.)
     """
     import sys

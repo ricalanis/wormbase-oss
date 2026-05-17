@@ -205,7 +205,7 @@ def csv_local_extractor(
     # latin-1) so a non-UTF-8 header is decoded the same way the
     # profile path decodes data rows.
     try:
-        from wormbase_connectors.csv_local import detect_encoding
+        from wormbase_lake_surfaces.csv_local import detect_encoding
         encoding = detect_encoding(raw)
     except Exception:  # noqa: BLE001
         encoding = "utf-8"

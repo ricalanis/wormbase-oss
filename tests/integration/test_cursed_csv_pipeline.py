@@ -19,8 +19,8 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from wormbase_connectors.csv_local import CsvLocalConnector, detect_encoding
-from wormbase_connectors.types import SecretBundle
+from wormbase_lake_surfaces.csv_local import CsvLocalConnector, detect_encoding
+from wormbase_lake_surfaces.types import SecretBundle
 from wormbase_core.medallion import MedallionCascade, infer_columns, profile_bronze
 from wormbase_ledger import InMemoryLedger
 

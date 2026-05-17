@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from wormbase_ledger.schema import projection_conversations
 
-from wormbase_lake_maintainer.types import (
+from wormbase_lake_surfaces.types import (
     Classification,
     ClassificationUpdate,
     DriftReport,

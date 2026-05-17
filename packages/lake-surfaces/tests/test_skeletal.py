@@ -14,14 +14,14 @@ from __future__ import annotations
 
 import pytest
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.bigquery import BigQueryConnector
-from wormbase_connectors.gsheets import GsheetsConnector
-from wormbase_connectors.hubspot import HubspotConnector
-from wormbase_connectors.linear import LinearConnector
-from wormbase_connectors.notion import NotionConnector
-from wormbase_connectors.salesforce import SalesforceConnector
-from wormbase_connectors.types import SecretBundle
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.bigquery import BigQueryConnector
+from wormbase_lake_surfaces.gsheets import GsheetsConnector
+from wormbase_lake_surfaces.hubspot import HubspotConnector
+from wormbase_lake_surfaces.linear import LinearConnector
+from wormbase_lake_surfaces.notion import NotionConnector
+from wormbase_lake_surfaces.salesforce import SalesforceConnector
+from wormbase_lake_surfaces.types import SecretBundle
 
 ALL_SKELETAL = [
     BigQueryConnector,
@@ -129,7 +129,7 @@ def test_skeletal_config_schema_has_required(cls: type) -> None:
 
 def test_all_skeletals_self_register() -> None:
     """Every skeletal is in the default registry under its `kind`."""
-    from wormbase_connectors.registry import default_registry
+    from wormbase_lake_surfaces.registry import default_registry
 
     reg = default_registry()
     for cls in ALL_SKELETAL:
@@ -138,7 +138,7 @@ def test_all_skeletals_self_register() -> None:
 
 def test_notion_and_linear_are_in_registry() -> None:
     """Day-one promotion: Notion + Linear are part of the picker."""
-    from wormbase_connectors.registry import default_registry
+    from wormbase_lake_surfaces.registry import default_registry
 
     kinds = default_registry().all_kinds()
     assert "notion" in kinds

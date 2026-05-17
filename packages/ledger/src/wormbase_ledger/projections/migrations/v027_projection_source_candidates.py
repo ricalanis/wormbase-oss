@@ -38,7 +38,7 @@ Schema invariants:
   ``"csv_local"``, ``"postgres"``, ``"stripe"``, ``"mcp:notion"``);
   the column itself is plain String. Drift prevention is enforced
   at the payload validator via a runtime check against
-  ``wormbase_connectors.registry.default_registry()`` per spec §4.2
+  ``wormbase_lake_surfaces.registry.default_registry()`` per spec §4.2
   (NOT a Literal — connector kinds are configuration, not
   KIND_REGISTRY entries; Addendum 4 §B).
 * ``domain_id_hint`` is NULL-able — populated when the proposing

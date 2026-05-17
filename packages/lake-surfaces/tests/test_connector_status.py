@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from wormbase_connectors.registry import default_registry
+from wormbase_lake_surfaces.registry import default_registry
 
 ALLOWED_STATUSES = {"production", "preview", "coming_soon"}
 

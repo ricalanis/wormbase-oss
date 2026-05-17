@@ -12,11 +12,11 @@ members = [
     "wormbase-channel-adapter",
     "wormbase-channel-adapters",
     "wormbase-chat-presence",
-    "wormbase-connectors",
     "wormbase-governance",
     "wormbase-identity-tracker",
     "wormbase-inference-router",
     "wormbase-lake-maintainer",
+    "wormbase-lake-surfaces",
     "wormbase-ledger",
     "wormbase-monorepo",
     "wormbase-ontology-seed",
@@ -3001,45 +3001,6 @@ requires-dist = [
 ]
 
 [[package]]
-name = "wormbase-connectors"
-version = "0.1.0"
-source = { editable = "packages/connectors" }
-dependencies = [
-    { name = "aioboto3" },
-    { name = "asyncpg" },
-    { name = "httpx" },
-    { name = "mcp" },
-    { name = "pydantic" },
-    { name = "snowflake-connector-python" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "mypy" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-httpx" },
-    { name = "respx" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aioboto3", specifier = ">=13.0" },
-    { name = "asyncpg", specifier = ">=0.29" },
-    { name = "httpx", specifier = ">=0.27" },
-    { name = "mcp", specifier = ">=1.27.0" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
-    { name = "pydantic", specifier = ">=2.7" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
-    { name = "pytest-httpx", marker = "extra == 'dev'", specifier = ">=0.30" },
-    { name = "respx", marker = "extra == 'dev'", specifier = ">=0.21" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
-    { name = "snowflake-connector-python", specifier = ">=3.10" },
-]
-
-[[package]]
 name = "wormbase-governance"
 version = "0.1.0"
 source = { editable = "packages/governance" }
@@ -3130,7 +3091,7 @@ version = "0.1.0"
 source = { editable = "packages/lake-maintainer" }
 dependencies = [
     { name = "sqlalchemy", extra = ["asyncio"] },
-    { name = "wormbase-connectors" },
+    { name = "wormbase-lake-surfaces" },
     { name = "wormbase-ledger" },
     { name = "wormbase-reactivities" },
 ]
@@ -3146,9 +3107,52 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.30" },
-    { name = "wormbase-connectors", editable = "packages/connectors" },
+    { name = "wormbase-lake-surfaces", editable = "packages/lake-surfaces" },
     { name = "wormbase-ledger", editable = "packages/ledger" },
     { name = "wormbase-reactivities", editable = "packages/reactivities" },
+]
+
+[[package]]
+name = "wormbase-lake-surfaces"
+version = "0.1.0"
+source = { editable = "packages/lake-surfaces" }
+dependencies = [
+    { name = "aioboto3" },
+    { name = "asyncpg" },
+    { name = "httpx" },
+    { name = "mcp" },
+    { name = "pydantic" },
+    { name = "snowflake-connector-python" },
+    { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "wormbase-ledger" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-httpx" },
+    { name = "respx" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aioboto3", specifier = ">=13.0" },
+    { name = "asyncpg", specifier = ">=0.29" },
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "mcp", specifier = ">=1.27.0" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
+    { name = "pydantic", specifier = ">=2.7" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
+    { name = "pytest-httpx", marker = "extra == 'dev'", specifier = ">=0.30" },
+    { name = "respx", marker = "extra == 'dev'", specifier = ">=0.21" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
+    { name = "snowflake-connector-python", specifier = ">=3.10" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.30" },
+    { name = "wormbase-ledger", editable = "packages/ledger" },
 ]
 
 [[package]]
@@ -3516,10 +3520,10 @@ dependencies = [
     { name = "wormbase-agent-gateway" },
     { name = "wormbase-catalog-mirror" },
     { name = "wormbase-channel-adapters" },
-    { name = "wormbase-connectors" },
     { name = "wormbase-governance" },
     { name = "wormbase-inference-router" },
     { name = "wormbase-lake-maintainer" },
+    { name = "wormbase-lake-surfaces" },
     { name = "wormbase-ledger" },
     { name = "wormbase-ontology-seed" },
     { name = "wormbase-reactivities" },
@@ -3551,10 +3555,10 @@ requires-dist = [
     { name = "wormbase-agent-gateway", editable = "packages/wormbase-agent-gateway" },
     { name = "wormbase-catalog-mirror", editable = "packages/wormbase-catalog-mirror" },
     { name = "wormbase-channel-adapters", editable = "packages/channel-adapters" },
-    { name = "wormbase-connectors", editable = "packages/connectors" },
     { name = "wormbase-governance", editable = "packages/governance" },
     { name = "wormbase-inference-router", editable = "packages/inference-router" },
     { name = "wormbase-lake-maintainer", editable = "packages/lake-maintainer" },
+    { name = "wormbase-lake-surfaces", editable = "packages/lake-surfaces" },
     { name = "wormbase-ledger", editable = "packages/ledger" },
     { name = "wormbase-ontology-seed", editable = "packages/ontology-seed" },
     { name = "wormbase-reactivities", editable = "packages/reactivities" },

@@ -12,7 +12,7 @@ from wormbase_ledger.projections.migrations.v004_projection_conversations import
     Migration as V004,
     projection_conversations,
 )
-from wormbase_lake_maintainer.conversation_source import ConversationSource
+from wormbase_lake_surfaces.conversation_source import ConversationSource
 from wormbase_lake_maintainer.protocols import MaintainableSource
 
 

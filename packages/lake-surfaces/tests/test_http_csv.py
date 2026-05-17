@@ -5,9 +5,9 @@ from __future__ import annotations
 import pytest
 from pytest_httpx import HTTPXMock
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.http_csv import HttpCsvConnector
-from wormbase_connectors.types import SecretBundle
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.http_csv import HttpCsvConnector
+from wormbase_lake_surfaces.types import SecretBundle
 
 _URL = "https://data.example.com/sales.csv"
 

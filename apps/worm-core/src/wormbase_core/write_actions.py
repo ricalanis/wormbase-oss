@@ -1153,7 +1153,7 @@ async def provision_local_lake(
     """Provision the default local lake — bronze + silver + gold from minute zero.
 
     Every tenant gets a ``LocalLakeConnector`` (see
-    :mod:`wormbase_connectors.local_lake`) auto-provisioned at install.
+    :mod:`wormbase_lake_surfaces.local_lake`) auto-provisioned at install.
     The lake plays all three medallion layers backed by the tenant's
     own ledger projections + a tenant-scoped local filesystem; no
     external source is needed for the worm to be useful.
@@ -1197,8 +1197,8 @@ async def provision_local_lake(
     # Local imports keep the write_actions surface free of connector +
     # source-builder cycles. The connector is pure-Python so import is
     # cheap; the source-builder pulls in the canonical PEVR primitive.
-    from wormbase_connectors.local_lake import LocalLakeConnector
-    from wormbase_connectors.types import SecretBundle
+    from wormbase_lake_surfaces.local_lake import LocalLakeConnector
+    from wormbase_lake_surfaces.types import SecretBundle
 
     from wormbase_core.source_builder import (
         SourceBuilder,

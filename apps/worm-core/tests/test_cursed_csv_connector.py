@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from wormbase_connectors.csv_local import CsvLocalConnector, detect_encoding
-from wormbase_connectors.types import SecretBundle
+from wormbase_lake_surfaces.csv_local import CsvLocalConnector, detect_encoding
+from wormbase_lake_surfaces.types import SecretBundle
 
 
 # Resolve the fixture path once. The repo-root fixtures dir is the

@@ -6,7 +6,7 @@ parametrized cases in
 ``assert_*`` function takes a connector instance plus the inputs it
 needs and either returns silently (pass) or raises an
 ``AssertionError`` (fail). The functions are duck-typed: they do not
-import ``wormbase_connectors.types``, so any class whose return values
+import ``wormbase_lake_surfaces.types``, so any class whose return values
 have the right shape conforms.
 
 The functions are designed to be called directly (programmatic use) or

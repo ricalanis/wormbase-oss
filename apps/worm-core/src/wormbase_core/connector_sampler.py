@@ -4,7 +4,7 @@ Bridges the :class:`wormbase_agent_gateway.lineage.SamplerProtocol`
 shape — called by L3 ``SampleOverlapStrategy``, L5
 ``ValuePatternFingerprintStrategy``, and L8
 ``SampleOverlapEntityStrategy`` — to the
-:meth:`wormbase_connectors.Connector.sample` surface.
+:meth:`wormbase_lake_surfaces.Connector.sample` surface.
 
 The bridge is default-OFF: instantiation only happens in
 ``agent_gateway_construction.compose_*_reactivity_if_enabled`` when
@@ -116,7 +116,7 @@ class ConnectorSampler:
 
     handle_provider: SourceHandleProvider
     company_id: UUID
-    # Optional override; defaults to ``wormbase_connectors.default_registry``
+    # Optional override; defaults to ``wormbase_lake_surfaces.default_registry``
     # at first lookup. Injectable for tests.
     connector_registry: Any | None = None
     max_sample_n: int = DEFAULT_MAX_SAMPLE_N
@@ -131,7 +131,7 @@ class ConnectorSampler:
             return self.connector_registry
         # Late import so worm-core test runs that don't touch the
         # connector registry don't pay the import cost.
-        from wormbase_connectors.registry import default_registry
+        from wormbase_lake_surfaces.registry import default_registry
         return default_registry()
 
     def _source_id_for_table(self, table_id: str) -> str:

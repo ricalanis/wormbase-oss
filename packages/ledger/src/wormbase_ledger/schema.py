@@ -1289,7 +1289,7 @@ projection_entity_stitches = Table(
 # company_id leg. ``proposed_kind`` is a connector-registry string; the
 # column itself is plain String — drift prevention is enforced at the
 # payload validator via a runtime check against
-# ``wormbase_connectors.registry.default_registry()``.
+# ``wormbase_lake_surfaces.registry.default_registry()``.
 # ``downstream_source_proposed_id`` is NULL-able — populated when a
 # promote action threads back the entry-id of the downstream
 # ``source_proposed`` it triggered (NOT a peer-L-axis cross-axis link;

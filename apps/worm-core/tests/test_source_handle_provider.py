@@ -242,7 +242,7 @@ async def test_csv_local_returns_record() -> None:
     assert result.source_id == str(source_id)
     assert result.connector_kind == "csv_local"
     # AuthHandle re-imported here to avoid module-level dep
-    from wormbase_connectors.types import AuthHandle
+    from wormbase_lake_surfaces.types import AuthHandle
 
     assert isinstance(result.auth_handle, AuthHandle)
     assert result.auth_handle.extra.get("path") == "/tmp/test.csv"

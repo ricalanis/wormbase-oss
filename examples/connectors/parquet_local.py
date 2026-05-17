@@ -53,7 +53,7 @@ import pyarrow.parquet as pq
 # ---------------------------------------------------------------------------
 # Local Connector-Protocol-shaped dataclasses
 #
-# These mirror ``wormbase_connectors.types`` field-for-field but live in this
+# These mirror ``wormbase_lake_surfaces.types`` field-for-field but live in this
 # file so the reference has zero internal-package dependencies. The
 # conformance harness checks structurally; nominal identity is not required.
 # ---------------------------------------------------------------------------

@@ -312,7 +312,7 @@ async def test_stripe_handle_assembled_via_broker() -> None:
     assert isinstance(result, SourceHandleRecord)
     assert result.connector_kind == "stripe"
     auth = result.auth_handle
-    # AuthHandle shape from wormbase_connectors.types
+    # AuthHandle shape from wormbase_lake_surfaces.types
     assert getattr(auth, "connector_kind", None) == "stripe"
     extra = getattr(auth, "extra", {})
     assert extra.get("api_key") == "sk_test_fakefake"

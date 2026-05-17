@@ -9,7 +9,7 @@ from sqlalchemy import insert
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from wormbase_ledger.schema import metadata as ledger_metadata
-from wormbase_lake_maintainer.evidence_source import EvidenceSource
+from wormbase_lake_surfaces.evidence_source import EvidenceSource
 from wormbase_lake_maintainer.protocols import MaintainableSource
 
 

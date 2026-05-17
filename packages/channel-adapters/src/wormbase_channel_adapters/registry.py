@@ -1,6 +1,6 @@
 """ChannelAdapter registry.
 
-Mirrors :mod:`wormbase_connectors.registry` in shape: a global registry
+Mirrors :mod:`wormbase_lake_surfaces.registry` in shape: a global registry
 plus a decorator for self-registration:
 
     @register_channel_adapter

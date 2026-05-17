@@ -13,9 +13,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from wormbase_connectors.base import Connector
-from wormbase_connectors.snowflake import SnowflakeConnector, _connect_kwargs
-from wormbase_connectors.types import AuthHandle, SecretBundle
+from wormbase_lake_surfaces.base import Connector
+from wormbase_lake_surfaces.snowflake import SnowflakeConnector, _connect_kwargs
+from wormbase_lake_surfaces.types import AuthHandle, SecretBundle
 
 _KWARGS = {
     "account": "abc.us-east-1",

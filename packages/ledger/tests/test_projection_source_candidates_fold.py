@@ -38,7 +38,7 @@ import pytest
 # Importing connectors first registers built-in connectors so the
 # runtime ``proposed_kind`` validator on the proposed-payload accepts
 # the canonical kinds used below.
-import wormbase_connectors  # noqa: F401
+import wormbase_lake_surfaces  # noqa: F401
 
 from wormbase_ledger.db import get_engine, session_scope
 from wormbase_ledger.entries import make_candidate_id
