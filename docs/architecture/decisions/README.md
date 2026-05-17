@@ -29,6 +29,7 @@ that some ADRs reference, see `../../superpowers/specs/`.
 | [ADR-0010](ADR-0010-deferred-backlog-criteria.md) | 2026-05-04 | Deferral criteria for portfolio-adjacent cleanups | One combined wave with three sub-waves clears eight portfolio-adjacent items; Wave B.5 gated on a freeze-pause doctrine review; pytest cross-package collection unsupported by design. |
 | [ADR-0011](ADR-0011-multitenancy-v2-signup-and-isolation.md) | 2026-05-04 | Multi-tenant signup, session, and isolation model | Canonical `tenant_signup_*` ledger flow; signed `wormbase-session` cookie; MCP token gate asserts Person exists in tenant; five-tenant demo carousel via magic-link round-robin. |
 | [ADR-0012](ADR-0012-semantic-layer-foundations.md) | 2026-05-10 | Semantic layer foundations — catalog mirror, broker, and MCP audit chain | Six foundational assumptions validated; dbt parser whitelist; Snowflake `DESCRIBE` two-step; one Vault backend for data + model creds; lake-maintainer dual-mode as Source-instance type. |
+| [ADR-0013](ADR-0013-continuous-lake-philosophy.md) | 2026-05-17 | The continuous lake — agent-installable, co-emergent | Re-anchored positioning: WormBase is the agent-installable continuous lake; the lake exists because the agent is tending it; agent and lake co-emerge from t=0. Coined vocabulary: continuous lake, surface, SurfaceDriver, tending, two installations. |
 
 ## Doctrine reviews
 
