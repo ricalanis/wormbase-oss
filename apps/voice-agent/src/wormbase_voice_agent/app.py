@@ -77,6 +77,7 @@ from wormbase_voice_agent.mcp_client import (
     build_default_router,
     looks_like_kpi_question,
 )
+from wormbase_core import silent_mode
 
 logger = logging.getLogger(__name__)
 
@@ -242,6 +243,27 @@ def create_app(state: VoiceAppState | None = None) -> FastAPI:
             reply_text = (
                 "I'm having trouble reaching my reasoning model right now. "
                 "Please try again in a moment."
+            )
+
+        # Silent mode: replace the outbound emit + response with a reply_suppressed
+        # entry. Bookkeeping (turn_counts) still runs — the turn happened.
+        if silent_mode.is_silent_mode_enabled():
+            await silent_mode.record_suppressed(
+                s.ledger,
+                company_id=s.company_id,
+                surface="voice",
+                tool="elevenlabs_llm",
+                args={
+                    "session_id": session_id,
+                    "caller_id": caller_id,
+                    "user_text": user_text,
+                    "reply_text": reply_text,
+                },
+                presence_reason="voice_utterance",
+            )
+            s.turn_counts[session_id] = s.turn_counts.get(session_id, 0) + 1
+            return JSONResponse(
+                openai_chat_response(text="", model=DEFAULT_KIMI_MODEL)
             )
 
         # 4) Persist the outbound reply.
