@@ -1,3 +1,4 @@
+# silent-mode: not-an-egress — wrapped by SilentModeChannelAdapter via registry.build_adapter
 """Discord adapter — stub-but-real, Protocol-compliant.
 
 Production impl: ``discord.py`` Bot's ``on_message`` handler bridges
