@@ -71,7 +71,9 @@ async def test_health_unauthed(client: TestClient) -> None:
     resp = await client.get("/api/v1/health")
     assert resp.status == 200
     body = await resp.json()
-    assert body == {"ok": True, "service": "worm-core-write"}
+    assert body["ok"] is True
+    assert body["service"] == "worm-core-write"
+    assert "silent_mode" in body
 
 
 async def test_post_people_missing_auth_returns_401(client: TestClient) -> None:

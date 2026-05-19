@@ -184,13 +184,19 @@ def create_app(state: VoiceAppState | None = None) -> FastAPI:
     if state is not None:
         app.state.voice = state
 
+    silent_mode.log_boot_state("voice-agent")
+
     # ------------------------------------------------------------------
     # /healthz
     # ------------------------------------------------------------------
 
     @app.get("/healthz")
     async def healthz() -> dict[str, Any]:
-        return {"ok": True, "service": "wormbase-voice-agent"}
+        return {
+            "ok": True,
+            "service": "wormbase-voice-agent",
+            "silent_mode": silent_mode.is_silent_mode_enabled(),
+        }
 
     # ------------------------------------------------------------------
     # /webhook/elevenlabs — per-turn custom-LLM hook

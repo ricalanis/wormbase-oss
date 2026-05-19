@@ -54,12 +54,19 @@ def _reset_for_tests() -> None:
     _cached = None
 
 
+def log_boot_state(app_name: str) -> None:
+    """Emit a single INFO line at app startup. No-op when silent mode is off."""
+    if is_silent_mode_enabled():
+        _LOG.info("silent_mode=on app=%s", app_name)
+
+
 __all__ = [
     "ENV_VAR",
     "SUPPRESSED_TARGET_KIND",
     "SuppressedResult",
     "SuppressedToolResult",
     "is_silent_mode_enabled",
+    "log_boot_state",
     "record_suppressed",
 ]
 

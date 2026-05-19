@@ -41,7 +41,7 @@ from wormbase_ledger import InMemoryLedger, Ledger
 from wormbase_ledger.errors import VerifyFailed
 from wormbase_ledger.write_primitive import WriteResult
 
-from wormbase_core import data_product_actions, write_actions
+from wormbase_core import data_product_actions, silent_mode, write_actions
 from wormbase_core.notebook_kernel import LocalPythonKernel, cells_from_dicts
 from wormbase_core.service import tenant_to_uuid
 from wormbase_core.storage import ObjectStore, get_storage_backend
@@ -1197,7 +1197,11 @@ def _path_uuid(request: web.Request, key: str) -> UUID:
 
 
 async def health(request: web.Request) -> web.Response:
-    return web.json_response({"ok": True, "service": "worm-core-write"})
+    return web.json_response({
+        "ok": True,
+        "service": "worm-core-write",
+        "silent_mode": silent_mode.is_silent_mode_enabled(),
+    })
 
 
 async def get_subscription_eligible_kinds(
@@ -7309,6 +7313,8 @@ def build_app(
         raise ValueError(
             "api_token must be non-empty; set WORMBASE_LEDGER_API_TOKEN before boot",
         )
+
+    silent_mode.log_boot_state("worm-core")
 
     app = web.Application()
     app[APP_LEDGER_KEY] = ledger

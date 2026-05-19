@@ -103,3 +103,33 @@ async def test_elevenlabs_webhook_passthrough_when_not_silent(
     ]
     assert "chat_sent" in propose_target_kinds
     assert "reply_suppressed" not in propose_target_kinds
+
+
+def test_healthz_reports_silent_mode_on(
+    monkeypatch: pytest.MonkeyPatch,
+    in_memory_ledger,
+    fake_kimi,
+    baseworm_company_id,
+) -> None:
+    monkeypatch.setenv("WORMBASE_SILENT_MODE", "1")
+    client = _make_app(
+        ledger=in_memory_ledger, kimi=fake_kimi, company_id=baseworm_company_id,
+    )
+    r = client.get("/healthz")
+    assert r.status_code == 200
+    assert r.json()["silent_mode"] is True
+
+
+def test_healthz_reports_silent_mode_off(
+    monkeypatch: pytest.MonkeyPatch,
+    in_memory_ledger,
+    fake_kimi,
+    baseworm_company_id,
+) -> None:
+    monkeypatch.delenv("WORMBASE_SILENT_MODE", raising=False)
+    client = _make_app(
+        ledger=in_memory_ledger, kimi=fake_kimi, company_id=baseworm_company_id,
+    )
+    r = client.get("/healthz")
+    assert r.status_code == 200
+    assert r.json()["silent_mode"] is False
