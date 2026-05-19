@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Final
+from dataclasses import dataclass
+from typing import Any, Final, Literal
+from uuid import UUID, uuid4
 
 _LOG = logging.getLogger(__name__)
 
@@ -52,4 +54,105 @@ def _reset_for_tests() -> None:
     _cached = None
 
 
-__all__ = ["ENV_VAR", "is_silent_mode_enabled"]
+__all__ = [
+    "ENV_VAR",
+    "SUPPRESSED_TARGET_KIND",
+    "SuppressedResult",
+    "SuppressedToolResult",
+    "is_silent_mode_enabled",
+    "record_suppressed",
+]
+
+
+# ---------------------------------------------------------------------------
+# Suppressed-result types + ledger helper
+# ---------------------------------------------------------------------------
+
+Surface = Literal["chat", "voice", "mcp_write"]
+SUPPRESSED_TARGET_KIND: Final[str] = "reply_suppressed"
+_SILENT_MODE_SOURCE: Final[str] = "env"
+
+
+@dataclass(frozen=True)
+class SuppressedResult:
+    """Returned by the chat / voice egress gates when silent mode suppresses a send."""
+
+    ref_id: UUID
+    ok: bool = True
+    suppressed: bool = True
+
+    @classmethod
+    def new(cls) -> "SuppressedResult":
+        return cls(ref_id=uuid4())
+
+
+@dataclass(frozen=True)
+class SuppressedToolResult:
+    """Returned by `_pevr` when silent mode suppresses an MCP write tool."""
+
+    ref_id: UUID
+    ok: bool = True
+    suppressed: bool = True
+
+    @classmethod
+    def new(cls) -> "SuppressedToolResult":
+        return cls(ref_id=uuid4())
+
+
+async def record_suppressed(
+    ledger: Any,
+    *,
+    company_id: UUID,
+    surface: Surface,
+    tool: str,
+    args: dict[str, Any],
+    channel_id: str | None = None,
+    tenant_id: UUID | None = None,
+    presence_reason: str,
+) -> None:
+    """Write a reply_suppressed ledger entry capturing a would-have-been action.
+
+    Best-effort: on ledger failure, logs ERROR with the payload and
+    returns. Never raises into the egress path; never falls through to a
+    real send.
+    """
+    ref_id = uuid4()
+    payload = {
+        "surface": surface,
+        "tool": tool,
+        "args": args,
+        "channel_id": channel_id,
+        "tenant_id": str(tenant_id) if tenant_id is not None else None,
+        "presence_reason": presence_reason,
+        "silent_mode_source": _SILENT_MODE_SOURCE,
+        "ref_id": str(ref_id),
+    }
+    try:
+        await ledger.write(
+            company_id=company_id,
+            propose={
+                "target_kind": SUPPRESSED_TARGET_KIND,
+                "ref_id": str(ref_id),
+                "reason": f"silent_mode suppressed {surface}/{tool}",
+                "proposed_by": "silent_mode",
+            },
+            execute_fn=lambda: {
+                "tool": tool,
+                "args": payload,
+                "result_ref": str(ref_id),
+            },
+            verify_fn=lambda _r: {
+                "checks": [{"name": "suppressed_recorded", "ok": True}],
+                "passed": True,
+            },
+            resolve_fn=lambda _v: {
+                "outcome": "keep",
+                "rationale": "silent_mode listen-only",
+            },
+            quadrant="active_deterministic",
+        )
+    except Exception as exc:  # broad on purpose: invariant > completeness
+        _LOG.error(
+            "record_suppressed failed: surface=%s tool=%s payload=%r err=%s",
+            surface, tool, payload, exc,
+        )
