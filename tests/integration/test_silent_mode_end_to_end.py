@@ -246,6 +246,9 @@ async def test_voice_gate_is_silent(
     targets = await _propose_targets(ledger, company_id)
     assert "reply_suppressed" in targets
     assert "chat_sent" not in targets
+    # Listen invariant: the inbound utterance was still ingested even
+    # though the outbound was suppressed.
+    assert "chat_received" in targets
 
 
 # ---------------------------------------------------------------------------

@@ -105,6 +105,68 @@ async def test_elevenlabs_webhook_passthrough_when_not_silent(
     assert "reply_suppressed" not in propose_target_kinds
 
 
+def _ask_payload() -> dict[str, Any]:
+    return {
+        "transcript": "What was Q3 net revenue?",
+        "tenant_id": "baseworm",
+        "person_id": "dashboard-user-1",
+    }
+
+
+@pytest.mark.asyncio
+async def test_v1_ask_silent_returns_empty_answer(
+    monkeypatch: pytest.MonkeyPatch,
+    in_memory_ledger,
+    fake_kimi,
+    baseworm_company_id,
+) -> None:
+    monkeypatch.setenv("WORMBASE_SILENT_MODE", "1")
+    client = _make_app(
+        ledger=in_memory_ledger, kimi=fake_kimi, company_id=baseworm_company_id,
+    )
+    resp = client.post("/v1/ask", json=_ask_payload())
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["answer"] == ""
+    assert body["citation_kind"] == "suppressed"
+    assert body["ledger_seq"] is None
+
+    rows = await in_memory_ledger.fetch(baseworm_company_id)
+    propose_target_kinds = [
+        r["payload"]["target_kind"]
+        for r in rows
+        if r["kind"] == "propose"
+    ]
+    assert "reply_suppressed" in propose_target_kinds
+    assert "chat_sent" not in propose_target_kinds
+    # Listen invariant: the inbound transcript was still ingested.
+    assert "chat_received" in propose_target_kinds
+
+
+@pytest.mark.asyncio
+async def test_v1_ask_passthrough_when_not_silent(
+    monkeypatch: pytest.MonkeyPatch,
+    in_memory_ledger,
+    fake_kimi,
+    baseworm_company_id,
+) -> None:
+    monkeypatch.delenv("WORMBASE_SILENT_MODE", raising=False)
+    client = _make_app(
+        ledger=in_memory_ledger, kimi=fake_kimi, company_id=baseworm_company_id,
+    )
+    resp = client.post("/v1/ask", json=_ask_payload())
+    assert resp.status_code == 200
+    assert resp.json()["answer"]  # non-empty
+    rows = await in_memory_ledger.fetch(baseworm_company_id)
+    propose_target_kinds = [
+        r["payload"]["target_kind"]
+        for r in rows
+        if r["kind"] == "propose"
+    ]
+    assert "chat_sent" in propose_target_kinds
+    assert "reply_suppressed" not in propose_target_kinds
+
+
 def test_healthz_reports_silent_mode_on(
     monkeypatch: pytest.MonkeyPatch,
     in_memory_ledger,

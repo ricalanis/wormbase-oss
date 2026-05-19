@@ -480,6 +480,37 @@ def create_app(state: VoiceAppState | None = None) -> FastAPI:
                 ),
             ) from None
 
+        # Silent mode: same pattern as /webhook/elevenlabs — replace the
+        # outbound chat_sent + the HTTP answer body with a reply_suppressed
+        # ledger entry and an empty answer.
+        if silent_mode.is_silent_mode_enabled():
+            await silent_mode.record_suppressed(
+                s.ledger,
+                company_id=company_id,
+                surface="chat",
+                tool="v1_ask",
+                args={
+                    "transcript": transcript,
+                    "answer_text": answer_text,
+                    "session_id": session_id,
+                    "tenant_slug": tenant_slug,
+                    "person_token": person_token,
+                },
+                presence_reason="dashboard_ask",
+            )
+            return JSONResponse(
+                {
+                    "answer": "",
+                    "hash_receipt": compute_hash_receipt(
+                        transcript=transcript, answer="", model=DEFAULT_KIMI_MODEL,
+                    ),
+                    "ledger_seq": None,
+                    "model": DEFAULT_KIMI_MODEL,
+                    "session_id": session_id,
+                    "citation_kind": "suppressed",
+                }
+            )
+
         out_message_id = f"dash-out-{uuid.uuid4().hex[:12]}"
         try:
             sent = await emit_chat_sent(
