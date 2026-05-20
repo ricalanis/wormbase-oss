@@ -85,6 +85,8 @@ from wormbase_ledger.entries import (
 )
 from wormbase_ledger.write_primitive import WriteResult
 
+from wormbase_core import silent_mode
+
 # Type alias — anything with the canonical async ``write`` surface works.
 LedgerLike = Ledger | InMemoryLedger | Any
 
@@ -114,7 +116,23 @@ def _pevr(
     so any drift between the API surface and the canonical payload class
     fails the verify check (the surrounding write_primitive transaction
     rolls back).
+
+    When WORMBASE_SILENT_MODE is on, short-circuits before any side effect:
+    records a `reply_suppressed` entry and returns a SuppressedToolResult.
     """
+
+    if silent_mode.is_silent_mode_enabled():
+        async def _suppressed():
+            await silent_mode.record_suppressed(
+                ledger,
+                company_id=company_id,
+                surface="mcp_write",
+                tool=tool,
+                args=args,
+                presence_reason="mcp_invocation",
+            )
+            return silent_mode.SuppressedToolResult.new()
+        return _suppressed()
 
     def _verify(_exec_payload: dict[str, Any]) -> dict[str, Any]:
         try:

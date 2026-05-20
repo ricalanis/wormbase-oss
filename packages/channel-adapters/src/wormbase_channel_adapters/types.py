@@ -1,3 +1,4 @@
+# silent-mode: not-an-egress — type aliases / dataclasses
 """Shared types for the ChannelAdapter Protocol.
 
 Every wire event normalizes into a single :class:`InfraEvent` shape.

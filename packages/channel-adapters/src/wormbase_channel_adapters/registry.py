@@ -73,8 +73,41 @@ def default_registry() -> ChannelAdapterRegistry:
     return _default
 
 
+def build_adapter(
+    *,
+    platform: str,
+    ledger: object,
+    company_id: object,
+) -> object:
+    """Instantiate the registered adapter for ``platform``; optionally wrap.
+
+    When ``WORMBASE_SILENT_MODE`` is on, returns a ``SilentModeChannelAdapter``
+    wrapping the concrete adapter so its ``send()`` is gated. Otherwise
+    returns the raw adapter instance.
+
+    The adapter class is instantiated with no arguments — the
+    self-registration contract is that adapters carry their config via
+    classmethods / handles passed at call time, not at construction.
+
+    Raises ``KeyError`` if no adapter is registered for ``platform``.
+    """
+    from wormbase_core import silent_mode
+    from wormbase_channel_adapters.silent_mode import SilentModeChannelAdapter
+
+    inner_cls = default_registry().get(platform)
+    if inner_cls is None:
+        raise KeyError(f"no channel adapter registered for platform={platform!r}")
+    inner = inner_cls()
+    if silent_mode.is_silent_mode_enabled():
+        return SilentModeChannelAdapter(
+            inner=inner, ledger=ledger, company_id=company_id  # type: ignore[arg-type]
+        )
+    return inner
+
+
 __all__ = [
     "ChannelAdapterRegistry",
+    "build_adapter",
     "default_registry",
     "register_channel_adapter",
 ]

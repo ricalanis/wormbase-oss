@@ -1,3 +1,4 @@
+# silent-mode: not-an-egress — package re-exports
 """WormBase ChannelAdapter Protocol + day-one channel adapters.
 
 A ``ChannelAdapter`` is the only abstraction the channel-adapter

@@ -1,3 +1,4 @@
+# silent-mode: not-an-egress — internal rate-limit accounting
 """WhatsApp send rate limiting + exponential backoff (Wave E2).
 
 Two generic, reusable async-safe components plus a WhatsApp-specific

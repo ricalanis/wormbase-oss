@@ -94,6 +94,8 @@ def run_cmd(
     # is wired into the openclaw-log dispatch table; absent, the dispatch
     # logs "no adapter registered" for whatsapp lines (graceful drop).
     whatsapp_account_id = os.environ.get("WHATSAPP_ACCOUNT_ID")
+    from wormbase_core import silent_mode
+    silent_mode.log_boot_state("channel-adapter")
     asyncio.run(
         run_service(
             ledger_dsn=dsn,

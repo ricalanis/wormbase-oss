@@ -25,7 +25,8 @@ QA_AGGREGATOR := uv run python -m tests._aggregator.qa_report
         test-ts test-contract test-service \
         test-up test-down test-logs \
         stage-replay-demo mcp-preflight \
-        refresh-inference-cache
+        refresh-inference-cache \
+        silent-mode-coverage
 
 help:
 	@echo "WormBase monorepo targets:"
@@ -387,9 +388,12 @@ demo-gates: $(QA_JUNIT_DIR)
 	uv run pytest tests/demo/ tests/integration/test_demo_arc_live_wire.py \
 	    -q --junitxml=$(QA_JUNIT_DIR)/l6-demo.xml
 
+silent-mode-coverage:
+	./scripts/check_silent_mode_coverage.sh
+
 # Composed targets — fail the make invocation if any layer's pytest fails.
-qa-fast: test-l1 test-contract test-ts
-	@echo "qa-fast: L1 + L2 + L3 done"
+qa-fast: test-l1 test-contract test-ts silent-mode-coverage
+	@echo "qa-fast: L1 + L2 + L3 + silent-mode-coverage done"
 
 qa: test-l1 test-contract test-service integration test-ts
 	@echo "qa: L1 + L2 + L3 + L4 + L5 done"

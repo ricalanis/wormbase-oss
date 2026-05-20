@@ -1,3 +1,4 @@
+# silent-mode: not-an-egress — wrapped by SilentModeChannelAdapter via registry.build_adapter
 """WhatsApp channel adapter — preview, via OpenClaw Baileys (WhatsApp Web).
 
 Owns every WhatsApp-specific call the channel-adapter service makes.

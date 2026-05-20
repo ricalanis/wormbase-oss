@@ -1,3 +1,4 @@
+# silent-mode: not-an-egress — Protocol definition only
 """The :class:`ChannelAdapter` Protocol.
 
 Every channel platform WormBase supports implements this Protocol.

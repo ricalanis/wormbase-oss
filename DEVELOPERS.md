@@ -265,6 +265,38 @@ surface's catalog (tables, columns, sample-row counts, dtype) into a
   `docs/DELIVERY_LOG.md`; the `CatalogSource` Protocol in
   `wormbase_catalog_mirror/protocol.py`.
 
+## Silent mode
+
+`WORMBASE_SILENT_MODE=1` puts the entire stack into listen-only mode:
+ingestion + presence/relevance decisions still run, but every outbound
+action (chat send, voice TTS, MCP write tool) is suppressed and recorded
+as a `reply_suppressed` ledger entry.
+
+Activation is boot-time only (the env var is read once and cached).
+Default is off. Spec: `docs/superpowers/specs/2026-05-18-silent-mode-design.md`.
+
+### Adding a new outbound surface
+
+If you add a new file under one of these globs, the CI guard
+(`scripts/check_silent_mode_coverage.sh`, target `make silent-mode-coverage`)
+will fail unless the file references `is_silent_mode_enabled` or
+`SilentModeChannelAdapter`:
+
+- `packages/channel-adapters/src/wormbase_channel_adapters/*.py`
+- `apps/channel-adapter/src/wormbase_channel_adapter/dm.py`
+- `apps/worm-core/src/wormbase_core/write_actions.py`
+- `apps/voice-agent/src/wormbase_voice_agent/app.py`
+
+Either:
+
+1. **Gate the new egress** by calling `silent_mode.is_silent_mode_enabled()`
+   at the top of the outbound function and recording a `reply_suppressed`
+   entry via `silent_mode.record_suppressed(...)`. See `_pevr` in
+   `apps/worm-core/src/wormbase_core/write_actions.py` for the canonical
+   pattern.
+2. **Or mark the file as not-an-egress** by adding the comment
+   `# silent-mode: not-an-egress — <reason>` somewhere in the file.
+
 ## Cross-references
 
 - `ARCHITECTURE.md` — the architectural pins this practice maintains.

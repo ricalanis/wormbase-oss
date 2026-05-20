@@ -1,3 +1,4 @@
+# silent-mode: not-an-egress — wrapped by SilentModeChannelAdapter via registry.build_adapter
 """Microsoft Teams adapter — stub-but-real, Protocol-compliant.
 
 Production impl: Microsoft Graph API + Bot Framework Service.

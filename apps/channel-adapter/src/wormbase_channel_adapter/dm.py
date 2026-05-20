@@ -23,6 +23,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
+from uuid import UUID, uuid4
 
 logger = logging.getLogger("wormbase_channel_adapter.dm")
 
@@ -167,6 +168,8 @@ async def send_resource_conversation_dm(
     topic: dict[str, Any],
     statement: dict[str, Any],
     resources: dict[str, Any],
+    ledger: Any | None = None,
+    company_id: UUID | None = None,
 ) -> DMRef:
     """Format + send the resource-conversation DM. Returns ``DMRef``.
 
@@ -178,6 +181,10 @@ async def send_resource_conversation_dm(
         statement: ``{text, speaker_label, channel_label, ts}`` describing
             the original statement.
         resources: ``ResourceBundle.to_payload()``-shaped dict.
+        ledger: optional ledger writer (same interface used by
+            ``write_actions``). When provided together with ``company_id``,
+            a ``reply_suppressed`` entry is recorded under silent mode.
+        company_id: the tenant UUID required by ``ledger.write``.
 
     Caller is responsible for writing the ledger entry that records the
     PEVR cycle — this helper only handles the wire-side send so the
@@ -187,7 +194,39 @@ async def send_resource_conversation_dm(
     Failure modes: ``open_dm`` and ``send_dm`` may raise; we propagate
     so the registry's dispatch loop catches and logs (the per-fire
     error path in ``ReactivityRegistry.dispatch``).
+
+    When WORMBASE_SILENT_MODE is on, the wire send is skipped: a
+    reply_suppressed ledger entry is recorded (if ledger+company_id are
+    provided) and a DMRef with synthetic `suppressed:<uuid>` ids is
+    returned so callers expecting a DMRef do not crash.
     """
+    from wormbase_core import silent_mode
+
+    if silent_mode.is_silent_mode_enabled():
+        platform = ""
+        if hasattr(sender, "platform"):
+            platform = str(getattr(sender, "platform") or "")
+        ref_id = uuid4()
+        if ledger is not None and company_id is not None:
+            await silent_mode.record_suppressed(
+                ledger,
+                company_id=company_id,
+                surface="chat",
+                tool="dm.send_resource_conversation_dm",
+                args={
+                    "owner_platform_id": owner_platform_id,
+                    "topic": topic,
+                    "statement": statement,
+                    "resources": resources,
+                },
+                presence_reason="dm_always_respond",
+            )
+        return DMRef(
+            platform=platform or "unknown",
+            platform_channel_id=f"suppressed:{ref_id}",
+            platform_message_id=f"suppressed:{ref_id}",
+        )
+
     body = render_dm_body(
         topic=topic,
         statement_text=str(statement.get("text") or ""),

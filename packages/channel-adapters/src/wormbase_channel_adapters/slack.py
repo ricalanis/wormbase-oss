@@ -1,3 +1,4 @@
+# silent-mode: not-an-egress — wrapped by SilentModeChannelAdapter via registry.build_adapter
 """Slack channel adapter — production-grade.
 
 Owns every Slack Web-API call the WormBase channel-adapter service

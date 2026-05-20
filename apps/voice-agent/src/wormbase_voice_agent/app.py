@@ -77,6 +77,7 @@ from wormbase_voice_agent.mcp_client import (
     build_default_router,
     looks_like_kpi_question,
 )
+from wormbase_core import silent_mode
 
 logger = logging.getLogger(__name__)
 
@@ -183,13 +184,19 @@ def create_app(state: VoiceAppState | None = None) -> FastAPI:
     if state is not None:
         app.state.voice = state
 
+    silent_mode.log_boot_state("voice-agent")
+
     # ------------------------------------------------------------------
     # /healthz
     # ------------------------------------------------------------------
 
     @app.get("/healthz")
     async def healthz() -> dict[str, Any]:
-        return {"ok": True, "service": "wormbase-voice-agent"}
+        return {
+            "ok": True,
+            "service": "wormbase-voice-agent",
+            "silent_mode": silent_mode.is_silent_mode_enabled(),
+        }
 
     # ------------------------------------------------------------------
     # /webhook/elevenlabs — per-turn custom-LLM hook
@@ -242,6 +249,27 @@ def create_app(state: VoiceAppState | None = None) -> FastAPI:
             reply_text = (
                 "I'm having trouble reaching my reasoning model right now. "
                 "Please try again in a moment."
+            )
+
+        # Silent mode: replace the outbound emit + response with a reply_suppressed
+        # entry. Bookkeeping (turn_counts) still runs — the turn happened.
+        if silent_mode.is_silent_mode_enabled():
+            await silent_mode.record_suppressed(
+                s.ledger,
+                company_id=s.company_id,
+                surface="voice",
+                tool="elevenlabs_llm",
+                args={
+                    "session_id": session_id,
+                    "caller_id": caller_id,
+                    "user_text": user_text,
+                    "reply_text": reply_text,
+                },
+                presence_reason="voice_utterance",
+            )
+            s.turn_counts[session_id] = s.turn_counts.get(session_id, 0) + 1
+            return JSONResponse(
+                openai_chat_response(text="", model=DEFAULT_KIMI_MODEL)
             )
 
         # 4) Persist the outbound reply.
@@ -451,6 +479,37 @@ def create_app(state: VoiceAppState | None = None) -> FastAPI:
                     "reach the Kimi/Ollama brain"
                 ),
             ) from None
+
+        # Silent mode: same pattern as /webhook/elevenlabs — replace the
+        # outbound chat_sent + the HTTP answer body with a reply_suppressed
+        # ledger entry and an empty answer.
+        if silent_mode.is_silent_mode_enabled():
+            await silent_mode.record_suppressed(
+                s.ledger,
+                company_id=company_id,
+                surface="chat",
+                tool="v1_ask",
+                args={
+                    "transcript": transcript,
+                    "answer_text": answer_text,
+                    "session_id": session_id,
+                    "tenant_slug": tenant_slug,
+                    "person_token": person_token,
+                },
+                presence_reason="dashboard_ask",
+            )
+            return JSONResponse(
+                {
+                    "answer": "",
+                    "hash_receipt": compute_hash_receipt(
+                        transcript=transcript, answer="", model=DEFAULT_KIMI_MODEL,
+                    ),
+                    "ledger_seq": None,
+                    "model": DEFAULT_KIMI_MODEL,
+                    "session_id": session_id,
+                    "citation_kind": "suppressed",
+                }
+            )
 
         out_message_id = f"dash-out-{uuid.uuid4().hex[:12]}"
         try:
