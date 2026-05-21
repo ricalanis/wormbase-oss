@@ -677,10 +677,20 @@ async def run_service(
     envelope_watcher_task: asyncio.Task[None] | None = None
     envelope_lookup = None
     if openclaw_log_dir:
-        envelope_watcher = WhatsAppInboundEnvelopeWatcher(openclaw_log_dir)
+        # Direct-emission callback for the openclaw 2026.5.6+ web-inbound
+        # format. The watcher builds a ChatReceivedEvent from the log
+        # line's structured payload (which now includes body) and pushes
+        # it straight to the writer — bypassing the legacy
+        # session-JSONL-correlation path that no longer fires under
+        # silent-mode gate 6 (the gate-6 plugin claims `before_agent_reply`
+        # which prevents the user message from landing in session JSONL).
+        envelope_watcher = WhatsAppInboundEnvelopeWatcher(
+            openclaw_log_dir,
+            on_inbound=writer.emit,
+        )
         envelope_lookup = envelope_watcher.find_recent_envelope
         log.info(
-            "whatsapp envelope watcher enabled: log_dir=%s",
+            "whatsapp envelope watcher enabled: log_dir=%s (direct emission on)",
             openclaw_log_dir,
         )
 

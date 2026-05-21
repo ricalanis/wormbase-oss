@@ -60,14 +60,19 @@ absent (parser falls through to None).
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import re
 from collections import deque
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import IO, Literal
+from typing import IO, TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from wormbase_channel_adapter.parser import ChatReceivedEvent
 
 log = logging.getLogger(__name__)
 
@@ -85,6 +90,18 @@ _INBOUND_ENVELOPE_RE = re.compile(
 # Subsystem marker we filter on; must appear inside obj["0"] (which
 # OpenClaw stringifies as JSON of ``{"subsystem": ...}``).
 _INBOUND_SUBSYSTEM = "gateway/channels/whatsapp/inbound"
+
+# OpenClaw 2026.5.6+ rotated the inbound log shape (caught live
+# 2026-05-21): instead of `subsystem: gateway/channels/whatsapp/inbound`
+# with a prose envelope string, it emits `module: web-inbound` with a
+# STRUCTURED object in obj["1"] carrying ``from`` / ``to`` / ``body`` /
+# ``timestamp``. Body included means we don't need to correlate against
+# the session JSONL — we can emit chat_received directly from this line.
+# This closes the silent-mode-gate audit-trail gap: gate-6 plugin claims
+# `before_agent_reply` which prevents the user message from landing in
+# session JSONL, so the correlation-based path can't emit. Direct
+# emission from the runtime log restores ingestion-runs-normally.
+_INBOUND_MODULE_NEW = "web-inbound"
 
 # Bound the recent-envelope cache. 256 covers a busy WhatsApp install's
 # ~5min of inbound traffic (DM + small groups) at a generous burst rate;
@@ -148,6 +165,7 @@ class WhatsAppInboundEnvelopeWatcher:
         *,
         poll_interval_s: float = 0.25,
         cache_size: int = _DEFAULT_CACHE_SIZE,
+        on_inbound: "Callable[[ChatReceivedEvent], Awaitable[Any]] | None" = None,
     ) -> None:
         self._log_dir = Path(log_dir)
         self._poll = poll_interval_s
@@ -159,6 +177,11 @@ class WhatsAppInboundEnvelopeWatcher:
         self._envelopes: deque[WhatsAppInboundEnvelope] = deque(
             maxlen=cache_size,
         )
+        # Direct-emission callback for the openclaw 2026.5.6+ `web-inbound`
+        # path. When set, every new-format inbound is converted to a
+        # ChatReceivedEvent and pushed via this awaitable. The old
+        # correlation-based path (via parser + session JSONL) is unchanged.
+        self._on_inbound = on_inbound
 
     @property
     def envelopes(self) -> tuple[WhatsAppInboundEnvelope, ...]:
@@ -267,11 +290,16 @@ class WhatsAppInboundEnvelopeWatcher:
             return
         if not isinstance(obj, dict):
             return
-        # Filter: subsystem marker must be in obj["0"]. OpenClaw stringifies
-        # this as ``{"subsystem":"gateway/channels/whatsapp/inbound"}``, so
-        # a substring match is sufficient and robust to trivial format
-        # tweaks (whitespace, quote style).
+        # OpenClaw 2026.5.6+ web-inbound branch — structured payload with
+        # body included. Handle this first so the new format never falls
+        # through to the legacy correlation path.
         subsystem_field = obj.get("0")
+        if isinstance(subsystem_field, str) and _INBOUND_MODULE_NEW in subsystem_field:
+            self._handle_new_inbound(obj)
+            return
+        # Legacy openclaw 2026.5.x — prose envelope on
+        # `subsystem: gateway/channels/whatsapp/inbound`. Kept for
+        # back-compat against older openclaw deployments.
         if not isinstance(subsystem_field, str):
             return
         if _INBOUND_SUBSYSTEM not in subsystem_field:
@@ -328,6 +356,118 @@ class WhatsAppInboundEnvelopeWatcher:
             "chat_type=%s ts=%s",
             env.sender_jid, env.chat_type, env.ts.isoformat(),
         )
+
+    def _handle_new_inbound(self, obj: dict) -> None:
+        """Handle openclaw 2026.5.6+ web-inbound log entries.
+
+        Shape:
+          {
+            "0":"{\"module\":\"web-inbound\"}",
+            "1":{
+              "from":"+5218117649489",
+              "to":"+5218114822051",
+              "body":"En",
+              "timestamp": 1779372908000  # ms since epoch, optional
+            },
+            "2":"inbound message",
+            "time": "2026-05-21T14:15:09.011+00:00",
+            ...
+          }
+
+        We build a ``ChatReceivedEvent`` directly and push to the
+        ``on_inbound`` callback. No session JSONL correlation needed —
+        body is in the log line.
+        """
+        payload = obj.get("1")
+        if not isinstance(payload, dict):
+            return
+        from_phone_raw = payload.get("from")
+        to_phone_raw = payload.get("to")
+        body = payload.get("body")
+        if not isinstance(from_phone_raw, str) or not isinstance(to_phone_raw, str):
+            return
+        if not isinstance(body, str):
+            return
+        from_phone = from_phone_raw.lstrip("+").strip()
+        to_phone = to_phone_raw.lstrip("+").strip()
+        if not from_phone.isdigit() or not to_phone.isdigit():
+            return
+        cleaned_text = body.strip()
+        if not cleaned_text:
+            return
+        ts = self._parse_log_ts(obj)
+        if ts is None:
+            return
+        sender_jid = f"{from_phone}@s.whatsapp.net"
+        bot_jid = f"{to_phone}@s.whatsapp.net"
+        # Mirror the watcher's existing cache contract so the legacy
+        # correlation path (parser.parse_session_line) can still find
+        # this envelope if the session-JSONL frame ever does arrive.
+        env = WhatsAppInboundEnvelope(
+            ts=ts,
+            sender_jid=sender_jid,
+            bot_jid=bot_jid,
+            chat_type="direct",
+            char_count=len(cleaned_text),
+        )
+        self._envelopes.append(env)
+        if self._on_inbound is None:
+            return
+        # Build the direct-emission event. Stable IDs derived from the
+        # canonical fields so re-tailing the same line on restart
+        # produces the same (channel_id, message_id) — the writer's
+        # dedup will swallow the duplicate.
+        platform_ts_ms = payload.get("timestamp")
+        platform_ts: datetime | None = None
+        if isinstance(platform_ts_ms, (int, float)):
+            try:
+                platform_ts = datetime.fromtimestamp(
+                    float(platform_ts_ms) / 1000.0, tz=UTC,
+                )
+            except (OSError, OverflowError, ValueError):
+                platform_ts = None
+        # Use the openclaw correlation id when present; otherwise hash
+        # the canonical fields so identical replays dedup.
+        correlation_id = payload.get("correlationId")
+        if isinstance(correlation_id, str) and correlation_id:
+            message_id = correlation_id
+        else:
+            digest = hashlib.sha256(
+                f"{from_phone}|{to_phone}|{ts.isoformat()}|{cleaned_text}".encode(
+                    "utf-8",
+                ),
+            ).hexdigest()[:16]
+            message_id = f"whatsapp:{digest}"
+        # Lazy import to avoid the parser ↔ watcher import cycle at
+        # module-load time.
+        from wormbase_channel_adapter.parser import ChatReceivedEvent
+
+        event = ChatReceivedEvent(
+            kind="chat_received",
+            session_id=f"whatsapp:{from_phone}",
+            event_id=message_id,
+            ts=ts,
+            channel_id=sender_jid,
+            message_id=message_id,
+            sender_id=sender_jid,
+            sender_label=from_phone,
+            text=cleaned_text,
+            conversation_label="",
+            delivery_mode="push",
+            platform_ts=platform_ts,
+            history_sync_id=None,
+            mentioned_jids=None,
+        )
+        try:
+            asyncio.get_running_loop().create_task(self._on_inbound(event))
+        except RuntimeError:
+            # Not in an event loop — synchronous test harness. Skip the
+            # callback; the cache append above is still useful.
+            log.debug(
+                "whatsapp-envelope-watcher: no running loop; "
+                "skipping on_inbound dispatch (event=%s)",
+                message_id,
+            )
 
     @staticmethod
     def _parse_log_ts(obj: dict) -> datetime | None:

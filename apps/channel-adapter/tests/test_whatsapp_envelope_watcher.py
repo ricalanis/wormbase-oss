@@ -385,3 +385,92 @@ def test_find_recent_envelope_handles_naive_ts(tmp_path: Path) -> None:
     naive = base.replace(tzinfo=None)
     hit = watcher.find_recent_envelope(naive, window_s=30.0)
     assert hit is env
+
+
+# ---------------------------------------------------------------------------
+# openclaw 2026.5.6+ web-inbound direct-emission path
+# ---------------------------------------------------------------------------
+# The legacy correlation path (subsystem + prose envelope + session JSONL
+# user frame) no longer fires under silent-mode gate 6: the plugin claims
+# `before_agent_reply` which short-circuits the agent run before the user
+# message is persisted to JSONL. The new openclaw format
+# (`module: web-inbound`) carries body+sender+ts in a single structured log
+# entry, so we emit ChatReceivedEvent directly without correlation.
+
+
+def test_new_format_inbound_invokes_on_inbound_callback(tmp_path: Path) -> None:
+    """openclaw 2026.5.6+ `module: web-inbound` lines emit chat_received directly."""
+    import asyncio
+    from datetime import datetime
+    from wormbase_channel_adapter.parser import ChatReceivedEvent
+
+    captured: list[ChatReceivedEvent] = []
+
+    async def on_inbound(event: ChatReceivedEvent) -> None:
+        captured.append(event)
+
+    async def run() -> None:
+        watcher = WhatsAppInboundEnvelopeWatcher(
+            tmp_path,
+            poll_interval_s=0.05,
+            on_inbound=on_inbound,
+        )
+        line = (
+            '{"0":"{\\"module\\":\\"web-inbound\\"}",'
+            '"1":{"from":"+5218117649489","to":"+5218114822051",'
+            '"body":"hola from the group","timestamp":1779372908000},'
+            '"2":"inbound message",'
+            '"time":"2026-05-21T14:15:09.011+00:00"}\n'
+        )
+        # Drive _handle_line directly (synchronous; doesn't need the tail loop).
+        watcher._handle_line(line.encode("utf-8"))
+        # Yield to the loop so the create_task completes.
+        await asyncio.sleep(0)
+
+    asyncio.run(run())
+
+    assert len(captured) == 1
+    event = captured[0]
+    assert event.kind == "chat_received"
+    assert event.text == "hola from the group"
+    assert event.sender_id == "5218117649489@s.whatsapp.net"
+    assert event.sender_label == "5218117649489"
+    assert event.channel_id == "5218117649489@s.whatsapp.net"
+    assert event.delivery_mode == "push"
+    # message_id should be stable and idempotent across re-tails.
+    assert event.message_id.startswith("whatsapp:") or len(event.message_id) >= 8
+
+
+def test_new_format_caches_envelope_for_legacy_correlation(tmp_path: Path) -> None:
+    """The new-format handler also pushes to the cache, so the legacy
+    parser correlation still finds the envelope if a JSONL frame ever
+    arrives."""
+    watcher = WhatsAppInboundEnvelopeWatcher(tmp_path, poll_interval_s=0.05)
+    line = (
+        '{"0":"{\\"module\\":\\"web-inbound\\"}",'
+        '"1":{"from":"+5218117649489","to":"+5218114822051",'
+        '"body":"abc","timestamp":1779372908000},'
+        '"time":"2026-05-21T14:15:09.011+00:00"}\n'
+    )
+    watcher._handle_line(line.encode("utf-8"))
+    assert len(watcher.envelopes) == 1
+    env = watcher.envelopes[0]
+    assert env.sender_jid == "5218117649489@s.whatsapp.net"
+    assert env.bot_jid == "5218117649489@s.whatsapp.net".replace(
+        "5218117649489", "5218114822051",
+    )
+    assert env.chat_type == "direct"
+    assert env.char_count == 3
+
+
+def test_new_format_rejects_non_digit_phones(tmp_path: Path) -> None:
+    """Malformed `from`/`to` (non-digit) is silently dropped."""
+    watcher = WhatsAppInboundEnvelopeWatcher(tmp_path, poll_interval_s=0.05)
+    bad_line = (
+        '{"0":"{\\"module\\":\\"web-inbound\\"}",'
+        '"1":{"from":"+abc","to":"+5218114822051",'
+        '"body":"x","timestamp":1779372908000},'
+        '"time":"2026-05-21T14:15:09.011+00:00"}\n'
+    )
+    watcher._handle_line(bad_line.encode("utf-8"))
+    assert len(watcher.envelopes) == 0
