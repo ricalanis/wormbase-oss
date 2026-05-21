@@ -30,20 +30,28 @@ function silentModeEnabled() {
   return TRUTHY.has(raw);
 }
 
-// Outbound-only chokepoints. Crucial: do NOT claim `before_dispatch`
-// or `before_agent_run`/`before_agent_start`. Those fire on the
-// INBOUND path and a claim there short-circuits the agent session
-// lifecycle, which kills `chat_received` emission via the channel-
-// adapter's session-JSONL tailer (regression caught live 2026-05-21:
-// a DM produced HANDLER_FIRING for before_dispatch + zero outbound +
-// zero chat_received). The hooks below all fire AFTER the agent has
-// processed the inbound and is about to emit a reply, so claiming
-// them silences outbound while preserving the inbound audit trail.
+// Outbound-only chokepoints, narrowest possible set. We claim ONLY
+// hooks that fire AFTER the user's inbound message has been persisted
+// to the agent's session JSONL — the channel-adapter session-tailer
+// reads that JSONL to emit `chat_received` to the ledger, so any
+// claim that fires before the JSONL write kills the audit trail.
+//
+// Empirically (2026-05-21):
+//   - `before_dispatch` fires 50ms after inbound, before agent runs
+//     → claim breaks chat_received
+//   - `reply_dispatch` fires 4ms after `message_start`, before the
+//     user's message is written to JSONL → claim breaks chat_received
+//   - `before_message_write` IS the persistence hook itself → claim
+//     prevents the JSONL line that chat_received depends on
+//
+// Safe claim points (the agent has by then read+persisted the inbound):
+//   - `before_agent_reply` — canonical claim point per
+//     `dist/get-reply-DbVszRXg.js` ("if (hookResult?.handled) return
+//     hookResult.reply ?? { text: 'NO_REPLY' }")
+//   - `message_sending` — last-resort claim right before Baileys send
 const CLAIMING_HOOKS = [
   "before_agent_reply",
-  "reply_dispatch",
   "message_sending",
-  "before_message_write",
 ];
 
 export default definePluginEntry({

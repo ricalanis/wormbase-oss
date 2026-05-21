@@ -125,7 +125,9 @@ render_whatsapp_block() {
   cat <<EOF
 "selfChatMode": false,
       "dmPolicy": "${dm_val}",
-      "allowFrom": ${allow_json}${actions_block}
+      "allowFrom": ${allow_json},
+      "groupPolicy": "${group_val}",
+      "groupAllowFrom": ${group_allow_json}${actions_block}
 EOF
 }
 
