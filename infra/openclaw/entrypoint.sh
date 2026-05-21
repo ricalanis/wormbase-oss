@@ -345,6 +345,15 @@ case "$(echo "${WORMBASE_SILENT_MODE:-0}" | tr '[:upper:]' '[:lower:]')" in
       openclaw config set plugins.entries.wormbase-silent-mode.enabled true >/dev/null \
         && log "✓ plugins.entries.wormbase-silent-mode.enabled=true (gate 6 plugin)" \
         || log "⚠ failed to register wormbase-silent-mode plugin"
+      # Conversation-scoped hooks (before_agent_reply, before_agent_run,
+      # before_agent_start) are gated for non-bundled plugins per
+      # openclaw loader-…js line 3652-3667 and silently skipped
+      # unless allowConversationAccess is on. Without this flag the
+      # plugin's 7 registrations succeed for 4 hooks but the 3
+      # conversation hooks are dropped at typedHook insertion time.
+      openclaw config set plugins.entries.wormbase-silent-mode.hooks.allowConversationAccess true >/dev/null \
+        && log "✓ wormbase-silent-mode allowConversationAccess=true (3 conversation hooks admitted)" \
+        || log "⚠ failed to grant conversation-access to wormbase-silent-mode"
     else
       log "⚠ silent mode on but plugin source dir missing — outbound replies may leak"
     fi

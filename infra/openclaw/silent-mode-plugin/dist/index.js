@@ -70,6 +70,15 @@ export default definePluginEntry({
       }
     };
 
+    // CRITICAL: use `api.on(name, handler, opts)`, NOT
+    // `api.registerHook(name, handler, opts)`. The legacy
+    // `registerHook` path lands in `registry.hooks` + an internal
+    // fire-and-forget bus that does NOT honor `{ handled: true }`
+    // returns. Only `api.on` populates `registry.typedHooks`, which
+    // is the list `runClaimingHook` (hook-runner-global-…js) reads.
+    // Discovered by reading loader-CZB9kQVT.js lines 3616-3686 +
+    // hook-runner-global-D1vhzHUy.js lines 149/385 — see the
+    // gate-6 known-issue note.
     for (const hookName of CLAIMING_HOOKS) {
       const handler = (event, ctx) => {
         directLog(
@@ -82,14 +91,13 @@ export default definePluginEntry({
         };
       };
       try {
-        api.registerHook(hookName, handler, {
-          name: `wormbase-silent-mode/${hookName}`,
-          description: `Suppresses outbound chat at the ${hookName} chokepoint when WORMBASE_SILENT_MODE is truthy.`,
-        });
-        api.logger.info(`wormbase-silent-mode: registered ${hookName}`);
+        // `priority: 1000` so we beat any built-in default handler
+        // that might also register for these hooks.
+        api.on(hookName, handler, { priority: 1000 });
+        api.logger.info(`wormbase-silent-mode: registered ${hookName} via api.on`);
       } catch (err) {
         api.logger.warn(
-          `wormbase-silent-mode: registerHook(${hookName}) failed: ${err?.message ?? err}`,
+          `wormbase-silent-mode: api.on(${hookName}) failed: ${err?.message ?? err}`,
         );
       }
     }
