@@ -27,6 +27,12 @@ Hypotheses validated (one assertion = one hypothesis):
   with `suppressed: true` and `entry_ids: []`. Regression caught
   2026-05-20: silent-mode merge gated `_pevr` but didn't teach
   `_result_payload` about `SuppressedToolResult`.
+* H9 — ledger hash chain links cleanly across warmup + persona + rich
+  seed entries (the core invariant the README pitches: "every action
+  is hash-chained from an append-only Postgres ledger")
+* H10 — multi-tenant isolation: baseworm and democorp have distinct
+  company_ids and neither tenant's rows appear under the other's
+  scope
 
 This test is the cold-start "contract test" — if it fails on a fresh
 clone after `make tutorial`, something in the install path regressed.
@@ -41,6 +47,7 @@ import os
 import subprocess
 import urllib.error
 import urllib.request
+from uuid import UUID, uuid5
 
 import pytest
 
@@ -289,3 +296,103 @@ def test_h7_projection_query_outcomes_embedding_is_vector_type() -> None:
         "branch in v016's _embedding_column was not taken — pgvector "
         "missing in image, or dialect detection wrong."
     )
+
+
+def _ledger_rows_for_tenant(company_id: str) -> list[dict[str, str]]:
+    """Fetch ledger rows for a tenant, ordered by seq.
+
+    Returns a list of dicts with seq, kind, prev_hash (hex), hash (hex)
+    so callers can verify the hash chain locally without pulling
+    asyncpg + hash code into the test binary.
+    """
+    sql = (
+        f"SELECT seq, kind, encode(prev_hash, 'hex'), encode(hash, 'hex') "
+        f"FROM ledger WHERE company_id = '{company_id}'::uuid "
+        f"ORDER BY seq"
+    )
+    output = _docker(
+        [
+            "exec",
+            "wormbase-postgres",
+            "psql",
+            "-U",
+            "wormbase",
+            "-d",
+            "wormbase",
+            "-tAc",
+            sql,
+        ]
+    )
+    rows: list[dict[str, str]] = []
+    for line in output.strip().splitlines():
+        parts = line.split("|")
+        if len(parts) != 4:
+            continue
+        rows.append(
+            {
+                "seq": parts[0].strip(),
+                "kind": parts[1].strip(),
+                "prev_hash": parts[2].strip(),
+                "hash": parts[3].strip(),
+            }
+        )
+    return rows
+
+
+_TENANT_NAMESPACE = UUID("6f7c4b1d-3f0a-5b2c-9d8e-1a4b5c6d7e8f")
+
+
+def _tenant_to_company_uuid(tenant: str) -> str:
+    """Mirror the project's deterministic UUID5 mapping for tenant slugs.
+
+    Namespace pinned in `apps/worm-core/src/wormbase_core/service.py`
+    (TENANT_NAMESPACE). Tenant slugs are normalized strip().lower().
+    """
+    return str(uuid5(_TENANT_NAMESPACE, tenant.strip().lower()))
+
+
+def test_h9_ledger_hash_chain_links_cleanly() -> None:
+    """H9 — every row's prev_hash matches the previous row's hash.
+
+    The README pitches the ledger as "hash-chained, append-only";
+    this asserts the chain holds after warmup + persona + rich seed.
+    A broken link would mean either a write skipped the hash-update
+    path or a row was inserted out of band.
+    """
+    company_id = _tenant_to_company_uuid("baseworm")
+    rows = _ledger_rows_for_tenant(company_id)
+    assert len(rows) >= 40, f"expected baseworm to have warmup rows, got {len(rows)}"
+    zero_hash = "00" * 32  # genesis prev_hash
+    assert rows[0]["prev_hash"] == zero_hash, rows[0]
+    for prev, cur in zip(rows, rows[1:]):
+        assert cur["prev_hash"] == prev["hash"], (
+            f"chain broken at seq={cur['seq']}: "
+            f"prev_hash {cur['prev_hash'][:16]}... != "
+            f"prior hash {prev['hash'][:16]}..."
+        )
+
+
+def test_h10_multi_tenant_isolation_baseworm_democorp() -> None:
+    """H10 — baseworm and democorp ledgers are disjoint.
+
+    Multi-tenancy v2 maps each tenant slug to a deterministic
+    company_id (uuid5(namespace, slug)). Both tenants' warmup runs
+    write 40 rows each; neither tenant's rows should appear under
+    the other tenant's company_id scope.
+    """
+    base_id = _tenant_to_company_uuid("baseworm")
+    demo_id = _tenant_to_company_uuid("democorp")
+    assert base_id != demo_id
+
+    base_rows = _ledger_rows_for_tenant(base_id)
+    demo_rows = _ledger_rows_for_tenant(demo_id)
+    assert len(base_rows) >= 40
+    assert len(demo_rows) >= 40
+
+    # No row's hash appears under both tenants — that would imply a
+    # cross-tenant leak (or a UUID5 collision, which would be a far
+    # weirder bug).
+    base_hashes = {r["hash"] for r in base_rows}
+    demo_hashes = {r["hash"] for r in demo_rows}
+    overlap = base_hashes & demo_hashes
+    assert not overlap, f"cross-tenant hash overlap: {sorted(overlap)[:5]}"

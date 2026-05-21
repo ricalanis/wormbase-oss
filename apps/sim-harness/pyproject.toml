@@ -23,6 +23,12 @@ dependencies = [
     # DEMO.1.C — `wormbase demo populate-cache` pre-populates the
     # inference-router sqlite cache for the Acme demo (cache-only mode).
     "wormbase-inference-router",
+    # Wave-B install-arc seeds: cli.py lazily imports
+    # `wormbase_channel_adapter.wire_replay.{WireReplayer,load_install_arc_seeds}`
+    # for the install-arc fixture replay path. Without this dep the
+    # demo seed step prints "install-arc seeds replay failed: No module
+    # named 'wormbase_channel_adapter'" (caught live 2026-05-20).
+    "wormbase-channel-adapter",
 ]
 
 [project.optional-dependencies]
@@ -42,6 +48,7 @@ wormbase-worm-core = { workspace = true }
 wormbase-governance = { workspace = true }
 wormbase-ontology-seed = { workspace = true }
 wormbase-inference-router = { workspace = true }
+wormbase-channel-adapter = { workspace = true }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
