@@ -1,0 +1,1331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WormBase &middot; demo dashboard</title>
+<meta name="description" content="WormBase demo dashboard — mock data showing the insights the agent produces across conversations, sources, lake, and compounding knowledge." />
+<meta name="color-scheme" content="dark" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --bg-elev: #131316;
+    --bg-elev-2: #181a1f;
+    --rule: #23252b;
+    --rule-soft: #1a1c21;
+    --ink: #ece9e2;
+    --ink-dim: #a8a59c;
+    --ink-faint: #6e6c66;
+    --accent: #d4a574;
+    --accent-2: #6aa9c9;
+    --accent-3: #b58cd1;
+    --accent-soft: rgba(212, 165, 116, 0.16);
+    --accent-rule: rgba(212, 165, 116, 0.32);
+    --good: #7fb069;
+    --warn: #d6a23e;
+    --bad: #c97064;
+    --bronze: #b48a5d;
+    --silver: #c9c9c9;
+    --gold: #e2bf65;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --font-serif: "IBM Plex Serif", "Iowan Old Style", Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 14.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.018) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 64px 64px;
+    min-height: 100vh;
+  }
+  ::selection { background: var(--accent); color: #1a130a; }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(11,11,13,0.85);
+    backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .topbar .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .brand .mark {
+    width: 12px; height: 12px;
+    background: var(--accent);
+    transform: rotate(45deg);
+    display: inline-block;
+    position: relative;
+    top: 1px;
+  }
+  .brand .sub {
+    color: var(--ink-faint);
+    font-weight: 400;
+    margin-left: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+  .demo-pill {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 5px 10px;
+    border: 1px solid var(--accent-rule);
+    border-radius: 999px;
+  }
+
+  nav.tabs {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 28px;
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--rule);
+    overflow-x: auto;
+  }
+  nav.tabs button {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--ink-dim);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  nav.tabs button:hover { color: var(--ink); }
+  nav.tabs button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  main {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 28px 64px;
+  }
+
+  .plate-head {
+    margin-bottom: 22px;
+  }
+  .plate-head .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .plate-head h1 {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: 36px;
+    margin: 6px 0 6px;
+    letter-spacing: -0.015em;
+  }
+  .plate-head p {
+    margin: 0;
+    color: var(--ink-dim);
+    max-width: 80ch;
+    font-size: 15px;
+  }
+
+  .grid {
+    display: grid;
+    gap: 18px;
+    margin-top: 22px;
+  }
+  .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid.split-2-1 { grid-template-columns: 2fr 1fr; }
+  .grid.split-1-2 { grid-template-columns: 1fr 2fr; }
+  @media (max-width: 1024px) {
+    .grid.cols-4, .grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid.split-2-1, .grid.split-1-2 { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    border: 1px solid var(--rule);
+    background: var(--bg-elev);
+    padding: 18px 20px 20px;
+    position: relative;
+  }
+  .panel .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .panel .tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .panel .title {
+    font-family: var(--font-serif);
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.25;
+    margin-top: 4px;
+    color: var(--ink);
+  }
+  .panel .receipt {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.1em;
+  }
+  .panel .receipt .hash { color: var(--accent); }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat .n {
+    font-family: var(--font-serif);
+    font-size: 44px;
+    line-height: 1;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .stat .delta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--good);
+    letter-spacing: 0.06em;
+  }
+  .stat .delta.warn { color: var(--warn); }
+  .stat .delta.bad { color: var(--bad); }
+  .stat .label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 10px;
+  }
+
+  .chart-wrap { position: relative; height: 220px; }
+  .chart-wrap.tall { height: 280px; }
+  .chart-wrap.short { height: 140px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  table th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    padding: 10px 10px 10px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  table td {
+    padding: 12px 10px 12px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    color: var(--ink-dim);
+    vertical-align: top;
+  }
+  table td .who {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  table td .small {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+  }
+  table td.right { text-align: right; }
+  table td.mono { font-family: var(--font-mono); color: var(--ink); }
+
+  .bar {
+    height: 6px;
+    background: var(--rule);
+    border-radius: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar > i {
+    display: block;
+    height: 100%;
+    background: var(--accent);
+  }
+  .bar > i.bronze { background: var(--bronze); }
+  .bar > i.silver { background: var(--silver); }
+  .bar > i.gold { background: var(--gold); }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--rule);
+    color: var(--ink-dim);
+    border-radius: 999px;
+  }
+  .pill.good { color: var(--good); border-color: rgba(127,176,105,0.4); }
+  .pill.warn { color: var(--warn); border-color: rgba(214,162,62,0.4); }
+  .pill.bad { color: var(--bad); border-color: rgba(201,112,100,0.4); }
+  .pill.accent { color: var(--accent); border-color: var(--accent-rule); }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .source-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 80px 60px 110px;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .source-row:last-child { border-bottom: none; }
+  .source-row .ico {
+    width: 24px; height: 24px;
+    display: grid; place-items: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    border: 1px solid var(--rule);
+    background: var(--bg-elev-2);
+  }
+  .source-row .name {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .source-row .meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+  .source-row .freshness {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--good);
+  }
+  .source-row .freshness.stale { color: var(--warn); }
+  .source-row .right { text-align: right; }
+
+  .loop-row {
+    display: grid;
+    grid-template-columns: 56px 1fr 80px 1fr;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .loop-row:last-child { border-bottom: none; }
+  .loop-row .id {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+  }
+  .loop-row .verb { color: var(--ink); }
+  .loop-row .count {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--ink);
+    text-align: right;
+  }
+  .loop-row .spark { height: 24px; position: relative; }
+  .loop-row .spark canvas { display: block; width: 100% !important; height: 100% !important; }
+
+  .funnel {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 8px;
+    border: 1px solid var(--rule);
+  }
+  .funnel .step {
+    padding: 14px 14px 16px;
+    border-right: 1px solid var(--rule);
+    background: var(--bg-elev-2);
+    position: relative;
+  }
+  .funnel .step:last-child { border-right: none; }
+  .funnel .step .label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .funnel .step .n {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    line-height: 1.1;
+    color: var(--ink);
+    margin-top: 6px;
+  }
+  .funnel .step .drop {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+  }
+
+  /* tree node sketch */
+  .kpi-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px 0;
+  }
+  .kpi-tree .node {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--rule);
+    background: var(--bg-elev-2);
+    font-size: 13px;
+  }
+  .kpi-tree .node.l1 { margin-left: 0; border-left: 3px solid var(--accent); }
+  .kpi-tree .node.l2 { margin-left: 24px; border-left: 2px solid var(--accent-2); }
+  .kpi-tree .node.l3 { margin-left: 48px; border-left: 1px solid var(--ink-faint); color: var(--ink-dim); }
+  .kpi-tree .node .v {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    color: var(--ink);
+  }
+  .kpi-tree .node .v.good { color: var(--good); }
+  .kpi-tree .node .v.bad { color: var(--bad); }
+
+  footer.report {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 28px 48px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-top: 1px solid var(--rule);
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <span class="mark"></span> wormbase
+      <span class="sub">demo dashboard &middot; democorp tenant</span>
+    </div>
+    <div>
+      <span class="demo-pill">demo &middot; mock data</span>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="active" data-view="conv">Conversation</button>
+    <button data-view="src">Sources &amp; Lake</button>
+    <button data-view="loops">Agent Loops (L1&ndash;L8)</button>
+    <button data-view="comp">Compounding Knowledge</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============ CONVERSATION ============ -->
+  <section class="view active" id="view-conv">
+    <div class="plate-head">
+      <div class="eyebrow">Plate I &middot; conversation surface &middot; last 14 days</div>
+      <h1>Conversation insights</h1>
+      <p>Threads, mentions, decisions, recurring questions. The worm reads everything in connected channels and writes structured ledger entries — without ever quoting a person back to them out of context.</p>
+    </div>
+
+    <div class="grid cols-4">
+      <div class="panel">
+        <span class="tag">P1 &middot; ledger</span>
+        <div class="stat">
+          <div class="n">1,284</div>
+          <div class="delta">▲ 14% wow</div>
+        </div>
+        <div class="label">Messages observed</div>
+      </div>
+      <div class="panel">
+        <span class="tag">P1 &middot; extracted</span>
+        <div class="stat">
+          <div class="n">42</div>
+          <div class="delta">▲ 9 since Mon</div>
+        </div>
+        <div class="label">Decisions captured</div>
+      </div>
+      <div class="panel">
+        <span class="tag">P1 &middot; clusters</span>
+        <div class="stat">
+          <div class="n">11</div>
+          <div class="delta">▲ 2 new topics</div>
+        </div>
+        <div class="label">Active topic clusters</div>
+      </div>
+      <div class="panel">
+        <span class="tag">P1 &middot; queue</span>
+        <div class="stat">
+          <div class="n">7</div>
+          <div class="delta warn">▲ pending review</div>
+        </div>
+        <div class="label">Recurring questions</div>
+      </div>
+    </div>
+
+    <div class="grid split-2-1">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P1.a &middot; timeseries</span>
+            <div class="title">Decisions extracted &middot; rolling 14 days</div>
+          </div>
+          <span class="receipt">proj <span class="hash">conv_decisions_v3</span></span>
+        </div>
+        <div class="chart-wrap tall"><canvas id="convTime"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P1.b &middot; clusters</span>
+            <div class="title">Topics in conversation</div>
+          </div>
+        </div>
+        <div class="chart-wrap tall"><canvas id="convTopics"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid split-2-1">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P1.c &middot; decisions</span>
+            <div class="title">Recent decisions captured from threads</div>
+          </div>
+          <span class="receipt">15 of 42 shown &middot; <span class="hash">/decisions</span></span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Decision</th>
+              <th>Channel</th>
+              <th>By</th>
+              <th class="right">When</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="who">Ship payments before onboarding revamp.</span> <span class="small">— priority sequenced for Q2</span></td><td>#product-leads</td><td>maya</td><td class="right">2h ago</td></tr>
+            <tr><td><span class="who">Adopt NRR = revenue from cohort, ex one-time fees.</span></td><td>#finance-leads</td><td>alex</td><td class="right">1d</td></tr>
+            <tr><td><span class="who">Move from Sentry → OpenObserve for log search.</span></td><td>#eng-platform</td><td>kenji</td><td class="right">2d</td></tr>
+            <tr><td><span class="who">Hire 2 SDRs in Q2; one EU, one US.</span></td><td>#go-to-market</td><td>priya</td><td class="right">3d</td></tr>
+            <tr><td><span class="who">Pause partnership with Acme until renewal terms clarified.</span></td><td>#partnerships</td><td>maya</td><td class="right">4d</td></tr>
+            <tr><td><span class="who">Push annual planning offsite to first week of June.</span></td><td>#leadership</td><td>alex</td><td class="right">5d</td></tr>
+            <tr><td><span class="who">All new tables must declare a domain at creation.</span></td><td>#data</td><td>kenji</td><td class="right">6d</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P1.d &middot; recurring</span>
+            <div class="title">Questions asked more than 3×</div>
+          </div>
+        </div>
+        <table>
+          <tbody>
+            <tr><td><span class="who">"What's our current ARR?"</span><br/><span class="small">asked 9× by 4 people · last in #finance</span></td><td class="right"><span class="pill accent">draft answer</span></td></tr>
+            <tr><td><span class="who">"Who owns billing?"</span><br/><span class="small">asked 6× · ambiguous owners</span></td><td class="right"><span class="pill warn">needs owner</span></td></tr>
+            <tr><td><span class="who">"How do we count active users?"</span><br/><span class="small">asked 5× · definition unconfirmed</span></td><td class="right"><span class="pill warn">propose KPI</span></td></tr>
+            <tr><td><span class="who">"Where does Stripe data land?"</span><br/><span class="small">asked 4× · L3 has a lineage hint</span></td><td class="right"><span class="pill good">resolved</span></td></tr>
+            <tr><td><span class="who">"Did churn spike in Q3?"</span><br/><span class="small">asked 4× · needs cohort cut</span></td><td class="right"><span class="pill accent">draft answer</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P1.e &middot; cadence</span>
+            <div class="title">Channel activity &middot; messages per hour</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="convHeatmap"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P1.f &middot; participation</span>
+            <div class="title">Who's asking, who's answering</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="convAskAnswer"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SOURCES & LAKE ============ -->
+  <section class="view" id="view-src">
+    <div class="plate-head">
+      <div class="eyebrow">Plate II &middot; lake surfaces &middot; live</div>
+      <h1>Sources &amp; data lake</h1>
+      <p>Four equal source families — external, filedrop, conversation, evidence. Medallion freshness, schema drift, classification, lineage. Every table the worm watches is hash-chained back to the ledger.</p>
+    </div>
+
+    <div class="grid cols-4">
+      <div class="panel">
+        <span class="tag">P2 &middot; connect</span>
+        <div class="stat"><div class="n">9</div><div class="delta">▲ 2 connected this wk</div></div>
+        <div class="label">Sources connected</div>
+      </div>
+      <div class="panel">
+        <span class="tag">P2 &middot; medallion</span>
+        <div class="stat"><div class="n">78</div><div class="delta">▲ 14 since Mon</div></div>
+        <div class="label">Tables tracked &middot; bronze→gold</div>
+      </div>
+      <div class="panel">
+        <span class="tag">P2 &middot; L6</span>
+        <div class="stat"><div class="n">12</div><div class="delta warn">▲ 3 flagged</div></div>
+        <div class="label">PII / regulated columns</div>
+      </div>
+      <div class="panel">
+        <span class="tag">P2 &middot; L2 drift</span>
+        <div class="stat"><div class="n">4</div><div class="delta bad">▲ pending review</div></div>
+        <div class="label">Drift events &middot; 14d</div>
+      </div>
+    </div>
+
+    <div class="grid split-2-1">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P2.a &middot; surfaces</span>
+            <div class="title">Connected sources &middot; freshness, classification, lineage</div>
+          </div>
+          <span class="receipt">9 of 9 &middot; <span class="hash">/sources</span></span>
+        </div>
+        <div>
+          <div class="source-row">
+            <div class="ico">PG</div>
+            <div>
+              <div class="name">prod-postgres &middot; <span class="pill good">healthy</span></div>
+              <div class="meta">external · 24 tables · domain=core</div>
+            </div>
+            <div class="meta">L5: 92%</div>
+            <div class="meta">L6: 4 PII</div>
+            <div class="freshness right">fresh · 12s</div>
+          </div>
+          <div class="source-row">
+            <div class="ico">SF</div>
+            <div>
+              <div class="name">snowflake-analytics &middot; <span class="pill good">healthy</span></div>
+              <div class="meta">external · 31 tables · domain=analytics</div>
+            </div>
+            <div class="meta">L5: 88%</div>
+            <div class="meta">L6: 2 PII</div>
+            <div class="freshness right">fresh · 1m</div>
+          </div>
+          <div class="source-row">
+            <div class="ico">$</div>
+            <div>
+              <div class="name">stripe &middot; <span class="pill good">healthy</span></div>
+              <div class="meta">external · 8 endpoints · domain=billing</div>
+            </div>
+            <div class="meta">L5: 100%</div>
+            <div class="meta">L6: 3 PII</div>
+            <div class="freshness right">fresh · 6m</div>
+          </div>
+          <div class="source-row">
+            <div class="ico">N</div>
+            <div>
+              <div class="name">notion (MCP) &middot; <span class="pill good">healthy</span></div>
+              <div class="meta">external · 4 dbs · domain=ops</div>
+            </div>
+            <div class="meta">L5: —</div>
+            <div class="meta">L6: 1 PII</div>
+            <div class="freshness right">fresh · 28s</div>
+          </div>
+          <div class="source-row">
+            <div class="ico">HS</div>
+            <div>
+              <div class="name">hubspot (MCP) &middot; <span class="pill warn">drift</span></div>
+              <div class="meta">external · 5 objects · domain=gtm</div>
+            </div>
+            <div class="meta">L5: 84%</div>
+            <div class="meta">L6: 2 PII</div>
+            <div class="freshness right stale">8h ago</div>
+          </div>
+          <div class="source-row">
+            <div class="ico">CSV</div>
+            <div>
+              <div class="name">q1-marketing-spend.csv &middot; <span class="pill accent">filedrop</span></div>
+              <div class="meta">filedrop · 1 file · dropped in #cmo</div>
+            </div>
+            <div class="meta">L5: 76%</div>
+            <div class="meta">L6: —</div>
+            <div class="freshness right">profiled · 3d</div>
+          </div>
+          <div class="source-row">
+            <div class="ico">S3</div>
+            <div>
+              <div class="name">~/.wormbase/lake &middot; <span class="pill good">local</span></div>
+              <div class="meta">default · bronze/silver/gold · domain=lake</div>
+            </div>
+            <div class="meta">L5: 94%</div>
+            <div class="meta">L6: —</div>
+            <div class="freshness right">fresh · 4s</div>
+          </div>
+          <div class="source-row">
+            <div class="ico">LN</div>
+            <div>
+              <div class="name">linear (MCP) &middot; <span class="pill good">healthy</span></div>
+              <div class="meta">external · 3 teams · domain=eng</div>
+            </div>
+            <div class="meta">L5: —</div>
+            <div class="meta">L6: —</div>
+            <div class="freshness right">fresh · 1m</div>
+          </div>
+          <div class="source-row">
+            <div class="ico">SL</div>
+            <div>
+              <div class="name">slack &middot; <span class="pill good">healthy</span></div>
+              <div class="meta">conversation · 14 channels · domain=org</div>
+            </div>
+            <div class="meta">L5: —</div>
+            <div class="meta">L6: —</div>
+            <div class="freshness right">live</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P2.b &middot; medallion</span>
+            <div class="title">Lake freshness &middot; bronze / silver / gold</div>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:14px; margin-top: 8px;">
+          <div>
+            <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+              <span class="mono" style="font-family:var(--font-mono); font-size:11px; color:var(--ink-dim);">bronze</span>
+              <span class="mono" style="font-family:var(--font-mono); font-size:11px; color:var(--ink);">47 tables · &lt;1m</span>
+            </div>
+            <div class="bar"><i class="bronze" style="width: 96%"></i></div>
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+              <span class="mono" style="font-family:var(--font-mono); font-size:11px; color:var(--ink-dim);">silver</span>
+              <span class="mono" style="font-family:var(--font-mono); font-size:11px; color:var(--ink);">23 tables · 6m avg</span>
+            </div>
+            <div class="bar"><i class="silver" style="width: 82%"></i></div>
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+              <span class="mono" style="font-family:var(--font-mono); font-size:11px; color:var(--ink-dim);">gold</span>
+              <span class="mono" style="font-family:var(--font-mono); font-size:11px; color:var(--ink);">8 tables · 14m avg</span>
+            </div>
+            <div class="bar"><i class="gold" style="width: 64%"></i></div>
+          </div>
+        </div>
+        <div style="margin-top: 18px;">
+          <div class="panel-head" style="margin-bottom: 8px;">
+            <div class="title" style="font-size: 14px;">L6 classification</div>
+          </div>
+          <div class="chart-wrap short"><canvas id="lakeClass"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P2.c &middot; L2 drift</span>
+            <div class="title">Schema drift events &middot; 14d</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="lakeDrift"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P2.d &middot; L3 lineage</span>
+            <div class="title">Lineage edges discovered &middot; cumulative</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="lakeLineage"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AGENT LOOPS ============ -->
+  <section class="view" id="view-loops">
+    <div class="plate-head">
+      <div class="eyebrow">Plate III &middot; lake-side loops &middot; L1–L8</div>
+      <h1>Agent tending activity</h1>
+      <p>Eight loops, running concurrently since t=0 of install. Each one writes confirmed-state outputs other loops chain off. The funnel below shows how proposals become hash-chained ledger entries.</p>
+    </div>
+
+    <div class="grid cols-4">
+      <div class="panel">
+        <span class="tag">P3 &middot; ledger</span>
+        <div class="stat"><div class="n">8,412</div><div class="delta">▲ 1,204 / 24h</div></div>
+        <div class="label">Loop entries &middot; 14d</div>
+      </div>
+      <div class="panel">
+        <span class="tag">P3 &middot; chains</span>
+        <div class="stat"><div class="n">36</div><div class="delta">▲ 8 this wk</div></div>
+        <div class="label">Cross-axis chains fired</div>
+      </div>
+      <div class="panel">
+        <span class="tag">P3 &middot; confirm</span>
+        <div class="stat"><div class="n">84%</div><div class="delta">▲ 6 pts</div></div>
+        <div class="label">Proposal → confirm rate</div>
+      </div>
+      <div class="panel">
+        <span class="tag">P3 &middot; throughput</span>
+        <div class="stat"><div class="n">142/h</div><div class="delta">steady</div></div>
+        <div class="label">Hash-chain writes</div>
+      </div>
+    </div>
+
+    <div class="grid split-2-1">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P3.a &middot; per loop</span>
+            <div class="title">Activity by loop &middot; last 7 days</div>
+          </div>
+          <span class="receipt">stacked &middot; <span class="hash">L1..L8</span></span>
+        </div>
+        <div class="chart-wrap tall"><canvas id="loopStacked"></canvas></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P3.b &middot; funnel</span>
+            <div class="title">Proposal → execute → verify → resolve</div>
+          </div>
+        </div>
+        <div class="funnel">
+          <div class="step"><div class="label">proposed</div><div class="n">214</div><div class="drop">since install</div></div>
+          <div class="step"><div class="label">executed</div><div class="n">198</div><div class="drop">−16</div></div>
+          <div class="step"><div class="label">verified</div><div class="n">189</div><div class="drop">−9</div></div>
+          <div class="step"><div class="label">resolved</div><div class="n">180</div><div class="drop">−9 / 84%</div></div>
+        </div>
+        <p style="margin-top: 14px; font-size: 13px;">Every step writes to the ledger. <span class="mono" style="color: var(--ink-dim);">propose → execute → verify → resolve → trace</span> — the canonical sequence.</p>
+      </div>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P3.c &middot; per loop</span>
+            <div class="title">L1–L8 &middot; activity &amp; 24h trend</div>
+          </div>
+        </div>
+        <div style="margin-top: 4px;">
+          <div class="loop-row"><div class="id">L1</div><div class="verb">Triaged candidate sources from conversation</div><div class="count">38</div><div class="spark"><canvas data-spark="2,4,3,5,7,9,8"></canvas></div></div>
+          <div class="loop-row"><div class="id">L2</div><div class="verb">Detected catalog drift in connected surfaces</div><div class="count">14</div><div class="spark"><canvas data-spark="1,0,2,3,1,4,3"></canvas></div></div>
+          <div class="loop-row"><div class="id">L3</div><div class="verb">Discovered lineage edges between tables</div><div class="count">112</div><div class="spark"><canvas data-spark="8,10,14,18,22,18,22"></canvas></div></div>
+          <div class="loop-row"><div class="id">L4</div><div class="verb">Computed schema-impact on connected surfaces</div><div class="count">21</div><div class="spark"><canvas data-spark="2,3,1,4,3,4,4"></canvas></div></div>
+          <div class="loop-row"><div class="id">L5</div><div class="verb">Fingerprinted columns &middot; semantic types</div><div class="count">284</div><div class="spark"><canvas data-spark="20,28,34,42,40,52,68"></canvas></div></div>
+          <div class="loop-row"><div class="id">L6</div><div class="verb">Classified PII / confidential / regulated</div><div class="count">96</div><div class="spark"><canvas data-spark="6,10,14,18,16,20,12"></canvas></div></div>
+          <div class="loop-row"><div class="id">L7</div><div class="verb">Ran quality checks &middot; emitted findings</div><div class="count">412</div><div class="spark"><canvas data-spark="42,48,52,60,58,72,80"></canvas></div></div>
+          <div class="loop-row"><div class="id">L8</div><div class="verb">Stitched entities across surfaces</div><div class="count">53</div><div class="spark"><canvas data-spark="4,6,5,8,9,10,11"></canvas></div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P3.d &middot; chains</span>
+            <div class="title">Cross-axis chains fired</div>
+          </div>
+          <span class="receipt"><span class="hash">L5→L7</span> · <span class="hash">L6→L4</span> · <span class="hash">L4↦L2</span></span>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Chain</th><th>What it inferred</th><th class="right">When</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">L5 → L7</td><td>Detected timestamp drift in <span class="who">orders.created_at</span> &mdash; flagged 3 quality findings.</td><td class="right">14m</td></tr>
+            <tr><td class="mono">L6 → L4</td><td>Reclassified <span class="who">users.phone</span> as regulated &mdash; impact: 4 downstream views.</td><td class="right">1h</td></tr>
+            <tr><td class="mono">L5 → L4</td><td>Semantic type shift in <span class="who">prices.currency</span> &mdash; cast review queued.</td><td class="right">3h</td></tr>
+            <tr><td class="mono">L4 ↦ L2</td><td>Schema impact widens drift cohort by 2 tables in <span class="who">snowflake-analytics</span>.</td><td class="right">5h</td></tr>
+            <tr><td class="mono">L7 → L8</td><td>Quality finding suggests duplicate identities — entity stitch reopened.</td><td class="right">8h</td></tr>
+            <tr><td class="mono">L1 → L3</td><td>New <span class="who">hubspot</span> tables connected &mdash; 11 lineage edges discovered immediately.</td><td class="right">11h</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COMPOUNDING KNOWLEDGE ============ -->
+  <section class="view" id="view-comp">
+    <div class="plate-head">
+      <div class="eyebrow">Plate IV &middot; compounding wiki &middot; per ledger</div>
+      <h1>What's compounding</h1>
+      <p>KPIs in a tree, decisions hashed, processes auto-mapped, data products produced, autoresearch per role. Every artifact started at zero on day one and grows per ledger entry — never reset, always replayable.</p>
+    </div>
+
+    <div class="grid cols-4">
+      <div class="panel"><span class="tag">P4 &middot; KPIs</span><div class="stat"><div class="n">18</div><div class="delta">▲ 4 / 7d</div></div><div class="label">KPIs in the tree</div></div>
+      <div class="panel"><span class="tag">P4 &middot; processes</span><div class="stat"><div class="n">7</div><div class="delta">▲ 2 mapped</div></div><div class="label">Processes auto-discovered</div></div>
+      <div class="panel"><span class="tag">P4 &middot; products</span><div class="stat"><div class="n">12</div><div class="delta">▲ 3 / 7d</div></div><div class="label">Data products produced</div></div>
+      <div class="panel"><span class="tag">P4 &middot; research</span><div class="stat"><div class="n">23</div><div class="delta">▲ 6 experiments</div></div><div class="label">Autoresearch experiments</div></div>
+    </div>
+
+    <div class="grid split-2-1">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P4.a &middot; ramp</span>
+            <div class="title">Knowledge ramp &middot; since install</div>
+          </div>
+          <span class="receipt">7 axes &middot; <span class="hash">/kpis</span></span>
+        </div>
+        <div class="chart-wrap tall"><canvas id="compRamp"></canvas></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P4.b &middot; KPI tree</span>
+            <div class="title">Top of the KPI tree</div>
+          </div>
+        </div>
+        <div class="kpi-tree">
+          <div class="node l1">North Star &middot; ARR <span class="v good">$4.21M ▲</span></div>
+          <div class="node l2">NRR (Q1) <span class="v good">108.4% ▲</span></div>
+          <div class="node l3">— expansion revenue <span class="v">$314k</span></div>
+          <div class="node l3">— churned ARR <span class="v bad">$214k</span></div>
+          <div class="node l2">New ARR (Q1) <span class="v good">$620k ▲</span></div>
+          <div class="node l3">— SDR-sourced <span class="v">$182k</span></div>
+          <div class="node l3">— inbound <span class="v">$438k</span></div>
+          <div class="node l2">Active users <span class="v">12,841</span></div>
+          <div class="node l3">— DAU/MAU <span class="v">28%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid cols-3">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P4.c &middot; processes</span>
+            <div class="title">Auto-mapped from threads</div>
+          </div>
+        </div>
+        <table>
+          <tbody>
+            <tr><td><span class="who">Invoice approval</span><br/><span class="small">4 steps · 3 owners · #finance</span></td><td class="right"><span class="pill good">live</span></td></tr>
+            <tr><td><span class="who">PR review</span><br/><span class="small">3 steps · CODEOWNERS-aware</span></td><td class="right"><span class="pill good">live</span></td></tr>
+            <tr><td><span class="who">Incident response</span><br/><span class="small">5 steps · paging matrix from PagerDuty</span></td><td class="right"><span class="pill good">live</span></td></tr>
+            <tr><td><span class="who">Customer onboarding</span><br/><span class="small">7 steps · partial · owner unknown</span></td><td class="right"><span class="pill warn">partial</span></td></tr>
+            <tr><td><span class="who">Quarterly planning</span><br/><span class="small">draft · 6 steps</span></td><td class="right"><span class="pill accent">propose</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P4.d &middot; products</span>
+            <div class="title">Data products with provenance</div>
+          </div>
+        </div>
+        <table>
+          <tbody>
+            <tr><td><span class="who">Q1 churn cohort</span><br/><span class="small">notebook · signed by maya · replayable</span></td><td class="right"><span class="pill accent">notebook</span></td></tr>
+            <tr><td><span class="who">NRR live tile</span><br/><span class="small">dashboard tile · receipt-backed</span></td><td class="right"><span class="pill accent">tile</span></td></tr>
+            <tr><td><span class="who">Free-trial → paid funnel</span><br/><span class="small">dashboard · 5 columns from gold</span></td><td class="right"><span class="pill accent">view</span></td></tr>
+            <tr><td><span class="who">PII drift digest</span><br/><span class="small">alert · weekly to admins</span></td><td class="right"><span class="pill accent">alert</span></td></tr>
+            <tr><td><span class="who">Daily ARR receipt</span><br/><span class="small">slack msg · 09:00 to #finance</span></td><td class="right"><span class="pill accent">slack</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <span class="tag">P4.e &middot; autoresearch</span>
+            <div class="title">Experiments per role</div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="compResearch"></canvas></div>
+        <p style="margin-top: 8px; font-size: 13px; color: var(--ink-dim);">Each role gets a per-user autoresearch seat. The CFO's loop runs metric hygiene checks; the COO's runs process-completion sweeps; eng runs schema-quality probes.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="report">
+  <div>WormBase &middot; demo dashboard &middot; mock data &middot; <a href="./pitch.html" style="color: var(--ink-dim); border-bottom: 1px solid var(--rule);">back to pitch</a></div>
+  <div>ledger tip · seq 184,221 · hash 0x9a4f…c12e</div>
+</footer>
+
+<script>
+// shared theme
+const TINT = {
+  ink: '#ece9e2',
+  inkDim: '#a8a59c',
+  inkFaint: '#6e6c66',
+  rule: '#23252b',
+  accent: '#d4a574',
+  accent2: '#6aa9c9',
+  accent3: '#b58cd1',
+  good: '#7fb069',
+  warn: '#d6a23e',
+  bad: '#c97064',
+  bronze: '#b48a5d',
+  silver: '#c9c9c9',
+  gold: '#e2bf65',
+};
+Chart.defaults.color = TINT.inkDim;
+Chart.defaults.borderColor = TINT.rule;
+Chart.defaults.font.family = '"IBM Plex Mono", ui-monospace, Menlo, monospace';
+Chart.defaults.font.size = 10.5;
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.position = 'bottom';
+
+const axisOpts = (opts = {}) => ({
+  grid: { color: TINT.rule, drawBorder: false, tickLength: 0 },
+  ticks: { color: TINT.inkFaint, padding: 8 },
+  border: { display: false },
+  ...opts,
+});
+
+const DAYS = ['Apr 28','Apr 29','Apr 30','May 1','May 2','May 3','May 4','May 5','May 6','May 7','May 8','May 9','May 10','May 11'];
+
+// --- conv time
+new Chart(document.getElementById('convTime'), {
+  type: 'line',
+  data: {
+    labels: DAYS,
+    datasets: [{
+      label: 'decisions',
+      data: [1,2,3,2,4,3,5,3,4,6,5,3,4,7],
+      borderColor: TINT.accent,
+      backgroundColor: 'rgba(212,165,116,0.12)',
+      fill: true,
+      tension: 0.32,
+      pointRadius: 0,
+      borderWidth: 2,
+    }, {
+      label: 'recurring qs',
+      data: [0,0,1,2,1,2,3,1,2,2,3,4,3,7],
+      borderColor: TINT.accent2,
+      backgroundColor: 'transparent',
+      fill: false,
+      tension: 0.32,
+      pointRadius: 0,
+      borderDash: [4,4],
+      borderWidth: 2,
+    }, {
+      label: 'topics added',
+      data: [0,0,1,0,1,0,0,1,0,1,1,0,1,2],
+      borderColor: TINT.accent3,
+      backgroundColor: 'transparent',
+      fill: false,
+      tension: 0.32,
+      pointRadius: 0,
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    maintainAspectRatio: false,
+    responsive: true,
+    scales: { x: axisOpts(), y: axisOpts({ beginAtZero: true }) },
+    plugins: { legend: { display: true } }
+  }
+});
+
+// --- conv topics (horizontal bar — sizes by message count)
+new Chart(document.getElementById('convTopics'), {
+  type: 'bar',
+  data: {
+    labels: ['billing & pricing','hiring','customer support','product roadmap','infra/incidents','data quality','partnerships','metrics & KPIs','GTM strategy','onboarding','people ops'],
+    datasets: [{
+      data: [184, 138, 121, 98, 86, 64, 52, 48, 39, 28, 22],
+      backgroundColor: TINT.accent,
+      borderColor: TINT.accent,
+      borderWidth: 0,
+      barThickness: 14,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    maintainAspectRatio: false,
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { x: axisOpts({ beginAtZero: true }), y: axisOpts({ grid: { display: false } }) }
+  }
+});
+
+// --- conv heatmap (grouped bars per channel × hour bucket)
+new Chart(document.getElementById('convHeatmap'), {
+  type: 'bar',
+  data: {
+    labels: ['08','10','12','14','16','18','20'],
+    datasets: [
+      { label: '#product-leads', data: [4,8,12,16,14,9,3], backgroundColor: TINT.accent },
+      { label: '#eng-platform', data: [2,6,10,14,18,12,6], backgroundColor: TINT.accent2 },
+      { label: '#finance-leads', data: [1,3,5,7,5,2,1], backgroundColor: TINT.accent3 },
+    ]
+  },
+  options: {
+    maintainAspectRatio: false,
+    responsive: true,
+    scales: { x: axisOpts({ stacked: true }), y: axisOpts({ stacked: true, beginAtZero: true }) },
+    plugins: { legend: { display: true } }
+  }
+});
+
+// --- ask/answer bipartite (stacked horizontal)
+new Chart(document.getElementById('convAskAnswer'), {
+  type: 'bar',
+  data: {
+    labels: ['maya','alex','priya','kenji','jordan','sam','rae'],
+    datasets: [
+      { label: 'asks', data: [22,18,14,9,12,5,3], backgroundColor: TINT.accent2 },
+      { label: 'answers', data: [14,28,9,32,11,7,5], backgroundColor: TINT.accent },
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    maintainAspectRatio: false,
+    responsive: true,
+    scales: { x: axisOpts({ stacked: true, beginAtZero: true }), y: axisOpts({ stacked: true, grid: { display: false } }) },
+    plugins: { legend: { display: true } }
+  }
+});
+
+// --- lake classification (donut)
+new Chart(document.getElementById('lakeClass'), {
+  type: 'doughnut',
+  data: {
+    labels: ['public','internal','confidential','PII','regulated'],
+    datasets: [{
+      data: [42, 28, 12, 9, 3],
+      backgroundColor: [TINT.inkFaint, TINT.accent2, TINT.accent, TINT.warn, TINT.bad],
+      borderColor: TINT.bg,
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    maintainAspectRatio: false,
+    responsive: true,
+    cutout: '60%',
+    plugins: { legend: { display: true, position: 'right' } }
+  }
+});
+
+// --- lake drift events (bar)
+new Chart(document.getElementById('lakeDrift'), {
+  type: 'bar',
+  data: {
+    labels: DAYS,
+    datasets: [{
+      label: 'drift events',
+      data: [0,0,1,0,0,2,0,0,1,0,0,0,3,1],
+      backgroundColor: TINT.warn,
+    },{
+      label: 'resolved',
+      data: [0,0,1,0,0,2,0,0,1,0,0,0,2,1],
+      backgroundColor: TINT.good,
+    }]
+  },
+  options: {
+    maintainAspectRatio: false,
+    responsive: true,
+    scales: { x: axisOpts({ stacked: true }), y: axisOpts({ stacked: true, beginAtZero: true }) },
+    plugins: { legend: { display: true } }
+  }
+});
+
+// --- lineage cumulative
+new Chart(document.getElementById('lakeLineage'), {
+  type: 'line',
+  data: {
+    labels: DAYS,
+    datasets: [{
+      label: 'lineage edges',
+      data: [12,28,46,72,104,124,148,176,204,238,266,288,304,328],
+      borderColor: TINT.accent,
+      backgroundColor: 'rgba(212,165,116,0.16)',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 0,
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    maintainAspectRatio: false,
+    responsive: true,
+    scales: { x: axisOpts(), y: axisOpts({ beginAtZero: true }) },
+    plugins: { legend: { display: false } }
+  }
+});
+
+// --- loop stacked
+new Chart(document.getElementById('loopStacked'), {
+  type: 'bar',
+  data: {
+    labels: DAYS.slice(-7),
+    datasets: [
+      { label: 'L1', data: [4,6,5,8,7,9,10], backgroundColor: TINT.accent },
+      { label: 'L2', data: [1,0,2,3,1,4,3], backgroundColor: TINT.warn },
+      { label: 'L3', data: [12,18,14,22,18,24,28], backgroundColor: TINT.accent2 },
+      { label: 'L4', data: [3,4,3,5,4,4,4], backgroundColor: TINT.bad },
+      { label: 'L5', data: [28,34,42,40,52,60,68], backgroundColor: TINT.accent3 },
+      { label: 'L6', data: [10,14,18,16,20,16,12], backgroundColor: TINT.silver },
+      { label: 'L7', data: [48,52,60,58,72,76,80], backgroundColor: TINT.good },
+      { label: 'L8', data: [6,5,8,9,10,9,11], backgroundColor: TINT.gold },
+    ]
+  },
+  options: {
+    maintainAspectRatio: false,
+    responsive: true,
+    scales: { x: axisOpts({ stacked: true }), y: axisOpts({ stacked: true, beginAtZero: true }) },
+    plugins: { legend: { display: true } }
+  }
+});
+
+// --- sparklines (loop trends)
+document.querySelectorAll('canvas[data-spark]').forEach((cnv) => {
+  const data = cnv.dataset.spark.split(',').map(Number);
+  new Chart(cnv, {
+    type: 'line',
+    data: {
+      labels: data.map((_, i) => i),
+      datasets: [{
+        data,
+        borderColor: TINT.accent,
+        backgroundColor: 'rgba(212,165,116,0.18)',
+        fill: true,
+        tension: 0.35,
+        pointRadius: 0,
+        borderWidth: 1.5,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } },
+      elements: { line: { borderJoinStyle: 'round' } }
+    }
+  });
+});
+
+// --- compounding ramp (multi-line per axis)
+new Chart(document.getElementById('compRamp'), {
+  type: 'line',
+  data: {
+    labels: DAYS,
+    datasets: [
+      { label: 'KPIs', data: [0,1,2,4,6,8,10,12,13,14,15,16,17,18], borderColor: TINT.accent, fill: false, tension: 0.3, pointRadius: 0, borderWidth: 2 },
+      { label: 'processes', data: [0,0,1,1,2,2,3,4,4,5,6,6,7,7], borderColor: TINT.accent2, fill: false, tension: 0.3, pointRadius: 0, borderWidth: 2 },
+      { label: 'data products', data: [0,0,1,2,3,4,5,6,7,8,9,10,11,12], borderColor: TINT.accent3, fill: false, tension: 0.3, pointRadius: 0, borderWidth: 2 },
+      { label: 'decisions', data: [0,2,4,6,9,12,15,19,22,26,30,33,37,42], borderColor: TINT.good, fill: false, tension: 0.3, pointRadius: 0, borderWidth: 2 },
+    ]
+  },
+  options: {
+    maintainAspectRatio: false,
+    responsive: true,
+    scales: { x: axisOpts(), y: axisOpts({ beginAtZero: true }) },
+    plugins: { legend: { display: true } }
+  }
+});
+
+// --- compounding research per role
+new Chart(document.getElementById('compResearch'), {
+  type: 'bar',
+  data: {
+    labels: ['CFO','COO','CMO','eng platform','data eng','support lead'],
+    datasets: [
+      { label: 'approved', data: [5,4,3,4,3,2], backgroundColor: TINT.good },
+      { label: 'rejected', data: [1,1,2,2,1,0], backgroundColor: TINT.bad },
+      { label: 'pending',  data: [1,2,0,2,1,1], backgroundColor: TINT.warn },
+    ]
+  },
+  options: {
+    maintainAspectRatio: false,
+    responsive: true,
+    scales: { x: axisOpts({ stacked: true }), y: axisOpts({ stacked: true, beginAtZero: true }) },
+    plugins: { legend: { display: true } }
+  }
+});
+
+// --- tab nav
+const tabs = document.querySelectorAll('nav.tabs button');
+const views = document.querySelectorAll('.view');
+tabs.forEach(btn => btn.addEventListener('click', () => {
+  tabs.forEach(b => b.classList.toggle('active', b === btn));
+  const target = btn.dataset.view;
+  views.forEach(v => v.classList.toggle('active', v.id === 'view-' + target));
+  history.replaceState(null, '', '#' + target);
+  window.dispatchEvent(new Event('resize')); // chart.js relayout
+}));
+const hash = (location.hash || '').replace('#','');
+if (hash) {
+  const t = document.querySelector(`nav.tabs button[data-view="${hash}"]`);
+  if (t) t.click();
+}
+</script>
+</body>
+</html>

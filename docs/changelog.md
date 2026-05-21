@@ -12,6 +12,15 @@
 
 ---
 
+### 2026-05-21 — Pitch deck + mock demo dashboard para design partner
+
+- Tres artefactos para presentar el producto a un design partner / co-founder con todo en estado *mechanical-turk-as-agent* (humano genera lo que el agente generará).
+- `landing/pitch.html` — 11 slides standalone (← / → · `f` fullscreen), buyer/customer lens. Cover · problema · shift · qué es · cómo aterriza (5 pasos en 90s) · ocho loops L1–L8 · qué compone · day-in-the-life (CFO ↔ worm con receipt) · why-now · diferenciador · ask de design partner. Mismo idioma visual que `landing/index.html` (Plex Mono + tan #d4a574).
+- `landing/demo-dashboard.html` — mock dashboard con Chart.js (CDN, sin nuevas deps), 4 tabs: conversation · sources & lake · agent loops L1–L8 · compounding knowledge. KPIs, stacks, donuts, sparklines, funnel, tablas de decisions/chains. Datos hardcoded.
+- `apps/dashboard/app/demo/page.tsx` + `DemoDashboard.tsx` — versión Field Notebook del mismo dashboard dentro de Next.js (fuera del grupo `(app)/` para no requerir install). Inline SVG para charts, Cards reales de `@wormbase/design`, tokens `--wb-color-*` del design system. Etiquetada **demo · mock data** en el chrome para que sea obvio que no es lectura del ledger.
+
+---
+
 ### 2026-05-20 — `make tutorial` green + silent mode end-to-end en fresh clone
 
 - Cold-start path unbreak: cinco regresiones bloqueaban `make tutorial` en un fresh clone — infra/docker-compose.yml openclaw context, 4 Dockerfiles drift respecto a `[tool.uv.workspace]`, double-`wormbase` en tutorial.sh, 4 deps faltantes en worm-core/pyproject.toml, `postgres:16` sin pgvector. Todas documentadas en `known_issues.md` con causa raíz.
