@@ -10,20 +10,14 @@ RUN pip install --no-cache-dir uv==0.5.13
 
 WORKDIR /workspace
 
-# Copy workspace skeleton: root pyproject + lock + the packages we
-# depend on. Build context is the repo root (set via compose context: .).
+# Copy workspace skeleton. Build context is the repo root (compose
+# context: .). We copy the entire packages/ and apps/ trees so the
+# Dockerfile cannot drift from `[tool.uv.workspace].members` in the
+# root pyproject — uv sync --frozen requires every member to be
+# discoverable at build time.
 COPY pyproject.toml uv.lock ./
-COPY packages/ledger ./packages/ledger
-COPY packages/inference-router ./packages/inference-router
-COPY packages/governance ./packages/governance
-COPY packages/ontology-seed ./packages/ontology-seed
-COPY packages/connectors ./packages/connectors
-COPY packages/channel-adapters ./packages/channel-adapters
-COPY packages/reactivities ./packages/reactivities
-COPY apps/worm-core ./apps/worm-core
-COPY apps/sim-harness ./apps/sim-harness
-COPY apps/channel-adapter ./apps/channel-adapter
-COPY apps/voice-agent ./apps/voice-agent
+COPY packages ./packages
+COPY apps ./apps
 
 # Install with the worm-core extras; --no-dev to keep image small.
 RUN uv sync --package wormbase-worm-core --no-dev

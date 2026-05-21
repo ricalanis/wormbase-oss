@@ -119,7 +119,7 @@ if [ -n "$slack_bot_token_baseworm" ]; then
     # for THIS docker compose run; .env is never modified.
     if ! $COMPOSE run --rm \
         -e WORMBASE_INSTALLER_EMAIL_OVERRIDE="${WORMBASE_INSTALLER_EMAIL_OVERRIDE:-admin@example.com}" \
-        sim-harness wormbase demo seed --reset-first --install-from-env \
+        sim-harness demo seed --reset-first --install-from-env \
             --tenant baseworm --domain-pack saas; then
         err "baseworm seed failed; check sim-harness output above"
         err "tip: ensure SLACK_BOT_TOKEN_BASEWORM is a valid xoxb token from your Slack app"
@@ -129,7 +129,7 @@ if [ -n "$slack_bot_token_baseworm" ]; then
 else
     warn "SLACK_BOT_TOKEN_BASEWORM not set — running warmup-only seed (no install)"
     warn "OAuth via the dashboard's /onboarding 'Connect to Slack' is the install path"
-    if ! $COMPOSE run --rm sim-harness wormbase demo seed --reset-first \
+    if ! $COMPOSE run --rm sim-harness demo seed --reset-first \
             --tenant baseworm --domain-pack saas; then
         err "baseworm warmup seed failed"
         exit 1
@@ -139,7 +139,7 @@ fi
 
 # ── Step 5: seed DEMOCORP ─────────────────────────────────────────────
 log "Step 5/6 — seeding tenant 'democorp' (marketplace pack, warmup-only)"
-if ! $COMPOSE run --rm sim-harness wormbase demo seed --reset-first \
+if ! $COMPOSE run --rm sim-harness demo seed --reset-first \
         --tenant democorp --domain-pack marketplace; then
     warn "democorp seed failed; baseworm is still usable"
 fi

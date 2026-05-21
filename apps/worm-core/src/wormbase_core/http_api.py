@@ -1133,9 +1133,42 @@ class ConceptConfirmedBody(_Body):
 # ---------------------------------------------------------------------------
 
 
-def _result_payload(write_result: WriteResult) -> dict[str, list[str]]:
-    """Convert a WriteResult to the JSON shape the dashboard expects."""
-    return {"entry_ids": [str(eid) for eid in write_result.entry_ids]}
+def _entry_ids_of(
+    write_result: "WriteResult | silent_mode.SuppressedToolResult",
+) -> list[str]:
+    """Return the WriteResult's entry IDs as strings; [] when suppressed.
+
+    Under silent mode ``write_actions._pevr`` returns
+    ``SuppressedToolResult`` which has no ``entry_ids`` attribute — the
+    would-have-been action did not run. Callers that compose dicts
+    inline (e.g. ``{"data_product_id": ..., "entry_ids": ...}``) should
+    funnel through this helper so silent-mode regressions cannot
+    re-introduce the AttributeError caught live on 2026-05-20.
+    """
+    if isinstance(write_result, silent_mode.SuppressedToolResult):
+        return []
+    return [str(eid) for eid in write_result.entry_ids]
+
+
+def _result_payload(
+    write_result: "WriteResult | silent_mode.SuppressedToolResult",
+) -> dict[str, Any]:
+    """Convert a write result to the JSON shape the dashboard expects.
+
+    Under silent mode the write_actions._pevr gate returns
+    ``SuppressedToolResult`` instead of ``WriteResult`` — no entry IDs
+    exist because nothing was appended to the ledger. The response
+    shape is backwards-compatible: ``entry_ids: []`` so existing
+    clients keep parsing, plus ``suppressed: true`` + ``ref_id`` for
+    new clients that want to surface the listen-only state.
+    """
+    if isinstance(write_result, silent_mode.SuppressedToolResult):
+        return {
+            "entry_ids": [],
+            "suppressed": True,
+            "ref_id": str(write_result.ref_id),
+        }
+    return {"entry_ids": _entry_ids_of(write_result)}
 
 
 def _check_auth(request: web.Request) -> None:
@@ -1947,7 +1980,7 @@ async def post_tenant_signup_initiated(request: web.Request) -> web.Response:
         raise web.HTTPUnprocessableEntity(reason=_bad_text(str(exc))) from exc
 
     return web.json_response(
-        {"entry_ids": [str(eid) for eid in result.entry_ids]},
+        {"entry_ids": _entry_ids_of(result)},
         status=201,
     )
 
@@ -1982,7 +2015,7 @@ async def post_tenant_signup_completed(request: web.Request) -> web.Response:
         raise web.HTTPUnprocessableEntity(reason=_bad_text(str(exc))) from exc
 
     return web.json_response(
-        {"entry_ids": [str(eid) for eid in result.entry_ids]},
+        {"entry_ids": _entry_ids_of(result)},
         status=201,
     )
 
@@ -2083,7 +2116,7 @@ async def post_data_products(request: web.Request) -> web.Response:
     except (ValueError, ValidationError) as exc:
         raise web.HTTPUnprocessableEntity(reason=_bad_text(str(exc))) from exc
 
-    entry_ids = [str(eid) for eid in propose_result.entry_ids]
+    entry_ids = _entry_ids_of(propose_result)
 
     if body.contents_bytes_b64 is not None:
         run_id = _uuid4()
@@ -2110,7 +2143,7 @@ async def post_data_products(request: web.Request) -> web.Response:
             )
         except VerifyFailed as exc:
             raise web.HTTPInternalServerError(reason=_bad_text(str(exc))) from exc
-        entry_ids.extend(str(eid) for eid in gen_result.entry_ids)
+        entry_ids.extend(_entry_ids_of(gen_result))
 
     return web.json_response(
         {"data_product_id": str(dp_id), "entry_ids": entry_ids},
@@ -2178,7 +2211,7 @@ async def post_data_product_regenerate(request: web.Request) -> web.Response:
             "data_product_id": str(dp_id),
             "run_id": str(run_id),
             "content_hash": content_hash,
-            "entry_ids": [str(eid) for eid in gen_result.entry_ids],
+            "entry_ids": _entry_ids_of(gen_result),
         },
         status=200,
     )
@@ -2275,7 +2308,7 @@ async def get_data_product_replay(request: web.Request) -> web.Response:
             "run_id": str(run_id),
             "content_hash": new_hash,
             "matches_original": new_hash == last_gen["content_hash"],
-            "entry_ids": [str(eid) for eid in gen_result.entry_ids],
+            "entry_ids": _entry_ids_of(gen_result),
         },
         status=200,
     )
@@ -2309,7 +2342,7 @@ async def post_notebooks(request: web.Request) -> web.Response:
     except (ValueError, ValidationError) as exc:
         raise web.HTTPUnprocessableEntity(reason=_bad_text(str(exc))) from exc
     return web.json_response(
-        {"notebook_id": str(nb_id), "entry_ids": [str(e) for e in result.entry_ids]},
+        {"notebook_id": str(nb_id), "entry_ids": _entry_ids_of(result)},
         status=200,
     )
 
@@ -2371,7 +2404,7 @@ async def post_notebook_run(request: web.Request) -> web.Response:
             "status": run_result.status,
             "duration_ms": run_result.duration_ms,
             "kernel_state_hash": run_result.kernel_state_hash,
-            "entry_ids": [str(e) for e in write_result.entry_ids],
+            "entry_ids": _entry_ids_of(write_result),
         },
         status=200,
     )
@@ -2433,7 +2466,7 @@ async def post_kpi_propose(request: web.Request) -> web.Response:
     return web.json_response(
         {
             "kpi_id": str(kpi_id),
-            "entry_ids": [str(eid) for eid in write_result.entry_ids],
+            "entry_ids": _entry_ids_of(write_result),
         },
         status=201,
     )
@@ -2466,7 +2499,7 @@ async def post_decision_record(request: web.Request) -> web.Response:
     return web.json_response(
         {
             "decision_id": str(decision_id),
-            "entry_ids": [str(eid) for eid in write_result.entry_ids],
+            "entry_ids": _entry_ids_of(write_result),
         },
         status=201,
     )
@@ -2508,7 +2541,7 @@ async def post_process_propose(request: web.Request) -> web.Response:
     return web.json_response(
         {
             "process_id": str(process_id),
-            "entry_ids": [str(eid) for eid in write_result.entry_ids],
+            "entry_ids": _entry_ids_of(write_result),
         },
         status=201,
     )
@@ -2611,7 +2644,7 @@ async def post_data_product_replay(request: web.Request) -> web.Response:
             "content_hash": replay_result.content_hash,
             "expected_content_hash": replay_result.expected_hash,
             "matches_original": replay_result.matches_original,
-            "entry_ids": [str(e) for e in replay_result.entry_ids],
+            "entry_ids": _entry_ids_of(replay_result),
         },
         status=200,
     )
@@ -2653,7 +2686,7 @@ async def post_notebook_sign(request: web.Request) -> web.Response:
         {
             "notebook_id": str(nb_id),
             "signature_receipt": receipt,
-            "entry_ids": [str(e) for e in write_result.entry_ids],
+            "entry_ids": _entry_ids_of(write_result),
         },
         status=200,
     )
@@ -6957,7 +6990,7 @@ async def post_concept_confirmed(request: web.Request) -> web.Response:
         {
             "term": term,
             "concept_id": str(concept_id),
-            "entry_ids": [str(eid) for eid in write_result.entry_ids],
+            "entry_ids": _entry_ids_of(write_result),
         },
         status=200,
     )

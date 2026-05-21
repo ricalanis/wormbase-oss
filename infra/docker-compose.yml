@@ -14,7 +14,11 @@ name: wormbase
 
 services:
   postgres:
-    image: postgres:16
+    # pgvector image is a drop-in replacement for postgres:16 with the
+    # `vector` extension preinstalled. Migrations v016 and v017
+    # (projection_query_outcomes / projection_query_templates) run
+    # `CREATE EXTENSION IF NOT EXISTS vector` for 1536-dim embeddings.
+    image: pgvector/pgvector:pg16
     container_name: wormbase-postgres
     restart: unless-stopped
     environment:
@@ -56,7 +60,7 @@ services:
     # Multi-tenancy: ONE container serves MANY tenants via
     # `channels.slack.accounts.<companyId>` blocks in config.json5.
     build:
-      context: ./openclaw
+      context: ./infra/openclaw
       dockerfile: Dockerfile
     image: wormbase-openclaw:local
     container_name: wormbase-openclaw
@@ -366,6 +370,7 @@ services:
     environment:
       WORMBASE_LEDGER_DSN: postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase
       WORMBASE_TENANT_ID: ${WORMBASE_TENANT_ID:-baseworm}
+      WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
       WORM_CORE_LOOP_INTERVAL_S: ${WORM_CORE_LOOP_INTERVAL_S:-5}
       WORM_CORE_LOG_LEVEL: ${WORM_CORE_LOG_LEVEL:-INFO}
       ONTOLOGY_SEED_PATH: /opt/wormbase/ontology-seed
@@ -430,6 +435,7 @@ services:
       OPENCLAW_SESSIONS_PATH: /openclaw-state/agents/main/sessions
       WORMBASE_ADAPTER_STATE_PATH: /var/lib/wormbase-channel-adapter/state.json
       WORMBASE_TENANT_ID: baseworm
+      WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
       # Path 3 capture path — directory is the openclaw-tmp shared volume
       # mounted below. OpenClaw writes openclaw-YYYY-MM-DD.log here.
       OPENCLAW_LOG_DIR: /openclaw-runtime-log
@@ -480,6 +486,7 @@ services:
     environment:
       WORMBASE_LEDGER_DSN: postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase
       WORMBASE_TENANT_ID: ${WORMBASE_TENANT_ID:-baseworm}
+      WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
       # Ollama Cloud — primary route is kimi-k2.6:cloud, fallback gpt-oss:120b.
       OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
       # ElevenLabs Conversational AI agent identifiers — copy from the
@@ -510,6 +517,7 @@ services:
     environment:
       WORMBASE_LEDGER_DSN: postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase
       WORMBASE_TENANT_ID: ${WORMBASE_TENANT_ID:-baseworm}
+      WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
       WORMBASE_SIM_HARNESS_ROOT: /workspace/apps/sim-harness
       # Sim Slack app — separate from the BASEWORM (OpenClaw) and
       # OBSERVER (worm-core lurker) apps. Has chat:write.customize so

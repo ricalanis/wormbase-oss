@@ -19,6 +19,10 @@ dependencies = [
     "wormbase-catalog-mirror",
     "wormbase-reactivities",
     "wormbase-agent-gateway",
+    "wormbase-chat-presence",
+    "wormbase-identity-tracker",
+    "wormbase-process-extractor",
+    "wormbase-research-loop",
     "slack-bolt>=1.21",
     "aiohttp>=3.10",
     # F2/F6 — S3-compatible object storage for data product + notebook
@@ -57,6 +61,10 @@ wormbase-lake-maintainer = { workspace = true }
 wormbase-catalog-mirror = { workspace = true }
 wormbase-reactivities = { workspace = true }
 wormbase-agent-gateway = { workspace = true }
+wormbase-chat-presence = { workspace = true }
+wormbase-identity-tracker = { workspace = true }
+wormbase-process-extractor = { workspace = true }
+wormbase-research-loop = { workspace = true }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -429,3 +429,76 @@ async def test_x_tenant_slug_resolves_to_distinct_company_id(
     rows_base = await memory_ledger.fetch(base_company)
     assert len(rows_other) == 4
     assert len(rows_base) == 0
+
+
+# ---------------------------------------------------------------------------
+# Silent mode contract — HTTP API
+# ---------------------------------------------------------------------------
+# write_actions._pevr returns a SuppressedToolResult under silent mode (it
+# has no entry_ids — nothing was appended). The HTTP API's `_result_payload`
+# helper has to recognize that shape; if it doesn't, every write endpoint
+# crashes 500 under silent mode (regression caught 2026-05-20 when the
+# tutorial seed step failed against the live stack).
+
+
+async def test_post_people_under_silent_mode_returns_suppressed_shape(
+    client: TestClient,
+    memory_ledger: InMemoryLedger,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """POST /api/v1/people must return 200 + suppressed:true under silent mode.
+
+    Hypotheses validated (per silent-mode design 2026-05-18):
+    - HTTP response is 200 (NOT 500). Pre-fix the bug was that
+      `_result_payload` accessed `write_result.entry_ids` even when
+      the result was a `SuppressedToolResult`, crashing every write
+      endpoint under silent mode (caught live 2026-05-20).
+    - body.suppressed is True
+    - body.entry_ids is [] (no person-proposal entry IDs surface to
+      the caller; the would-have-been action did not run)
+    - body.ref_id is a valid UUID linking to the recorded suppression
+    - the ledger DOES land a full PEVR cycle for the suppression
+      itself with payload.target_kind == 'reply_suppressed' and
+      execute.tool == the would-have-been tool name. This is the
+      "captured as a first-class ledger entry" guarantee from the
+      spec — operators can audit what the system would have done.
+    """
+    from wormbase_core import silent_mode
+
+    monkeypatch.setenv(silent_mode.ENV_VAR, "1")
+    silent_mode._reset_for_tests()
+    try:
+        resp = await client.post(
+            "/api/v1/people",
+            headers=_auth_headers(),
+            json={
+                "name": "Alice",
+                "email": "alice@example.com",
+                "platform": "slack",
+                "platform_user_id": "U-alice",
+                "position": "data_engineer",
+                "proposed_by": "dashboard-admin",
+            },
+        )
+        assert resp.status == 200, await resp.text()
+        body = await resp.json()
+        assert body.get("suppressed") is True, body
+        assert body.get("entry_ids") == [], body
+        UUID(body["ref_id"])
+
+        company_id = tenant_to_uuid(TENANT_SLUG)
+        rows = await memory_ledger.fetch(company_id)
+        # PEVR cycle for the suppression itself MUST land — the audit
+        # trail is the whole point of silent mode.
+        kinds = [r["kind"] for r in rows]
+        assert kinds == ["propose", "execute", "verify", "resolve"], rows
+        # propose.target_kind marks this as a suppression record.
+        assert rows[0]["payload"]["target_kind"] == "reply_suppressed", rows[0]
+        # execute carries the would-have-been tool name.
+        assert rows[1]["payload"]["tool"] == "emit_person_proposed", rows[1]
+        # resolve documents the silent-mode rationale.
+        assert rows[3]["payload"]["outcome"] == "keep", rows[3]
+        rationale = rows[3]["payload"].get("rationale", "").lower()
+        assert "silent_mode" in rationale or "silent mode" in rationale
+    finally:
+        silent_mode._reset_for_tests()

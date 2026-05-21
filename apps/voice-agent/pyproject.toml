@@ -14,6 +14,11 @@ dependencies = [
     # the "Ask the worm" floater answers with a real ledger citation.
     # Transitively pulls anyio + Starlette already pinned by FastAPI.
     "mcp>=1.27.0",
+    # Silent-mode boot log + /webhook/elevenlabs gate (silent-mode merge
+    # 5a70563) import `from wormbase_core import silent_mode`.
+    # wormbase-worm-core is the canonical home of the silent-mode
+    # reader/helpers shared across apps.
+    "wormbase-worm-core",
 ]
 
 [project.optional-dependencies]
@@ -30,6 +35,7 @@ wormbase-voice-agent = "wormbase_voice_agent.cli:main"
 
 [tool.uv.sources]
 wormbase-ledger = { workspace = true }
+wormbase-worm-core = { workspace = true }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -7,6 +7,11 @@ dependencies = [
     "pydantic>=2.7",
     "wormbase-ledger",
     "wormbase-channel-adapters",
+    # Silent-mode boot log + dm.send_resource_conversation_dm gate
+    # (silent-mode merge 5a70563) import `from wormbase_core import
+    # silent_mode`. wormbase-worm-core is the canonical home of the
+    # silent-mode reader/helpers shared across apps.
+    "wormbase-worm-core",
     "click>=8.1",
     "slack-sdk>=3.27",
     # slack-sdk's async client (used by the Path 3 capture path to call
@@ -29,6 +34,7 @@ wormbase-channel-adapter = "wormbase_channel_adapter.cli:main"
 [tool.uv.sources]
 wormbase-ledger = { workspace = true }
 wormbase-channel-adapters = { workspace = true }
+wormbase-worm-core = { workspace = true }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
