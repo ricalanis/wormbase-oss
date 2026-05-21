@@ -100,6 +100,22 @@ render_whatsapp_block() {
   fi
 
   log "tenant $tenant: whatsapp enabled (dmPolicy=$dm_val, allowFrom=$allow_val)"
+  # Silent-mode gate 6 (channel actions): when WORMBASE_SILENT_MODE is
+  # truthy, append an `actions.sendMessage: false` block to the
+  # channel config. The whatsapp plugin's schema (channelConfigs.
+  # whatsapp.properties.actions.properties.sendMessage) gives a
+  # channel-adapter-level outbound disable. Note this alone does not
+  # cover the openclaw default-agent error reply path — the
+  # wormbase-silent-mode plugin (registered separately below) is the
+  # canonical claim for that.
+  actions_block=""
+  case "$(echo "${WORMBASE_SILENT_MODE:-0}" | tr '[:upper:]' '[:lower:]')" in
+    1|true|yes|on)
+      actions_block=',
+      "actions": { "sendMessage": false }'
+      log "tenant $tenant: silent_mode=on — adding actions.sendMessage:false"
+      ;;
+  esac
   # OpenClaw 2026.5.6 dropped the multi-tenant accounts.<id> shape for
   # WhatsApp. The schema is now flat: enabled / selfChatMode / dmPolicy /
   # allowFrom at top-level under channels.whatsapp. Single account only;
@@ -109,7 +125,7 @@ render_whatsapp_block() {
   cat <<EOF
 "selfChatMode": false,
       "dmPolicy": "${dm_val}",
-      "allowFrom": ${allow_json}
+      "allowFrom": ${allow_json}${actions_block}
 EOF
 }
 
@@ -200,6 +216,46 @@ EOF
   # Substitute the placeholder with the real env value (heredoc was 'EOF'
   # quoted to preserve the system prompt's literal text).
   MODELS_JSON=$(printf '%s' "$MODELS_JSON" | sed "s|__OLLAMA_API_KEY_PLACEHOLDER__|${OLLAMA_API_KEY}|")
+  # Silent-mode gate 6 (config-side): drop BOTH `agents` and `models`
+  # blocks under silent mode. Three layers of openclaw fallback to
+  # defeat:
+  #   1. bindings: [] (handled above)
+  #   2. agents.list: [] is insufficient — openclaw rebuilds the
+  #      `main` agent from persisted state at /root/.openclaw/agents/
+  #      and re-routes inbound to it. We also wipe that dir below.
+  #   3. Even with no `agents` key, openclaw's gateway-core falls back
+  #      to a built-in agent that uses whatever model is registered.
+  #      Removing the `models` block forces model resolution to fail
+  #      before the LLM call (the gpt-5.5 default hits "no api key"
+  #      first; the wormbase-silent-mode plugin claims
+  #      before_agent_reply etc. to suppress the error reply).
+  # Inbound still flows: Baileys/socket → openclaw runtime log →
+  # channel-adapter → ledger; worm-core reactivities still fire on
+  # `chat_received` entries.
+  case "$(echo "${WORMBASE_SILENT_MODE:-0}" | tr '[:upper:]' '[:lower:]')" in
+    1|true|yes|on)
+      log "silent_mode=on — stripping agents + models blocks (gate 6 config-side)"
+      MODELS_JSON=$(printf '%s' "$MODELS_JSON" | python3 -c '
+import json, sys
+raw = sys.stdin.read().strip()
+prefix = ""
+if raw.startswith(","):
+    prefix = ","
+    raw = raw[1:].lstrip()
+obj = json.loads("{" + raw + "}")
+obj.pop("agents", None)
+obj.pop("models", None)
+if not obj:
+    print("")
+else:
+    print(prefix + json.dumps(obj, indent=2)[1:-1])
+')
+      if [ -d /root/.openclaw/agents ]; then
+        log "silent_mode=on — wiping /root/.openclaw/agents (no agent state to resurrect)"
+        rm -rf /root/.openclaw/agents
+      fi
+      ;;
+  esac
 else
   log "OLLAMA_API_KEY not set — skipping models block"
   MODELS_JSON=""
@@ -256,6 +312,44 @@ if [ -n "$WHATSAPP_INNER" ]; then
     && log "✓ plugins.entries.whatsapp.enabled=true" \
     || log "⚠ failed to register whatsapp plugin (channel may not start)"
 fi
+
+# Silent-mode gate 6 (true plugin path): when WORMBASE_SILENT_MODE is
+# truthy, install + enable the wormbase-silent-mode openclaw plugin
+# (source mounted at /opt/wormbase/silent-mode-plugin from the repo).
+# The plugin registers seven outbound hooks — before_agent_reply,
+# before_agent_run, before_agent_start, before_dispatch,
+# before_message_write, reply_dispatch, message_sending — and claims
+# each so even the gateway's built-in default agent can't push a
+# reply (including its "missing api key" error replies that bypass
+# channels.whatsapp.actions.sendMessage).
+case "$(echo "${WORMBASE_SILENT_MODE:-0}" | tr '[:upper:]' '[:lower:]')" in
+  1|true|yes|on)
+    if [ -d /opt/wormbase/silent-mode-plugin ]; then
+      log "installing wormbase-silent-mode plugin from /opt/wormbase/silent-mode-plugin…"
+      # Openclaw's plugin loader rejects sources with non-root
+      # ownership (host bind mounts show uid=1000 for typical dev
+      # setups), so copy + chown to a root-owned in-container path
+      # before `install --link`.
+      PLUGIN_SRC=/root/wormbase-silent-mode-src
+      rm -rf "$PLUGIN_SRC"
+      cp -r /opt/wormbase/silent-mode-plugin "$PLUGIN_SRC"
+      chown -R root:root "$PLUGIN_SRC"
+      # Remove residual empty dir from previous mount/install
+      # attempts so --link can proceed without --force.
+      [ -e /root/.openclaw/extensions/wormbase-silent-mode ] \
+        && rmdir /root/.openclaw/extensions/wormbase-silent-mode 2>/dev/null
+      openclaw plugins install --link "$PLUGIN_SRC" >/dev/null 2>&1 \
+        && log "✓ wormbase-silent-mode linked into extensions" \
+        || log "⚠ wormbase-silent-mode install --link failed (see openclaw plugins list)"
+      log "registering wormbase-silent-mode plugin entry…"
+      openclaw config set plugins.entries.wormbase-silent-mode.enabled true >/dev/null \
+        && log "✓ plugins.entries.wormbase-silent-mode.enabled=true (gate 6 plugin)" \
+        || log "⚠ failed to register wormbase-silent-mode plugin"
+    else
+      log "⚠ silent mode on but plugin source dir missing — outbound replies may leak"
+    fi
+    ;;
+esac
 
 log "starting gateway on :18789…"
 log "NODE_OPTIONS=${NODE_OPTIONS:-(unset)}"

@@ -39,6 +39,13 @@ Hypotheses validated (one assertion = one hypothesis):
   inbound chat (caught live 2026-05-21 when a paired WhatsApp DM
   got an autonomous kimi-k2.6:cloud reply despite the 5 worm-core
   silent-mode gates being honored)
+* H12 — gate 6 plugin path: the `wormbase-silent-mode` openclaw
+  plugin (source at `infra/openclaw/silent-mode-plugin/`) is loaded
+  and registers its 7 outbound hooks under silent mode. Plugin is
+  the only way to claim the gateway-core default-agent reply path
+  (config-side `bindings: []` + stripping `agents`/`models` only
+  fails the LLM call — without the plugin the openclaw "missing api
+  key" error reply still goes out to the channel).
 
 This test is the cold-start "contract test" — if it fails on a fresh
 clone after `make tutorial`, something in the install path regressed.
@@ -402,6 +409,40 @@ def test_h10_multi_tenant_isolation_baseworm_democorp() -> None:
     demo_hashes = {r["hash"] for r in demo_rows}
     overlap = base_hashes & demo_hashes
     assert not overlap, f"cross-tenant hash overlap: {sorted(overlap)[:5]}"
+
+
+@pytest.mark.skipif(
+    not _env_silent_mode_on(),
+    reason="silent mode not enabled — plugin should not be active",
+)
+def test_h12_silent_mode_plugin_loaded_with_hooks() -> None:
+    """H12 — wormbase-silent-mode openclaw plugin is loaded under silent mode.
+
+    The plugin is the canonical claim path for the openclaw built-in
+    default agent's reply (including auth/api-key failure messages
+    that bypass channel-level `actions.sendMessage: false`). Loading
+    is observed via the openclaw plugin list — looking for the
+    `wormbase-silent-mode` id.
+    """
+    output = _docker(
+        ["exec", "wormbase-openclaw", "openclaw", "plugins", "list"]
+    )
+    # The `plugins list` table includes one row per loaded plugin.
+    # Match the id slug; the table wraps lines so a substring match
+    # is sufficient.
+    assert "wormbase-silent-mode" in output or "wormbase\n-silent\n-mode" in output, (
+        "wormbase-silent-mode plugin not found in openclaw plugins list. "
+        f"Last 400 chars: {output[-400:]!r}"
+    )
+    # Boot log should confirm the plugin's register fired and the
+    # 7 hooks landed (we tolerate `4-7 registered` so the assertion
+    # survives future hook additions/removals).
+    logs = _docker(["logs", "wormbase-openclaw"])
+    assert "register fired, silent_mode=true" in logs, (
+        "plugin register did not run; check WORMBASE_SILENT_MODE forwarding "
+        "to openclaw service and the bind mount at "
+        "/opt/wormbase/silent-mode-plugin"
+    )
 
 
 @pytest.mark.skipif(

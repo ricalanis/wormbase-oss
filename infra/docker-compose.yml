@@ -83,6 +83,12 @@ services:
       # the config is stable (revert this volume + restore COPY in Dockerfile).
       # Path is relative to project root (set via Makefile --project-directory .)
       - ./infra/openclaw/entrypoint.sh:/usr/local/bin/wormbase-entrypoint.sh:ro
+      # Silent-mode gate 6 (true plugin path). Plugin source mounted at
+      # a neutral path; entrypoint copies it into a root-owned dir then
+      # `openclaw plugins install --link` symlinks it into the
+      # extensions dir. Mounting directly under /root/.openclaw/
+      # extensions blocks openclaw from managing the symlink.
+      - ./infra/openclaw/silent-mode-plugin:/opt/wormbase/silent-mode-plugin:ro
     environment:
       # Admin token for channel-adapter ↔ OpenClaw bridge auth.
       OPENCLAW_ADMIN_TOKEN: ${OPENCLAW_ADMIN_TOKEN:-dev-token}

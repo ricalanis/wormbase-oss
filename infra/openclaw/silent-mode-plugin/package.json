@@ -1,0 +1,15 @@
+{
+  "name": "@wormbase/openclaw-silent-mode",
+  "version": "0.1.0",
+  "description": "Claims the openclaw before_agent_reply hook when WORMBASE_SILENT_MODE is truthy — closes the 6th silent-mode egress surface (openclaw embedded agent + built-in default agent reply path).",
+  "type": "module",
+  "main": "./dist/index.js",
+  "openclaw": {
+    "extensions": [
+      "./dist/index.js"
+    ]
+  },
+  "peerDependencies": {
+    "openclaw": ">=2026.5.19"
+  }
+}
