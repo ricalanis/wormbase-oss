@@ -30,19 +30,20 @@ function silentModeEnabled() {
   return TRUTHY.has(raw);
 }
 
-// Hooks that historically support "first-claim wins" semantics
-// (PluginHookBeforeAgentReplyResult, PluginHookMessageSendingResult,
-// etc. — see hook-types.d.ts). For each we return a shape that
-// includes `handled: true` plus a plausible `reply` payload so any
-// downstream code that destructures the result gets a benign default.
+// Outbound-only chokepoints. Crucial: do NOT claim `before_dispatch`
+// or `before_agent_run`/`before_agent_start`. Those fire on the
+// INBOUND path and a claim there short-circuits the agent session
+// lifecycle, which kills `chat_received` emission via the channel-
+// adapter's session-JSONL tailer (regression caught live 2026-05-21:
+// a DM produced HANDLER_FIRING for before_dispatch + zero outbound +
+// zero chat_received). The hooks below all fire AFTER the agent has
+// processed the inbound and is about to emit a reply, so claiming
+// them silences outbound while preserving the inbound audit trail.
 const CLAIMING_HOOKS = [
   "before_agent_reply",
-  "before_agent_run",
-  "before_agent_start",
-  "before_dispatch",
-  "before_message_write",
   "reply_dispatch",
   "message_sending",
+  "before_message_write",
 ];
 
 export default definePluginEntry({
