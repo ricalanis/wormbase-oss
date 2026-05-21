@@ -24,6 +24,22 @@ Antes de empezar trabajo no trivial, ojear esta lista y filtrar por área tocada
 
 <!-- Entradas más recientes arriba -->
 
+### 2026-05-21 — Gate-6 stripping rompió emisión de `chat_received` (audit-trail regression)
+
+**Contexto:** Gate-6 commits 9f27128 + f45c9b0 cerraron el outbound reply path bajo silent mode (verificado live: cero "Missing API key" replies después del fix `api.on` + `allowConversationAccess`). Pero un DM de prueba mostró que `chat_received` ya no aterriza en el ledger bajo silent mode.
+**Qué pasó:** El entrypoint.sh, bajo `WORMBASE_SILENT_MODE=1`, estaba:
+- emptiying `bindings: []`
+- pop'ing `agents` y `models` del rendered config
+- `rm -rf /root/.openclaw/agents` para que openclaw no resucitara el agent main desde estado persistido
+
+Eso defeated el openclaw default agent (gpt-5.5 fallback) — pero también destruyó el lifecycle que el channel-adapter usa para emitir `chat_received`. El channel-adapter tiene dos paths de inbound:
+1. `whatsapp_envelope_watcher` — espera `subsystem: gateway/channels/whatsapp/inbound` (openclaw 2026.5.6+ ahora usa `module: web-inbound` — regex desactualizada, gap separado)
+2. Session-JSONL tailer — depende de que el agente procese el mensaje y escriba a `/root/.openclaw/agents/main/sessions/*.jsonl`
+
+Sin agent → sin session → sin chat_received. Violation explícita del spec: "Listen-everything still works: ingestion, ledger writes, presence/relevance decisions all run normally."
+**Causa raíz:** Over-engineering del gate. El plugin `wormbase-silent-mode` (instalado via `openclaw plugins install --link`) registra el hook `before_agent_reply` via `api.on` (typed-hook registry) y claims con `{handled:true}`. `runClaimingHook` honra el claim — el LLM call nunca pasa, sin reply outbound, sin error. El config-side stripping era redundante una vez que el plugin funcionaba.
+**Cómo evitarlo:** Mantener el openclaw config completo bajo silent mode (agents + models + bindings). El plugin es el único gate necesario. `channels.whatsapp.actions.sendMessage: false` queda como defensa en profundidad. Si el plugin alguna vez no claima (e.g. crash on register), el agente correrá y producirá un reply LLM real — riesgo aceptado a cambio de mantener el audit trail. Fix: revertir el stripping en `infra/openclaw/entrypoint.sh`, dejar el render full bajo silent mode, plugin hace el trabajo.
+
 ### 2026-05-20 — Silent-mode merge: `_result_payload` no maneja `SuppressedToolResult` → HTTP 500 en todos los writes
 
 **Contexto:** Después de habilitar silent mode (`WORMBASE_SILENT_MODE=1`) en el stack vivo, el seed persona falló con `propose_person alice returned HTTP 500: 500 Internal Server Error - Server got itself in trouble`.

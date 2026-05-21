@@ -158,27 +158,28 @@ if [ -n "$WHATSAPP_INNER" ]; then
     { "type": "route", "agentId": "main", "match": { "channel": "whatsapp", "accountId": "default" } }'
 fi
 
-# Silent-mode gate 6 (per docs/superpowers/specs/2026-05-18-silent-mode-design.md
-# §"The egress gates"). When WORMBASE_SILENT_MODE is truthy, omit every
-# channel→agent route binding so openclaw's embedded `main` agent is
-# never invoked on inbound chat. Inbound still flows: Baileys/socket →
-# openclaw runtime log → channel-adapter → ledger; worm-core
-# reactivities still fire — but the autonomous kimi reply path is cut.
-# Honored truthy values mirror wormbase_core.silent_mode: 1, true, yes, on.
+# Bindings are kept under silent mode (regression fix 2026-05-21): the
+# earlier gate-6 implementation emptied bindings/agents/models and wiped
+# /root/.openclaw/agents to prevent the openclaw default agent from
+# replying. That worked for outbound (verified) but also broke
+# `chat_received` ledger emission — the channel-adapter session-JSONL
+# tailer depends on the agent's session lifecycle to write events.
+# Stripping bindings → no agent route → no session → no chat_received,
+# which violates the silent-mode spec promise: "Listen-everything still
+# works: ingestion, ledger writes, presence/relevance decisions all run
+# normally."
+#
+# New approach: keep the agent fully configured so inbound routes
+# trigger the session lifecycle (chat_received emits), and rely on the
+# wormbase-silent-mode plugin (installed below) to claim the
+# `before_agent_reply` hook (and friends) BEFORE the LLM call. The
+# plugin's `api.on` registration lands in `registry.typedHooks` and
+# `runClaimingHook` honors `{handled: true}` short-circuits. Belt
+# +suspenders: `channels.whatsapp.actions.sendMessage: false` at the
+# channel adapter level (still emitted under silent mode by
+# render_whatsapp_block above).
 SLACK_BINDING='
     { "type": "route", "agentId": "main", "match": { "channel": "slack", "accountId": "baseworm" } }'
-case "$(echo "${WORMBASE_SILENT_MODE:-0}" | tr '[:upper:]' '[:lower:]')" in
-  1|true|yes|on)
-    log "silent_mode=on — suppressing openclaw agent-route bindings (gate 6)"
-    SLACK_BINDING=""
-    WHATSAPP_BINDING=""
-    ;;
-esac
-# If silent mode cleared SLACK_BINDING but WhatsApp is enabled, strip
-# WhatsApp's leading comma so we don't render `[, { whatsapp } ]`.
-if [ -z "$SLACK_BINDING" ] && [ -n "$WHATSAPP_BINDING" ]; then
-  WHATSAPP_BINDING="${WHATSAPP_BINDING#,}"
-fi
 
 if [ -n "${OLLAMA_API_KEY:-}" ]; then
   MODELS_JSON=$(cat <<'EOF'
@@ -216,46 +217,19 @@ EOF
   # Substitute the placeholder with the real env value (heredoc was 'EOF'
   # quoted to preserve the system prompt's literal text).
   MODELS_JSON=$(printf '%s' "$MODELS_JSON" | sed "s|__OLLAMA_API_KEY_PLACEHOLDER__|${OLLAMA_API_KEY}|")
-  # Silent-mode gate 6 (config-side): drop BOTH `agents` and `models`
-  # blocks under silent mode. Three layers of openclaw fallback to
-  # defeat:
-  #   1. bindings: [] (handled above)
-  #   2. agents.list: [] is insufficient — openclaw rebuilds the
-  #      `main` agent from persisted state at /root/.openclaw/agents/
-  #      and re-routes inbound to it. We also wipe that dir below.
-  #   3. Even with no `agents` key, openclaw's gateway-core falls back
-  #      to a built-in agent that uses whatever model is registered.
-  #      Removing the `models` block forces model resolution to fail
-  #      before the LLM call (the gpt-5.5 default hits "no api key"
-  #      first; the wormbase-silent-mode plugin claims
-  #      before_agent_reply etc. to suppress the error reply).
-  # Inbound still flows: Baileys/socket → openclaw runtime log →
-  # channel-adapter → ledger; worm-core reactivities still fire on
-  # `chat_received` entries.
-  case "$(echo "${WORMBASE_SILENT_MODE:-0}" | tr '[:upper:]' '[:lower:]')" in
-    1|true|yes|on)
-      log "silent_mode=on — stripping agents + models blocks (gate 6 config-side)"
-      MODELS_JSON=$(printf '%s' "$MODELS_JSON" | python3 -c '
-import json, sys
-raw = sys.stdin.read().strip()
-prefix = ""
-if raw.startswith(","):
-    prefix = ","
-    raw = raw[1:].lstrip()
-obj = json.loads("{" + raw + "}")
-obj.pop("agents", None)
-obj.pop("models", None)
-if not obj:
-    print("")
-else:
-    print(prefix + json.dumps(obj, indent=2)[1:-1])
-')
-      if [ -d /root/.openclaw/agents ]; then
-        log "silent_mode=on — wiping /root/.openclaw/agents (no agent state to resurrect)"
-        rm -rf /root/.openclaw/agents
-      fi
-      ;;
-  esac
+  # Note (regression fix 2026-05-21): the earlier gate-6 commit
+  # (9f27128) stripped `agents` and `models` under silent mode and
+  # wiped /root/.openclaw/agents — the intent was to defeat openclaw's
+  # built-in default agent reply path. It worked for outbound (no
+  # "missing api key" message ever sent) BUT broke `chat_received`
+  # ledger emission because the channel-adapter session-JSONL tailer
+  # depends on agent session lifecycle writes. With no agent, no
+  # session, no chat_received — violating the spec's "Listen-everything
+  # still works" guarantee. We now keep agents + models intact and
+  # rely entirely on the wormbase-silent-mode plugin to claim the
+  # `before_agent_reply` hook (proven to fire via api.on +
+  # allowConversationAccess). Plugin's before_dispatch claim already
+  # confirmed live: handler fires, outbound suppressed.
 else
   log "OLLAMA_API_KEY not set — skipping models block"
   MODELS_JSON=""
