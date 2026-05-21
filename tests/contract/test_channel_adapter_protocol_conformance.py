@@ -166,6 +166,20 @@ async def _whatsapp_fixture() -> tuple[ChannelAdapter, Any]:
             "message": {"conversation": "hello world"},
         },
     )
+
+    # WhatsApp's real send subprocesses to OpenClaw (Wave C2), which
+    # isn't reachable from a unit-level conformance test. Replace `send`
+    # with a deterministic stub that honors the Protocol's MessageRef
+    # contract so the test exercises the capability invariant without
+    # needing the OpenClaw container.
+    async def _fake_send(handle: Any, channel: Any, msg: Any) -> MessageRef:
+        return MessageRef(
+            platform="whatsapp",
+            platform_channel_id=channel.platform_channel_id,
+            platform_message_id="whatsapp-msg-stub",
+        )
+
+    adapter.send = _fake_send  # type: ignore[method-assign]
     return adapter, None
 
 
@@ -205,12 +219,11 @@ ADAPTER_FIXTURES: dict[str, AdapterFixture] = {
         ),
         invalid_secrets=SecretBundle(payload={}),
         is_production=False,
-        # Capability honesty: WhatsApp ships at status="preview" and
-        # intentionally omits "send" until OpenClaw's HTTP route is
-        # empirically verified (issue #73016 / Meta Cloud API). The
-        # adapter's send() raises NotImplementedError; the conformance
-        # test honors that contract.
-        supports_send=False,
+        # Wave C2 (2026-05-06) wired send via OpenClaw CLI subprocess;
+        # capability now includes "send". The fixture stubs send() to
+        # bypass the OpenClaw subprocess so the conformance test runs
+        # without external infra.
+        supports_send=True,
     ),
 }
 

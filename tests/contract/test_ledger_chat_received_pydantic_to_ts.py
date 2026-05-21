@@ -38,9 +38,11 @@ from wormbase_ledger.entries import (
     AgentSubscriptionCreatedPayload,
     AgentSubscriptionRevokedPayload,
     BadPatternProposedPayload,
+    CatalogColumnSpec,
     CatalogDriftAcknowledgedPayload,
     CatalogDriftProposedPayload,
     CatalogDriftRejectedPayload,
+    CatalogTableImportedPayload,
     ChatReceivedPayload,
     ChatReplyExecutedPayload,
     ChatReplyProposedPayload,
@@ -1296,6 +1298,15 @@ def _samples() -> dict[str, EntryPayload]:
             rejected_by_person_id=str(person_id),
             reason="expected_change",
             notes="Planned schema migration; ignore",
+        ),
+        "catalog_table_imported": CatalogTableImportedPayload(
+            source_id="src-snowflake-1",
+            snapshot_hash="abc123def456",
+            table_id="ANALYTICS.PUBLIC.ORDERS",
+            columns=(
+                CatalogColumnSpec(name="id", type="NUMBER"),
+                CatalogColumnSpec(name="amount", type="NUMBER(10,2)"),
+            ),
         ),
     }
 
