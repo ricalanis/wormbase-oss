@@ -28,4 +28,23 @@ for pattern in "${GLOBS[@]}"; do
   done
 done
 
+# Gate 6 (openclaw embedded agent) lives in a shell entrypoint, not
+# Python. The egress is implicit — openclaw replies because we declare
+# channel→agent bindings. Guard: the entrypoint must consult
+# WORMBASE_SILENT_MODE somewhere so it can omit the bindings.
+SHELL_GATES=(
+  "infra/openclaw/entrypoint.sh"
+)
+for file in "${SHELL_GATES[@]}"; do
+  [[ -f "$file" ]] || continue
+  if grep -qE "# silent-mode: not-an-egress" "$file"; then
+    continue
+  fi
+  if ! grep -qE "WORMBASE_SILENT_MODE" "$file"; then
+    echo "silent-mode coverage: $file does not consult WORMBASE_SILENT_MODE" >&2
+    echo "  add the gate (see plan §Task 11), or mark with: # silent-mode: not-an-egress" >&2
+    fail=1
+  fi
+done
+
 exit $fail

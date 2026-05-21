@@ -10,6 +10,32 @@ only on a dedicated test number.
 
 ---
 
+## Disabling auto-reply during pairing (silent mode gate 6)
+
+Set `WORMBASE_SILENT_MODE=1` in `.env` before bringing openclaw up if
+you want listen-only behavior — the entrypoint will render
+`"bindings": []` in `/root/.openclaw/openclaw.json`, which means
+openclaw's embedded `main` agent (kimi-k2.6:cloud) is never invoked
+on inbound chat. Inbound flow is unchanged: Baileys session → openclaw
+runtime log → channel-adapter tailer → `chat_received` ledger entry,
+and worm-core reactivities still fire. Only the autonomous reply path
+is cut.
+
+The binding is read at config-render time (entrypoint), not at
+runtime. Toggling `WORMBASE_SILENT_MODE` therefore requires:
+
+```sh
+docker compose -f infra/docker-compose.yml up -d --force-recreate openclaw
+```
+
+A plain `restart` keeps the previously-rendered config.
+
+This is gate 6 of the silent-mode design — see
+`docs/superpowers/specs/2026-05-18-silent-mode-design.md` §"The egress
+gates" and `docs/superpowers/plans/2026-05-18-silent-mode.md` §Task 11.
+
+---
+
 ## ToS notice — read first
 
 OpenClaw's WhatsApp adapter uses [Baileys](https://github.com/WhiskeySockets/Baileys),

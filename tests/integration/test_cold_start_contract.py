@@ -33,6 +33,12 @@ Hypotheses validated (one assertion = one hypothesis):
 * H10 — multi-tenant isolation: baseworm and democorp have distinct
   company_ids and neither tenant's rows appear under the other's
   scope
+* H11 — silent-mode gate 6: under `WORMBASE_SILENT_MODE=1`,
+  `infra/openclaw/entrypoint.sh` renders `bindings: []` in the
+  openclaw config so the embedded agent never auto-replies on
+  inbound chat (caught live 2026-05-21 when a paired WhatsApp DM
+  got an autonomous kimi-k2.6:cloud reply despite the 5 worm-core
+  silent-mode gates being honored)
 
 This test is the cold-start "contract test" — if it fails on a fresh
 clone after `make tutorial`, something in the install path regressed.
@@ -396,3 +402,27 @@ def test_h10_multi_tenant_isolation_baseworm_democorp() -> None:
     demo_hashes = {r["hash"] for r in demo_rows}
     overlap = base_hashes & demo_hashes
     assert not overlap, f"cross-tenant hash overlap: {sorted(overlap)[:5]}"
+
+
+@pytest.mark.skipif(
+    not _env_silent_mode_on(),
+    reason="silent mode not enabled — openclaw bindings should be non-empty",
+)
+def test_h11_openclaw_bindings_empty_under_silent_mode() -> None:
+    """H11 — openclaw bindings are [] under silent mode (gate 6).
+
+    Pulled live from `docker exec wormbase-openclaw cat
+    /root/.openclaw/openclaw.json` so the assertion exercises the
+    actual entrypoint render path, not a mock.
+    """
+    output = _docker(
+        ["exec", "wormbase-openclaw", "cat", "/root/.openclaw/openclaw.json"]
+    )
+    config = json.loads(output)
+    bindings = config.get("bindings")
+    assert bindings == [], (
+        f"expected empty bindings under WORMBASE_SILENT_MODE=1; got: "
+        f"{bindings!r}. The entrypoint silent-mode case did not fire — "
+        "check WORMBASE_SILENT_MODE forwarding in the openclaw service "
+        "env block and the `case` block at the bindings-render site."
+    )

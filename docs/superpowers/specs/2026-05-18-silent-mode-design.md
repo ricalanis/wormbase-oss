@@ -74,9 +74,11 @@ Single environment variable: `WORMBASE_SILENT_MODE`.
   payload and returns; never raises into the egress path and never falls
   through to a real send.
 
-### The three egress gates
+### The egress gates
 
-Approach A — gate at every outbound boundary. Three callsites:
+Approach A — gate at every outbound boundary. Six callsites total
+(three from the original 2026-05-18 design + three from the 2026-05-20
+through-the-stack pass):
 
 1. **Chat outbound** — `apps/channel-adapter/.../writer.py` at the `send`
    boundary. Covers Slack + WhatsApp, DMs, channel replies, and
@@ -88,6 +90,31 @@ Approach A — gate at every outbound boundary. Three callsites:
    at the tool-invocation entry point used by the agent-gateway. This
    is the same checkpoint that enforces optional-effect guards today,
    so the silent-mode check sits alongside the existing guard.
+4. **DM send for resource conversations** — `apps/channel-adapter/.../dm.py`
+   `send_resource_conversation_dm` (per Task 6 of the original plan).
+5. **Voice-agent `/v1/ask`** — `apps/voice-agent/src/wormbase_voice_agent/app.py`
+   `/webhook/elevenlabs` + the dashboard "Ask the worm" endpoint, both
+   short-circuited under silent mode (per Tasks 7 + 9 of the plan).
+6. **OpenClaw embedded agent (added 2026-05-21)** —
+   `infra/openclaw/entrypoint.sh` omits the channel→agent route
+   bindings when `WORMBASE_SILENT_MODE` is truthy. OpenClaw is upstream
+   Node code (installed via npm); we can't decorate its internals from
+   Python, so we cut the binding that triggers its embedded agent
+   instead. Inbound flow is unchanged: Baileys/socket → openclaw
+   runtime log → channel-adapter → ledger; worm-core reactivities
+   still fire on `chat_received` entries. Only openclaw's autonomous
+   kimi-k2.6:cloud reply path is suppressed.
+
+   Caught live 2026-05-21: with `WORMBASE_SILENT_MODE=1` and the
+   first 5 gates honored, a test WhatsApp DM still got an auto-reply
+   from openclaw's embedded agent because the gate didn't exist yet.
+   The fix is a one-bash-conditional in entrypoint.sh — no
+   refactor of openclaw upstream required.
+
+   Restoring openclaw replies for a single tenant requires either
+   `WORMBASE_SILENT_MODE=0` (whole-stack) or — when per-tenant dials
+   land — a tenant-scoped override that re-emits the binding for the
+   selected tenant.
 
 Each gate has the shape:
 

@@ -115,6 +115,12 @@ services:
       # but Node 24's default is to crash on unhandled rejections, which
       # restart-loops the container. Suppress with --unhandled-rejections=none.
       NODE_OPTIONS: "--unhandled-rejections=none"
+      # Silent-mode gate 6: entrypoint.sh omits the channel→agent route
+      # bindings when this is truthy, so openclaw's embedded `main`
+      # agent does not auto-reply on inbound chat. Inbound flow + ledger
+      # writes continue normally. Mirrors the wormbase_core.silent_mode
+      # passthrough on worm-core / voice-agent / channel-adapter / sim.
+      WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
       # Moonshot direct — optional, only if config.json5 activates the
       # commented moonshot block for strict-direct K2.6.
       MOONSHOT_API_KEY: ${MOONSHOT_API_KEY:-}

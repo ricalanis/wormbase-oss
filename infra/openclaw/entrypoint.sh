@@ -142,6 +142,28 @@ if [ -n "$WHATSAPP_INNER" ]; then
     { "type": "route", "agentId": "main", "match": { "channel": "whatsapp", "accountId": "default" } }'
 fi
 
+# Silent-mode gate 6 (per docs/superpowers/specs/2026-05-18-silent-mode-design.md
+# §"The egress gates"). When WORMBASE_SILENT_MODE is truthy, omit every
+# channel→agent route binding so openclaw's embedded `main` agent is
+# never invoked on inbound chat. Inbound still flows: Baileys/socket →
+# openclaw runtime log → channel-adapter → ledger; worm-core
+# reactivities still fire — but the autonomous kimi reply path is cut.
+# Honored truthy values mirror wormbase_core.silent_mode: 1, true, yes, on.
+SLACK_BINDING='
+    { "type": "route", "agentId": "main", "match": { "channel": "slack", "accountId": "baseworm" } }'
+case "$(echo "${WORMBASE_SILENT_MODE:-0}" | tr '[:upper:]' '[:lower:]')" in
+  1|true|yes|on)
+    log "silent_mode=on — suppressing openclaw agent-route bindings (gate 6)"
+    SLACK_BINDING=""
+    WHATSAPP_BINDING=""
+    ;;
+esac
+# If silent mode cleared SLACK_BINDING but WhatsApp is enabled, strip
+# WhatsApp's leading comma so we don't render `[, { whatsapp } ]`.
+if [ -z "$SLACK_BINDING" ] && [ -n "$WHATSAPP_BINDING" ]; then
+  WHATSAPP_BINDING="${WHATSAPP_BINDING#,}"
+fi
+
 if [ -n "${OLLAMA_API_KEY:-}" ]; then
   MODELS_JSON=$(cat <<'EOF'
   ,
@@ -210,8 +232,7 @@ ${TENANTS_JSON}
       }
     }${WHATSAPP_BLOCK}
   },
-  "bindings": [
-    { "type": "route", "agentId": "main", "match": { "channel": "slack", "accountId": "baseworm" } }${WHATSAPP_BINDING}
+  "bindings": [${SLACK_BINDING}${WHATSAPP_BINDING}
   ]${MODELS_JSON}
 }
 EOF

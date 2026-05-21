@@ -1530,6 +1530,70 @@ git commit -m "feat(silent-mode): boot log + /healthz flag per app"
 
 ---
 
+## Task 11: Gate OpenClaw embedded agent (post-merge addendum, 2026-05-21)
+
+After the 5-gate set above shipped, a live WhatsApp test on a fresh
+clone with `WORMBASE_SILENT_MODE=1` surfaced a sixth outbound surface
+not covered by the original design: openclaw's embedded `main` agent
+(kimi-k2.6:cloud) auto-replies to every inbound chat event via the
+channel→agent route bindings declared in
+`infra/openclaw/entrypoint.sh`. Because openclaw is upstream Node code
+installed via npm, we can't decorate its internals — but we can avoid
+asking it to act in the first place.
+
+- [x] **Step 1: Add a silent-mode check in `infra/openclaw/entrypoint.sh`**
+
+Replace the inline binding emit with two shell variables (`SLACK_BINDING`
++ `WHATSAPP_BINDING`) populated at the top of the bindings render. A
+`case` block on `WORMBASE_SILENT_MODE` (truthy values `1|true|yes|on`,
+matching `wormbase_core.silent_mode`) clears both variables. The
+heredoc emitting `openclaw.json` then renders `"bindings": []` under
+silent mode — openclaw still loads, channels still bind, but no agent
+is invoked on inbound events.
+
+- [x] **Step 2: Forward `WORMBASE_SILENT_MODE` in `infra/docker-compose.yml`**
+
+The openclaw service env block needs the same `${WORMBASE_SILENT_MODE:-0}`
+passthrough that worm-core / channel-adapter / voice-agent / sim-harness
+already received (operator-facing wiring from the 2026-05-20 plumbing
+pass).
+
+- [x] **Step 3: Extend `scripts/check_silent_mode_coverage.sh`**
+
+Add `infra/openclaw/entrypoint.sh` to the egress-surface glob. The
+guard matches either `is_silent_mode_enabled` (Python) or the shell
+equivalent `WORMBASE_SILENT_MODE` (which the entrypoint references).
+
+- [x] **Step 4: Add behavioral test**
+
+Extend `tests/integration/test_cold_start_contract.py` with H11: under
+silent mode, openclaw's rendered config `/root/.openclaw/openclaw.json`
+has `bindings == []`. Pulled via `docker exec wormbase-openclaw cat`
++ JSON parse so the test exercises the production render path, not a
+mock.
+
+- [ ] **Step 5: Document the operator switch**
+
+Add a one-paragraph note to `infra/openclaw/WHATSAPP_PAIRING.md`
+pointing operators at `WORMBASE_SILENT_MODE=1` for listen-only setups.
+Mention that the binding is only consulted at render time, so changing
+the env var requires `docker compose up -d --force-recreate openclaw`
+(a plain `restart` keeps the previous-render config).
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add infra/openclaw/entrypoint.sh infra/docker-compose.yml \
+        docs/superpowers/specs/2026-05-18-silent-mode-design.md \
+        docs/superpowers/plans/2026-05-18-silent-mode.md \
+        scripts/check_silent_mode_coverage.sh \
+        tests/integration/test_cold_start_contract.py \
+        infra/openclaw/WHATSAPP_PAIRING.md
+git commit -m "feat(silent-mode): gate openclaw embedded agent via empty bindings"
+```
+
+---
+
 ## Self-Review — Spec Coverage Check
 
 | Spec section                                                                                                 | Implemented in       |
