@@ -85,10 +85,45 @@ help:
 	@echo "  make visual-baselines  — regenerate Playwright PNG baselines against canonical rich seed"
 
 up:
-	$(COMPOSE) up -d
+	$(COMPOSE) --profile openclaw up -d
 
 down:
-	$(COMPOSE) down
+	$(COMPOSE) --profile openclaw --profile hermes --profile hermes-spike down
+
+# Gateway selector (Phase 2 of openclaw→hermes migration). The compose
+# `openclaw` service is profile-gated to `openclaw`; the Phase 0 spike
+# hermes service is gated to `hermes-spike`. The channel-adapter reads
+# WORMBASE_GATEWAY=openclaw|hermes at boot and starts the matching
+# inbound consumer.
+#
+# `make up` defaults to OpenClaw for backward compatibility. To switch:
+#   make gateway-hermes     # bring up Hermes Agent in production mode
+#   make gateway-openclaw   # roll back to OpenClaw
+#   make gateway-status     # show which gateway is currently running
+#
+# When neither flag is set, the channel-adapter falls back to OpenClaw.
+gateway-hermes:
+	@echo "[gateway] switching to hermes (channel-adapter will use HermesEventConsumer)"
+	WORMBASE_GATEWAY=hermes $(COMPOSE) --profile openclaw down hermes openclaw 2>/dev/null || true
+	WORMBASE_GATEWAY=hermes \
+		WORMBASE_HERMES_SPIKE_ENDPOINT=http://channel-adapter:18790/hermes-spike \
+		$(COMPOSE) --profile hermes up -d
+	@echo "[gateway] hermes active. Verify: docker logs wormbase-channel-adapter | grep gateway_kind"
+
+gateway-openclaw:
+	@echo "[gateway] switching to openclaw (channel-adapter will use OpenClawLogTailer)"
+	WORMBASE_GATEWAY=openclaw $(COMPOSE) --profile hermes down hermes 2>/dev/null || true
+	WORMBASE_GATEWAY=openclaw $(COMPOSE) --profile openclaw up -d
+	@echo "[gateway] openclaw active. Verify: docker logs wormbase-channel-adapter | grep gateway_kind"
+
+gateway-status:
+	@printf "active gateway containers:\n"
+	@$(COMPOSE) ps --filter status=running --services 2>/dev/null \
+		| grep -E "^(openclaw|hermes)$$" || echo "  (none running)"
+	@printf "channel-adapter gateway_kind:\n"
+	@docker logs wormbase-channel-adapter 2>&1 \
+		| grep -oE "gateway_kind=[a-z]+" | tail -1 \
+		| sed 's|^|  |' || echo "  (channel-adapter not running)"
 
 logs:
 	$(COMPOSE) logs -f

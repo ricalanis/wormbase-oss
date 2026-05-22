@@ -59,6 +59,16 @@ services:
     # Built from `infra/openclaw/Dockerfile` (npm install of openclaw@latest, MIT).
     # Multi-tenancy: ONE container serves MANY tenants via
     # `channels.slack.accounts.<companyId>` blocks in config.json5.
+    #
+    # GATEWAY SELECTOR (Phase 2 of openclaw→hermes migration):
+    # Profile-gated to `openclaw`. The canonical `make up` brings it up
+    # via `--profile openclaw`. To switch gateways:
+    #   make gateway-hermes        # docker compose --profile hermes up -d
+    #   make gateway-openclaw      # docker compose --profile openclaw up -d
+    # Both gateway services build but only one starts. The channel-
+    # adapter reads WORMBASE_GATEWAY at boot and starts the matching
+    # consumer (OpenClawLogTailer vs HermesEventConsumer).
+    profiles: ["openclaw"]
     build:
       context: ./infra/openclaw
       dockerfile: Dockerfile
@@ -173,15 +183,24 @@ services:
         condition: service_healthy
 
   hermes:
-    # Hermes Agent — H1 spike (DEFERRED 2026-04-27: NO-GO).
+    # Hermes Agent — H1 spike (DEFERRED 2026-04-27 with NO-GO finding).
     #
-    # Per docs/superpowers/notes/2026-04-27-hermes-h1-spike.md, the H1
-    # spike returned NO-GO: Hermes v0.11.0's file-based hook system fires
-    # only on agent-engagement events (mention/DM/target channel), not
-    # on every inbound message. WormBase's lurker mines passively. The
-    # migration is deferred indefinitely; OpenClaw remains the gateway.
+    # Per the original 2026-04-27 spike: Hermes v0.11.0's file-based
+    # hook system fires only on agent-engagement events (mention/DM/
+    # target channel), not on every inbound message. WormBase's lurker
+    # mines passively, so this gap is a hard blocker for full Phase 4
+    # retirement of OpenClaw.
     #
-    # This service is preserved as a reproducible spike snapshot. It is
+    # REVISITED 2026-05-21 (branch `feat/hermes-migration`): the
+    # CHANNEL-ADAPTER side of the migration is now implemented
+    # (HermesEventConsumer in apps/channel-adapter/.../hermes_event_consumer.py
+    # + 16 tests). The blocker is now strictly upstream: whether a
+    # current Hermes Agent release exposes a hook that fires on every
+    # inbound (not just agent-engaged). If yes, Phase 2-4 of the
+    # migration spec proceed as designed. If no, Phase 4 retirement
+    # stays deferred and this profile-gated service serves as the
+    # known-good spike artifact.
+    #
     # GATED behind the `hermes-spike` compose profile so it does NOT
     # start by default. To bring it back up:
     #     docker compose --profile hermes-spike up -d hermes channel-adapter-hermes-spike
@@ -189,7 +208,15 @@ services:
     # or if you want to reclaim the disk): delete the `hermes:` service
     # block + `channel-adapter-hermes-spike:` + `hermes-state` volume,
     # plus `infra/hermes/` and `apps/channel-adapter/.../spike_hermes.py`.
-    profiles: ["hermes-spike"]
+    #
+    # Two profiles: `hermes-spike` keeps the original Phase 0 sidecar
+    # path (POSTs to channel-adapter-hermes-spike); `hermes` is the
+    # Phase 2 production path that POSTs directly to the production
+    # channel-adapter at port 18790 (where HermesEventConsumer
+    # listens — see apps/channel-adapter/.../hermes_event_consumer.py).
+    # The endpoint URL flips via the WORMBASE_HERMES_SPIKE_ENDPOINT
+    # env override below.
+    profiles: ["hermes-spike", "hermes"]
     #
     # ORIGINAL spike rationale (kept as record):
     # Per docs/superpowers/specs/2026-04-27-openclaw-to-hermes-migration.md
@@ -244,6 +271,11 @@ services:
       # directly to avoid a DNS-alias collision with the production
       # `channel-adapter` container (which runs the OpenClaw consumer
       # and does NOT bind 18790).
+      #
+      # Under the `hermes` profile (Phase 2 production path), point at
+      # the production channel-adapter instead:
+      #   WORMBASE_HERMES_SPIKE_ENDPOINT=http://channel-adapter:18790/hermes-spike
+      # The `make gateway-hermes` target sets that automatically.
       WORMBASE_HERMES_SPIKE_ENDPOINT: ${WORMBASE_HERMES_SPIKE_ENDPOINT:-http://channel-adapter-hermes-spike:18790/hermes-spike}
       WORMBASE_TENANT_ID: ${WORMBASE_TENANT_ID:-baseworm}
       # Same Slack credentials OpenClaw uses today — we run the two
@@ -448,6 +480,13 @@ services:
       WORMBASE_ADAPTER_STATE_PATH: /var/lib/wormbase-channel-adapter/state.json
       WORMBASE_TENANT_ID: baseworm
       WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
+      # Gateway selector (Phase 2 of openclaw→hermes migration). Default
+      # `openclaw` keeps the legacy log-tail path; `hermes` starts the
+      # HermesEventConsumer HTTP server on WORMBASE_HERMES_CONSUMER_PORT
+      # (default 18790). Both paths can run simultaneously during a
+      # cutover — writer dedup absorbs the overlap.
+      WORMBASE_GATEWAY: ${WORMBASE_GATEWAY:-openclaw}
+      WORMBASE_HERMES_CONSUMER_PORT: ${WORMBASE_HERMES_CONSUMER_PORT:-18790}
       # Path 3 capture path — directory is the openclaw-tmp shared volume
       # mounted below. OpenClaw writes openclaw-YYYY-MM-DD.log here.
       OPENCLAW_LOG_DIR: /openclaw-runtime-log
@@ -461,6 +500,11 @@ services:
       # (see infra/openclaw/WHATSAPP_PAIRING.md).
       WHATSAPP_ACCOUNT_ID: ${WHATSAPP_ACCOUNT_ID:-}
       WORMBASE_WHATSAPP_BOT_PHONE_BASEWORM: ${WORMBASE_WHATSAPP_BOT_PHONE_BASEWORM:-}
+    # Port 18790 is exposed for the HermesEventConsumer HTTP server.
+    # Inactive (silent) when WORMBASE_GATEWAY=openclaw (no listener
+    # binds); active when WORMBASE_GATEWAY=hermes.
+    ports:
+      - "${WORMBASE_HERMES_CONSUMER_PORT:-18790}:${WORMBASE_HERMES_CONSUMER_PORT:-18790}"
     volumes:
       # Read-only mount of OpenClaw's persistent volume (which holds the
       # session JSONL files we tail).
@@ -471,11 +515,17 @@ services:
       # Per-restart durable state (byte offsets) so we don't re-emit
       # ledger entries on container restart.
       - channel-adapter-state:/var/lib/wormbase-channel-adapter
+    # NOTE (Phase 2 of openclaw→hermes migration): no explicit
+    # depends_on:openclaw here. Compose's depends_on is strict —
+    # listing a profile-gated service as a dependency makes the
+    # compose project invalid under any profile that excludes it.
+    # Channel-adapter tolerates a missing openclaw session-JSONL
+    # directory (it just sees no files and waits), and under
+    # WORMBASE_GATEWAY=hermes it routes through HermesEventConsumer
+    # which is gateway-agnostic. So we depend only on postgres.
     depends_on:
       postgres:
         condition: service_healthy
-      openclaw:
-        condition: service_started
 
   voice-agent:
     # WormBase voice-agent — ElevenLabs custom-LLM webhook bridge.
