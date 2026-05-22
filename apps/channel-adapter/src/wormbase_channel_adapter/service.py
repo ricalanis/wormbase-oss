@@ -41,7 +41,6 @@ from wormbase_ledger.entries import ChatReceivedPayload
 from wormbase_ledger.schema import metadata as ledger_metadata
 
 from wormbase_channel_adapter.hermes_event_consumer import HermesEventConsumer
-from wormbase_channel_adapter.openclaw_log_tail import OpenClawLogTailer
 from wormbase_channel_adapter.parser import ChatReceivedEvent, ParsedEvent
 from wormbase_channel_adapter.slack_client import SlackClient
 from wormbase_channel_adapter.state import OffsetState
@@ -650,7 +649,7 @@ async def run_service(
     openclaw_log_dir: str | None = None,
     slack_bot_token: str | None = None,
     whatsapp_account_id: str | None = None,
-    gateway_kind: str = "openclaw",
+    gateway_kind: str = "hermes",
     hermes_consumer_host: str = "0.0.0.0",
     hermes_consumer_port: int = 18790,
 ) -> None:
@@ -735,7 +734,11 @@ async def run_service(
     # (now correlating envelopes via ``whatsapp_envelope_lookup``) is the
     # ONLY source of WhatsApp chat_received entries. We let those
     # through unconditionally.
-    log_tail_active = bool(openclaw_log_dir) and bool(slack_bot_token)
+    # Phase 4: openclaw log-tail retired (commit landed on
+    # `feat/hermes-migration`). Disable the dedup branch so the
+    # session-JSONL parser becomes the canonical Slack chat_received
+    # emitter again, alongside Hermes wire-tap.
+    log_tail_active = False
 
     async def handler(event: ParsedEvent) -> None:
         if log_tail_active and isinstance(event, ChatReceivedEvent):
@@ -823,9 +826,18 @@ async def run_service(
     # SlackClient facade in this package wraps that same client so
     # GlobalLogCapture's existing API (``slack.bot_id`` etc.) keeps
     # working unchanged.
-    log_tailer: OpenClawLogTailer | None = None
+    # Phase 4 (openclaw retirement): the OpenClawLogTailer code path is
+    # gone. Variables retained as None so the cleanup logic below stays
+    # uniform and a partial rollback (re-introducing the tailer in a
+    # follow-up commit) doesn't require structural edits.
+    log_tailer: Any = None
     log_tailer_task: asyncio.Task[None] | None = None
-    if openclaw_log_dir and slack_bot_token:
+    # The Slack admit-channel dispatch table is preserved (and the
+    # SlackClient initialization below) so the existing tests that
+    # construct a service WITH slack_bot_token can still authenticate;
+    # without the OpenClawLogTailer the admit channel events simply
+    # never fire and the dispatch table sits idle.
+    if False and openclaw_log_dir and slack_bot_token:  # noqa: SIM223 — see comment
         # Load the Slack adapter from the registry (Protocol-driven).
         from wormbase_channel_adapters import (
             SecretBundle as _SecretBundle,
@@ -932,24 +944,18 @@ async def run_service(
                 return
             await handler(channel_id)
 
-        log_tailer = OpenClawLogTailer(
-            log_dir=openclaw_log_dir,
-            on_event=_on_admit,
-        )
-        log_tailer_task = asyncio.create_task(log_tailer.run())
-        log.info(
-            "openclaw-log capture path enabled: log_dir=%s bot_id=%s "
-            "platforms=%s",
-            openclaw_log_dir,
-            slack.bot_id,
-            sorted(platform_admit_handlers.keys()),
-        )
+        # Phase 4: OpenClawLogTailer deleted. The block above is
+        # `if False` so the body never runs; preserved as a placeholder
+        # for the spec-described "two-phase" rollback (re-add the
+        # tailer + drop `if False` if you need to roll back to a
+        # hybrid OpenClaw+Hermes state).
+        pass
     else:
         log.info(
-            "openclaw-log capture path disabled "
-            "(log_dir=%r token=%s)",
-            openclaw_log_dir,
-            "set" if slack_bot_token else "unset",
+            "openclaw-log capture path retired (Phase 4 of "
+            "openclaw→hermes migration). Inbound now flows via "
+            "HermesEventConsumer; envelope_watcher still owns "
+            "WhatsApp ingest correlation."
         )
 
     try:

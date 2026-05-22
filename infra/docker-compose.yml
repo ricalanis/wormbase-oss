@@ -54,134 +54,6 @@ services:
       retries: 10
     command: ["vault", "server", "-dev", "-dev-root-token-id=spike-root", "-dev-listen-address=0.0.0.0:8200"]
 
-  openclaw:
-    # OpenClaw Gateway — multi-tenant chat layer (Slack today; Discord/Teams in scope).
-    # Built from `infra/openclaw/Dockerfile` (npm install of openclaw@latest, MIT).
-    # Multi-tenancy: ONE container serves MANY tenants via
-    # `channels.slack.accounts.<companyId>` blocks in config.json5.
-    #
-    # GATEWAY SELECTOR (Phase 2 of openclaw→hermes migration):
-    # Profile-gated to `openclaw`. The canonical `make up` brings it up
-    # via `--profile openclaw`. To switch gateways:
-    #   make gateway-hermes        # docker compose --profile hermes up -d
-    #   make gateway-openclaw      # docker compose --profile openclaw up -d
-    # Both gateway services build but only one starts. The channel-
-    # adapter reads WORMBASE_GATEWAY at boot and starts the matching
-    # consumer (OpenClawLogTailer vs HermesEventConsumer).
-    profiles: ["openclaw"]
-    build:
-      context: ./infra/openclaw
-      dockerfile: Dockerfile
-    image: wormbase-openclaw:local
-    container_name: wormbase-openclaw
-    restart: unless-stopped
-    # Entrypoint (baked into image) applies wormbase config via
-    # `openclaw config set` then exec's the gateway. Tenant tokens flow
-    # through OpenClaw's native SecretRef pattern (env-bound, never
-    # hardcoded into config files). See infra/openclaw/entrypoint.sh.
-    ports:
-      - "18789:18789"
-    volumes:
-      - openclaw-state:/root/.openclaw
-      # Path 3 capture path: OpenClaw writes its daily global log
-      # (openclaw-YYYY-MM-DD.log) to /tmp/openclaw inside the container;
-      # the channel-adapter mounts the same volume read-only and tails
-      # that file to derive deterministic per-event channel-admit signals.
-      - openclaw-tmp:/tmp/openclaw
-      # Hackathon: mount entrypoint as bind so we can iterate on config
-      # without rebuilding the image. Bake it back into the image once
-      # the config is stable (revert this volume + restore COPY in Dockerfile).
-      # Path is relative to project root (set via Makefile --project-directory .)
-      - ./infra/openclaw/entrypoint.sh:/usr/local/bin/wormbase-entrypoint.sh:ro
-      # Silent-mode gate 6 (true plugin path). Plugin source mounted at
-      # a neutral path; entrypoint copies it into a root-owned dir then
-      # `openclaw plugins install --link` symlinks it into the
-      # extensions dir. Mounting directly under /root/.openclaw/
-      # extensions blocks openclaw from managing the symlink.
-      - ./infra/openclaw/silent-mode-plugin:/opt/wormbase/silent-mode-plugin:ro
-    environment:
-      # Admin token for channel-adapter ↔ OpenClaw bridge auth.
-      OPENCLAW_ADMIN_TOKEN: ${OPENCLAW_ADMIN_TOKEN:-dev-token}
-      # Per-tenant Slack tokens — add new tenants by appending to .env
-      # using the same pattern: SLACK_APP_TOKEN_<COMPANY_ID> / SLACK_BOT_TOKEN_<COMPANY_ID>.
-      # Demo tenant matches the workspace identity baseworm.slack.com.
-      SLACK_APP_TOKEN_BASEWORM: ${SLACK_APP_TOKEN_BASEWORM:-}
-      SLACK_BOT_TOKEN_BASEWORM: ${SLACK_BOT_TOKEN_BASEWORM:-}
-      # WhatsApp via OpenClaw Baileys (preview). Defaults to disabled —
-      # the entrypoint omits the channels.whatsapp block entirely unless
-      # WHATSAPP_ENABLED_BASEWORM=true. Auth is QR pairing at runtime
-      # (see infra/openclaw/WHATSAPP_PAIRING.md), not config-time tokens,
-      # so this block carries policy only:
-      #   - dmPolicy: 'pairing' | 'open' | 'allowlist'
-      #   - groupPolicy: 'allowlist' | 'open'
-      #   - allowFrom: comma-separated E.164 (e.g. "5511999999999,5511888888888")
-      #   - groupAllowFrom: comma-separated jids (e.g. "120363012345...@g.us")
-      # ToS caveat: Baileys is unofficial; only use on dedicated test
-      # numbers, never production CEO numbers.
-      WHATSAPP_ENABLED_BASEWORM: ${WHATSAPP_ENABLED_BASEWORM:-}
-      WHATSAPP_DM_POLICY_BASEWORM: ${WHATSAPP_DM_POLICY_BASEWORM:-pairing}
-      WHATSAPP_GROUP_POLICY_BASEWORM: ${WHATSAPP_GROUP_POLICY_BASEWORM:-allowlist}
-      WHATSAPP_ALLOW_FROM_BASEWORM: ${WHATSAPP_ALLOW_FROM_BASEWORM:-}
-      WHATSAPP_GROUP_ALLOW_FROM_BASEWORM: ${WHATSAPP_GROUP_ALLOW_FROM_BASEWORM:-}
-      # Ollama Cloud — primary provider. Hosts kimi-k2.6:cloud (primary)
-      # and gpt-oss:120b (fallback). Also serves worm-core's own-inference layer.
-      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
-      # OpenClaw's bonjour plugin throws "CIAO PROBING CANCELLED" on
-      # container networks that can't run mDNS. The throw is recoverable
-      # but Node 24's default is to crash on unhandled rejections, which
-      # restart-loops the container. Suppress with --unhandled-rejections=none.
-      NODE_OPTIONS: "--unhandled-rejections=none"
-      # Silent-mode gate 6: entrypoint.sh omits the channel→agent route
-      # bindings when this is truthy, so openclaw's embedded `main`
-      # agent does not auto-reply on inbound chat. Inbound flow + ledger
-      # writes continue normally. Mirrors the wormbase_core.silent_mode
-      # passthrough on worm-core / voice-agent / channel-adapter / sim.
-      WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
-      # Moonshot direct — optional, only if config.json5 activates the
-      # commented moonshot block for strict-direct K2.6.
-      MOONSHOT_API_KEY: ${MOONSHOT_API_KEY:-}
-    # W7.A2 — compose-level healthcheck (overrides the Dockerfile's HEALTHCHECK
-    # because the upstream image's `wget http://localhost:18789/health`
-    # double-fails: (a) `localhost` resolves to `::1` first and OpenClaw
-    # only binds IPv4, and (b) OpenClaw does NOT expose `/health` —
-    # only the control-UI HTML at `/`. We probe `127.0.0.1:18789/` and
-    # accept the 200 OK on the control UI as the liveness signal: it
-    # proves the Node process is up, the HTTP server is bound, and the
-    # event loop is responsive. SocketMode pairing happens in a separate
-    # task so probing it directly would race container boot.
-    #
-    # `start_period: 90s` covers cold-boot: npm-fetched native modules
-    # + Slack SocketMode handshake routinely take 30-60s on the first
-    # boot of the day.
-    healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --spider http://127.0.0.1:18789/ || exit 1"]
-      interval: 15s
-      timeout: 5s
-      start_period: 90s
-      retries: 5
-    # `deploy.restart_policy` caps auto-restart attempts so a
-    # genuinely-broken openclaw (config drift, expired token, repeating
-    # crash) halts after N failures instead of looping forever and
-    # masking the real bug. Modern compose v2 honors this block even
-    # outside swarm and uses it to set the container's HostConfig
-    # RestartPolicy, overriding the `restart:` field above.
-    #
-    # The Docker engine API only supports `MaximumRetryCount` with the
-    # `on-failure` policy — `condition: any + max_attempts` is rejected
-    # at runtime ("invalid restart policy"). So `on-failure` it is.
-    # Coverage gap: a deliberate `docker stop` is not a "failure" and
-    # won't auto-restart, but that's the desired semantic (an operator
-    # who stopped the container meant to). Process crashes (non-zero
-    # exit, kernel OOM-kill, native fault) all trigger restart up to 3x.
-    deploy:
-      restart_policy:
-        condition: on-failure
-        max_attempts: 3
-        window: 120s
-    depends_on:
-      postgres:
-        condition: service_healthy
-
   hermes:
     # Hermes Agent — H1 spike (DEFERRED 2026-04-27 with NO-GO finding).
     #
@@ -216,7 +88,8 @@ services:
     # listens — see apps/channel-adapter/.../hermes_event_consumer.py).
     # The endpoint URL flips via the WORMBASE_HERMES_SPIKE_ENDPOINT
     # env override below.
-    profiles: ["hermes-spike", "hermes"]
+    # Phase 4 (openclaw retired): hermes is the default gateway.
+    # Run unconditionally; no profile gate.
     #
     # ORIGINAL spike rationale (kept as record):
     # Per docs/superpowers/specs/2026-04-27-openclaw-to-hermes-migration.md
@@ -287,39 +160,6 @@ services:
       # for H2.
       SLACK_APP_TOKEN_BASEWORM: ${SLACK_APP_TOKEN_BASEWORM:-}
       SLACK_BOT_TOKEN_BASEWORM: ${SLACK_BOT_TOKEN_BASEWORM:-}
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  channel-adapter-hermes-spike:
-    # H1 spike sidecar — runs the channel-adapter image with the
-    # `hermes-spike` subcommand instead of `run`. This is the POST
-    # endpoint Hermes's wire-tap hook talks to.
-    #
-    # DEFERRED 2026-04-27 alongside the `hermes` service (see notes file
-    # 2026-04-27-hermes-h1-spike.md). Profile-gated so it doesn't auto-start.
-    profiles: ["hermes-spike"]
-    #
-    # Service name `channel-adapter-hermes-spike` (not `channel-adapter`)
-    # to keep the production OpenClaw consumer fully isolated. Hermes's
-    # wire-tap hook reaches this sidecar via the explicit
-    # WORMBASE_HERMES_SPIKE_ENDPOINT env var (set on the `hermes` service
-    # above) — we deliberately do NOT alias this to `channel-adapter`
-    # because that hostname is owned by the production container.
-    image: wormbase-channel-adapter:local
-    container_name: wormbase-channel-adapter-hermes-spike
-    restart: unless-stopped
-    command: ["hermes-spike"]
-    ports:
-      - "18790:18790"
-    environment:
-      WORMBASE_HERMES_SPIKE_SINK: /var/log/wormbase/hermes-spike.jsonl
-      WORMBASE_HERMES_SPIKE_HOST: 0.0.0.0
-      WORMBASE_HERMES_SPIKE_PORT: "18790"
-    volumes:
-      # Mount the spike sink as a named volume so the host (and other
-      # services like sim-harness) can introspect the JSONL.
-      - hermes-spike-log:/var/log/wormbase
     depends_on:
       postgres:
         condition: service_healthy
@@ -480,12 +320,10 @@ services:
       WORMBASE_ADAPTER_STATE_PATH: /var/lib/wormbase-channel-adapter/state.json
       WORMBASE_TENANT_ID: baseworm
       WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
-      # Gateway selector (Phase 2 of openclaw→hermes migration). Default
-      # `openclaw` keeps the legacy log-tail path; `hermes` starts the
-      # HermesEventConsumer HTTP server on WORMBASE_HERMES_CONSUMER_PORT
-      # (default 18790). Both paths can run simultaneously during a
-      # cutover — writer dedup absorbs the overlap.
-      WORMBASE_GATEWAY: ${WORMBASE_GATEWAY:-openclaw}
+      # Phase 4 (openclaw→hermes migration complete): default is now
+      # `hermes`. The OpenClaw service block has been deleted and the
+      # OpenClawLogTailer code path in service.py is dead-coded.
+      WORMBASE_GATEWAY: ${WORMBASE_GATEWAY:-hermes}
       WORMBASE_HERMES_CONSUMER_PORT: ${WORMBASE_HERMES_CONSUMER_PORT:-18790}
       # Path 3 capture path — directory is the openclaw-tmp shared volume
       # mounted below. OpenClaw writes openclaw-YYYY-MM-DD.log here.
@@ -506,12 +344,6 @@ services:
     ports:
       - "${WORMBASE_HERMES_CONSUMER_PORT:-18790}:${WORMBASE_HERMES_CONSUMER_PORT:-18790}"
     volumes:
-      # Read-only mount of OpenClaw's persistent volume (which holds the
-      # session JSONL files we tail).
-      - openclaw-state:/openclaw-state:ro
-      # Read-only mount of OpenClaw's runtime log volume so the global
-      # log tailer can observe every Slack admit decision deterministically.
-      - openclaw-tmp:/openclaw-runtime-log:ro
       # Per-restart durable state (byte offsets) so we don't re-emit
       # ledger entries on container restart.
       - channel-adapter-state:/var/lib/wormbase-channel-adapter
@@ -702,12 +534,8 @@ services:
 volumes:
   postgres-data:
     name: wormbase-postgres-data
-  openclaw-state:
-    name: wormbase-openclaw-state
   # Shared between openclaw (writer) and channel-adapter (reader) so
   # the Path 3 OpenClaw-log tailer sees daily openclaw-*.log files.
-  openclaw-tmp:
-    name: wormbase-openclaw-tmp
   channel-adapter-state:
     name: wormbase-channel-adapter-state
   dashboard-node-modules:

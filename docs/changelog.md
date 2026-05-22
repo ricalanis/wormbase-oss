@@ -12,6 +12,17 @@
 
 ---
 
+### 2026-05-21 — Hermes migration Phase 4: OpenClaw retirement (branch `feat/hermes-migration`)
+
+- Deleted: `infra/openclaw/{Dockerfile, entrypoint.sh, SLACK_MANIFEST.md, UPGRADE.md, silent-mode-plugin/}`, `infra/openclaw-config/config.json5`, `apps/channel-adapter/src/wormbase_channel_adapter/openclaw_log_tail.py`, `apps/channel-adapter/tests/test_openclaw_log_tail.py`. Compose service `openclaw` and `channel-adapter-hermes-spike` removed; volumes `openclaw-state`/`openclaw-tmp` dropped; `hermes` service un-profiled (now default-up).
+- Renamed `infra/openclaw/WHATSAPP_PAIRING.md` → `infra/hermes/WHATSAPP_PAIRING.md` with OpenClaw→Hermes substitutions. Baileys session files remain portable between gateways; operators don't re-pair.
+- Makefile: dropped Phase 2 `gateway-hermes`/`gateway-openclaw`/`gateway-status` selector targets; `up:` simplified to `$(COMPOSE) up -d`, `down:` to `$(COMPOSE) down`.
+- `service.py` OpenClaw-log-tail dispatch block dead-coded behind `if False and …` (kept for rollback ergonomics — re-derive cost is non-trivial). `log_tail_active = False` constant disables the dedup gate, so session-JSONL parser becomes the canonical Slack `chat_received` emitter alongside Hermes wire-tap. `gateway_kind` default flipped `"openclaw"` → `"hermes"` in both `cli.py` and `service.py`.
+- Preserved on purpose: `OPENCLAW_LOG_DIR` + `OPENCLAW_SESSIONS_PATH` env (still consumed by WhatsApp envelope watcher + session-JSONL tailer for `chat_sent`); `WORMBASE_GATEWAY` env (default `hermes`, `openclaw` branch dead but selectable).
+- Gate 6 (silent-mode) plugin deleted outright: Hermes' upstream config disables embedded-agent reply natively (`agents.[name].respond_to_inbound: false`) — a stronger invariant than a per-tenant plugin claim.
+- Tests: 152 pass, 1 skipped (live-Hermes integration, gated on H1 upstream resolution). Burn-down detail in `docs/superpowers/notes/2026-05-21-openclaw-retirement.md`.
+- Merge gate: branch does NOT merge to main until Phase 3 live verification clears. H1 NO-GO (Hermes v0.11.0 hook only fires on agent-engaged inbound) + WhatsApp shadow throttle on test SIM both block live runs as of today.
+
 ### 2026-05-21 — Hermes migration Phase 1 (branch `feat/hermes-migration`)
 
 - `apps/channel-adapter/src/wormbase_channel_adapter/hermes_event_consumer.py` (new, 332 lines): aiohttp HTTP server (POST `/hermes-spike` + GET `/healthz`) that receives wire-tap hook envelopes from NousResearch Hermes Agent and translates `agent:start` events into `ChatReceivedEvent`. Routes through the existing `LedgerWriter` so dedup + ledger PEVR cycle are unchanged. Synthesizes stable `(channel_id, message_id)` from `(session_id, ts, text)` SHA256 when the hook envelope is minimal; honors richer fields (`channel_id`, `message_ts`) when the hook is extended.

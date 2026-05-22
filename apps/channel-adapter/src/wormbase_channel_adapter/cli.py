@@ -94,13 +94,13 @@ def run_cmd(
     # is wired into the openclaw-log dispatch table; absent, the dispatch
     # logs "no adapter registered" for whatsapp lines (graceful drop).
     whatsapp_account_id = os.environ.get("WHATSAPP_ACCOUNT_ID")
-    # Gateway selection per the openclaw→hermes migration spec
-    # (docs/superpowers/specs/2026-04-27-openclaw-to-hermes-migration.md
-    # §6 Phase 2). Default "openclaw" keeps the legacy log-tail path
-    # active; flip to "hermes" via WORMBASE_GATEWAY=hermes and the
-    # HermesEventConsumer HTTP server starts on port 18790. Both
-    # paths can run simultaneously during a cutover.
-    gateway_kind = os.environ.get("WORMBASE_GATEWAY", "openclaw")
+    # Gateway selection (Phase 4 of the openclaw→hermes migration —
+    # docs/superpowers/specs/2026-04-27-openclaw-to-hermes-migration.md).
+    # Default is now "hermes"; the legacy "openclaw" branch in service.py
+    # is dead-coded but the env-var hook is preserved so a future operator
+    # can resurrect log-tailing against an external OpenClaw without a
+    # code change. --openclaw-log-dir is retained for the same reason.
+    gateway_kind = os.environ.get("WORMBASE_GATEWAY", "hermes")
     hermes_consumer_port = int(
         os.environ.get("WORMBASE_HERMES_CONSUMER_PORT", "18790"),
     )
