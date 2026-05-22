@@ -40,6 +40,7 @@ from wormbase_ledger import Ledger
 from wormbase_ledger.entries import ChatReceivedPayload
 from wormbase_ledger.schema import metadata as ledger_metadata
 
+from wormbase_channel_adapter.hermes_event_consumer import HermesEventConsumer
 from wormbase_channel_adapter.openclaw_log_tail import OpenClawLogTailer
 from wormbase_channel_adapter.parser import ChatReceivedEvent, ParsedEvent
 from wormbase_channel_adapter.slack_client import SlackClient
@@ -649,8 +650,28 @@ async def run_service(
     openclaw_log_dir: str | None = None,
     slack_bot_token: str | None = None,
     whatsapp_account_id: str | None = None,
+    gateway_kind: str = "openclaw",
+    hermes_consumer_host: str = "0.0.0.0",
+    hermes_consumer_port: int = 18790,
 ) -> None:
-    """Run the channel adapter until SIGINT/SIGTERM."""
+    """Run the channel adapter until SIGINT/SIGTERM.
+
+    The ``gateway_kind`` parameter selects the inbound transport per
+    `docs/superpowers/specs/2026-04-27-openclaw-to-hermes-migration.md`
+    §6 Phase 2:
+
+      - ``"openclaw"`` (default): legacy OpenClaw log-tail path. Tails
+        ``openclaw_log_dir`` for ``slack: allow channel <CID>`` lines.
+      - ``"hermes"``: Phase 1 Hermes Agent path. Starts an HTTP
+        consumer on ``hermes_consumer_port`` that receives wire-tap
+        hook POSTs and emits :class:`ChatReceivedEvent` directly via
+        the writer.
+
+    Both paths funnel through the same :class:`LedgerWriter`; per-
+    process ``(channel_id, message_id)`` dedup means running both
+    simultaneously during a cutover window is safe (the second
+    arrival of the same key is a no-op).
+    """
     company_id = tenant_to_company_uuid(tenant_slug)
     log.info("tenant %r → company_id %s", tenant_slug, company_id)
 
@@ -762,13 +783,35 @@ async def run_service(
     if envelope_watcher is not None:
         envelope_watcher_task = asyncio.create_task(envelope_watcher.run())
 
+    # Phase 1 Hermes path. When ``gateway_kind == "hermes"`` we start
+    # an HTTP server on ``hermes_consumer_port`` that receives wire-tap
+    # hook POSTs. The legacy OpenClaw log-tail path below still runs
+    # (when openclaw_log_dir is set) so a single channel-adapter can
+    # consume from BOTH gateways simultaneously during a Phase 2
+    # cutover window. Dedup at the writer absorbs duplicate
+    # (channel_id, message_id) arrivals.
+    hermes_consumer: HermesEventConsumer | None = None
+    hermes_consumer_task: asyncio.Task[None] | None = None
+    if gateway_kind.lower() == "hermes":
+        hermes_consumer = HermesEventConsumer(
+            writer=writer,
+            host=hermes_consumer_host,
+            port=hermes_consumer_port,
+        )
+        hermes_consumer_task = asyncio.create_task(hermes_consumer.run())
+        log.info(
+            "hermes event consumer enabled: listening on http://%s:%d",
+            hermes_consumer_host, hermes_consumer_port,
+        )
+
     log.info(
         "channel-adapter up: sessions=%s ledger=%s poll=%.1fs "
-        "envelope_watcher=%s",
+        "envelope_watcher=%s gateway_kind=%s",
         sessions_path,
         _redact_dsn(ledger_dsn),
         poll_interval_s,
         "on" if envelope_watcher is not None else "off",
+        gateway_kind,
     )
 
     # Optional: OpenClaw global log tailer + Slack client.
@@ -926,6 +969,13 @@ async def run_service(
                 await asyncio.wait_for(envelope_watcher_task, timeout=2.0)
             except (TimeoutError, Exception):  # noqa: BLE001
                 envelope_watcher_task.cancel()
+        if hermes_consumer is not None:
+            hermes_consumer.stop()
+        if hermes_consumer_task is not None:
+            try:
+                await asyncio.wait_for(hermes_consumer_task, timeout=2.0)
+            except (TimeoutError, Exception):  # noqa: BLE001
+                hermes_consumer_task.cancel()
         await ledger.dispose()
         log.info("channel-adapter shutdown complete")
 
