@@ -12,6 +12,16 @@
 
 ---
 
+### 2026-05-21 — Hermes migration Phase 1 (branch `feat/hermes-migration`)
+
+- `apps/channel-adapter/src/wormbase_channel_adapter/hermes_event_consumer.py` (new, 332 lines): aiohttp HTTP server (POST `/hermes-spike` + GET `/healthz`) that receives wire-tap hook envelopes from NousResearch Hermes Agent and translates `agent:start` events into `ChatReceivedEvent`. Routes through the existing `LedgerWriter` so dedup + ledger PEVR cycle are unchanged. Synthesizes stable `(channel_id, message_id)` from `(session_id, ts, text)` SHA256 when the hook envelope is minimal; honors richer fields (`channel_id`, `message_ts`) when the hook is extended.
+- Option A from the migration spec §2 — Hermes has no documented external event-emit path, so the hook posts via HTTP to channel-adapter. The same architectural shape we used to fix the openclaw 2026.5.6+ envelope-watcher (commit `7588fa2`): direct emission, no session-JSONL correlation. Migration design doc this implements: `docs/superpowers/specs/2026-04-27-openclaw-to-hermes-migration.md` §6 Phase 1.
+- `apps/channel-adapter/src/wormbase_channel_adapter/service.py` gains `gateway_kind` parameter (default `"openclaw"`); when set to `"hermes"` starts the HermesEventConsumer alongside the OpenClaw log-tailer. Both can run simultaneously during a cutover — writer's `(channel_id, message_id)` dedup absorbs the overlap.
+- `apps/channel-adapter/src/wormbase_channel_adapter/cli.py` reads `WORMBASE_GATEWAY` (default `openclaw`) + `WORMBASE_HERMES_CONSUMER_PORT` (default `18790`) from env.
+- `apps/channel-adapter/tests/test_hermes_event_consumer.py` (new): 16 tests — happy path, richer-context upgrade, empty-text skip, session-event/unknown-event skip, malformed payloads (non-object, missing event_type, missing context fields), writer-failure 500, deterministic synthetic message_id, ISO8601 fallback to now(), translation-error raising. Full channel-adapter suite green: 155/155.
+- Phase 0 spike scaffolding (`infra/hermes/Dockerfile` + entrypoint + `hooks/wire-tap/`) untouched — stays as the GO/NO-GO artifact per spec §6.
+- Phase 2 (docker-compose service swap with `WORMBASE_GATEWAY` profile selector), Phase 3 (live end-to-end test against running Hermes), Phase 4 (OpenClaw retirement) deferred — Phase 3 needs a real NousResearch hermes-agent upstream available at the pinned tag, which is not buildable in this session (the spec's `v2026.4.23` git tag may or may not resolve). The receiving end of the migration is fully ready and unit-tested; Phase 2 onwards becomes plumbing the day a real Hermes is reachable.
+
 ### 2026-05-21 — Silent-mode gate 6 (openclaw plugin) + WhatsApp shadow-throttle learning
 
 - Cerrado el 6to egress surface del silent-mode design — openclaw embedded agent ya no auto-reply. Implementación final: plugin `wormbase-silent-mode` instalado via `openclaw plugins install --link`, registra hooks `before_agent_reply` + `message_sending` via `api.on` (typed-hook registry — `registerHook` legacy NO claima, descubierto leyendo `dist/loader-CZB9kQVT.js:2241-2316` + `hook-runner-global-D1vhzHUy.js:149/385`). `plugins.entries.wormbase-silent-mode.hooks.allowConversationAccess: true` admite los CONVERSATION_HOOK_NAMES para non-bundled plugins. Verificado live: `HANDLER_FIRING hook=before_agent_reply` + zero outbound.
