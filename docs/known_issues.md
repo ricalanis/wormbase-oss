@@ -24,6 +24,39 @@ Antes de empezar trabajo no trivial, ojear esta lista y filtrar por área tocada
 
 <!-- Entradas más recientes arriba -->
 
+### 2026-05-21 — WhatsApp shadow throttle: Baileys session alive, server silently stops delivering inbound
+
+**Contexto:** Después de ~10 admin-CLI outbound notifications en ~2h durante la sesión de gate-6 (todas vía `openclaw message send` al mismo paired number `+5218114822051`, una WA number de pocos días de vida), inbound dejó de llegar a openclaw. El heartbeat seguía firing cada 60s (`web gateway heartbeat`) pero `messagesHandled` quedó en 2 y `lastInboundAt` no avanzó. El warning `⚠️ web gateway heartbeat - no messages in 30+ minutes` apareció a los 30min sin inbound. Ni los DMs del usuario ni mensajes del grupo cruzaron.
+
+**Qué pasó:** Anti-spam server-side de WhatsApp tiene dos tiers:
+- **Hard ban** — revoca la linked-device session inmediatamente. Visible en `connection_close reason=loggedOut`; la entrada de OpenClaw desaparece del "Linked Devices" panel del teléfono primary.
+- **Soft throttle / shadow defer** — la sesión sigue viva (heartbeats firing, looks healthy), pero el server deja de entregar inbound. Outbound desde la sesión sigue funcionando. **No hay log line announcing it** — only se ve como `messagesHandled` stuck en 0 y `lastInboundAt: null`. Diagnóstico requiere leer el heartbeat JSON, no los logs textuales.
+
+Re-pair en la MISMA SIM no clear el flag — el throttle es *number-scoped*, no *session-scoped*. Un fresh QR pair sólo re-establece el device link; el counter de abuso queda en el server contra el número.
+
+**Causa raíz:** Pattern de la sesión que disparó el flag:
+- 10 messages en ~2h desde un brand-new linked-device session
+- Todos rapid-fire (cadencia de script, no humana)
+- Similar length, similar style (todos status pings)
+- Sender = unofficial Baileys client (loaded prior contra nosotros por ToS)
+- Ratio outbound:inbound altamente skewed (10:2 en ~2h)
+
+WhatsApp's signature match para unofficial-client abuse. Silent decision; no surfacing al client.
+
+**Cómo evitarlo:**
+1. **Hard cap: 1 outbound admin-CLI message cada 5+ minutos** cuando no hay diálogo activo con un humano.
+2. **Batch notifications**: si vienen 3 commits en sucesión, manda UN solo end-of-batch summary, no 3 pings.
+3. **Symmetry watch**: si outbound count >> inbound count en una hora, slow down — probablemente a punto de trip.
+4. **Don't pair with executive/personal numbers** (ya documentado en `infra/openclaw/WHATSAPP_PAIRING.md` ToS notice); el throttle (o eventual hard ban) propaga al device WhatsApp identifica como primary.
+5. Si el `actions.sendMessage: false` flag suprime agent-driven sends, **el admin CLI lo bypassea**. Considerar agregar un rate-limiter en algún wrapper del CLI o en el openclaw service, o un buffer que flush'ee notifications batched cada N min.
+
+**Recovery flow:**
+- **Esperar 1-24h** sin outbound — el soft throttle suele clear solo.
+- **Rotar a un test SIM fresco** si urge — el throttle es per-number, así que un número nuevo bypassea inmediatamente. Después: pairing flow normal vía `openclaw channels login`, ajustar `WORMBASE_WHATSAPP_BOT_PHONE_<TENANT>` en `.env` al nuevo número, restart openclaw.
+- **No re-pair la misma SIM esperando que cambie algo** — confirmado live 2026-05-21 que un re-pair limpio (logout + wipe creds + fresh QR scan + Linked after restart) NO restauró inbound. Number-scoped.
+
+**Observación adicional sobre el architectural impact:** el outbound path del admin CLI bypassa todos los gates (worm-core silent mode, plugin claims, `actions.sendMessage`). Es útil para status pings pero introduce un attack/abuse surface que el silent-mode design no contempla. Considerar: rate-limit en el CLI mismo (e.g. via openclaw plugin), o un wrapper script local que envuelva `docker exec ... openclaw message send` con un sleep + counter persistente.
+
 ### 2026-05-21 — Gate-6 stripping rompió emisión de `chat_received` (audit-trail regression)
 
 **Contexto:** Gate-6 commits 9f27128 + f45c9b0 cerraron el outbound reply path bajo silent mode (verificado live: cero "Missing API key" replies después del fix `api.on` + `allowConversationAccess`). Pero un DM de prueba mostró que `chat_received` ya no aterriza en el ledger bajo silent mode.

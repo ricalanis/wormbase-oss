@@ -36,6 +36,43 @@ gates" and `docs/superpowers/plans/2026-05-18-silent-mode.md` §Task 11.
 
 ---
 
+## Shadow throttle from rapid admin-CLI outbound — read first
+
+`openclaw message send` (the admin CLI) bypasses every WormBase gate
+— silent mode, channel-level `actions.sendMessage`, the
+wormbase-silent-mode plugin claims. Useful for status pings, but
+WhatsApp's server-side anti-spam treats bursts of automated outbound
+from an unofficial Baileys client as abuse signal. The result is
+a **soft throttle**: heartbeats keep firing (looks healthy), but the
+WhatsApp server silently stops delivering inbound. `messagesHandled`
+stays at zero, `lastInboundAt` stays null. **No log line announces
+the throttle** — diagnose by reading the heartbeat JSON, not the
+textual log.
+
+Empirical 2026-05-21: ~10 admin-CLI outbound messages in 2 hours
+from a days-old number triggered the throttle. Re-pairing the same
+SIM did NOT clear the flag — it's number-scoped, not session-scoped.
+
+Rules to avoid retriggering, applied as durable operating practice:
+
+- Cap admin-CLI outbound at **≤ 1 message per 5 minutes** when not
+  in active human dialogue. Batch multiple updates into one summary
+  rather than ping per event.
+- Watch the outbound:inbound ratio. If you're emitting more than
+  the human is, slow down.
+- Pair only dedicated test SIMs (see ToS notice below); a flagged
+  number can propagate the soft ban / eventual hard ban to the
+  device WhatsApp identifies as primary.
+- Recovery: either wait 1-24h with no outbound (the throttle
+  usually clears on its own), or rotate to a fresh test SIM and
+  re-pair. Don't waste a re-pair on the same SIM hoping for
+  different results.
+
+Full mechanism + recovery flow documented in
+`docs/known_issues.md` ("WhatsApp shadow throttle").
+
+---
+
 ## ToS notice — read first
 
 OpenClaw's WhatsApp adapter uses [Baileys](https://github.com/WhiskeySockets/Baileys),

@@ -12,6 +12,14 @@
 
 ---
 
+### 2026-05-21 — Silent-mode gate 6 (openclaw plugin) + WhatsApp shadow-throttle learning
+
+- Cerrado el 6to egress surface del silent-mode design — openclaw embedded agent ya no auto-reply. Implementación final: plugin `wormbase-silent-mode` instalado via `openclaw plugins install --link`, registra hooks `before_agent_reply` + `message_sending` via `api.on` (typed-hook registry — `registerHook` legacy NO claima, descubierto leyendo `dist/loader-CZB9kQVT.js:2241-2316` + `hook-runner-global-D1vhzHUy.js:149/385`). `plugins.entries.wormbase-silent-mode.hooks.allowConversationAccess: true` admite los CONVERSATION_HOOK_NAMES para non-bundled plugins. Verificado live: `HANDLER_FIRING hook=before_agent_reply` + zero outbound.
+- Iteración hasta encontrar el set mínimo de hooks correcto: claim de `before_dispatch`/`reply_dispatch`/`before_message_write` rompía la session-JSONL write del agente y por tanto chat_received emission. Sólo `before_agent_reply` + `message_sending` (después de que el inbound ya fue persistido) preservan el audit trail.
+- Channel-adapter `whatsapp_envelope_watcher` ahora reconoce el shape nuevo de openclaw 2026.5.6+ (`module: web-inbound` con payload estructurado incluyendo body) y emite `ChatReceivedEvent` directo via callback (`on_inbound=writer.emit`), bypass de la correlación session-JSONL que ya no funciona bajo silent mode. 3 tests nuevos en `test_whatsapp_envelope_watcher.py` (13/13 verde).
+- Tenant nuevo `altis` (uuid5 `7f032a92-7036-5126-a957-8d2607126169`) cableado fully containerized + WhatsApp paired al número `+5218114822051`. `infra/openclaw/entrypoint.sh:render_whatsapp_block` ganó emisión de `groupPolicy` + `groupAllowFrom` que estaban silently dropped antes (bug latent — operador setting `WHATSAPP_GROUP_ALLOW_FROM_<TENANT>` no veía efecto). Grupo `120363422164956421@g.us` registrado como Claude↔user command channel — guardado como project memory para futuras sesiones.
+- WhatsApp shadow-throttle incident: ~10 admin-CLI outbound messages en 2h desde un número joven gatillaron el soft-throttle (heartbeats firing, `messagesHandled` stuck en 0, `lastInboundAt: null`). Re-pair de la misma SIM NO clear el flag (number-scoped, no session-scoped). Documentado en `infra/openclaw/WHATSAPP_PAIRING.md` con reglas de rate-limit (≤1 admin-CLI message cada 5min sin diálogo activo) y en `docs/known_issues.md` con mecanismo completo + recovery flow.
+
 ### 2026-05-21 — Pitch deck + mock demo dashboard para design partner
 
 - Tres artefactos para presentar el producto a un design partner / co-founder con todo en estado *mechanical-turk-as-agent* (humano genera lo que el agente generará).
