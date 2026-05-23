@@ -49,6 +49,8 @@ dev = [
 [project.scripts]
 wormbase-worm-core = "wormbase_core.cli:main"
 wormbase-embedding-backfill = "wormbase_core.scripts.embedding_backfill:main"
+wormbase-ledger-recent = "wormbase_core.scripts.ledger_recent:main"
+wormbase-ingest-transcript = "wormbase_core.scripts.ingest_transcript:main"
 
 [tool.uv.sources]
 wormbase-ledger = { workspace = true }
