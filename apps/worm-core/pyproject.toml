@@ -52,6 +52,7 @@ wormbase-embedding-backfill = "wormbase_core.scripts.embedding_backfill:main"
 wormbase-ledger-recent = "wormbase_core.scripts.ledger_recent:main"
 wormbase-ingest-transcript = "wormbase_core.scripts.ingest_transcript:main"
 wormbase-pull-fireflies = "wormbase_core.scripts.pull_fireflies:main"
+wormbase-pull-readai = "wormbase_core.scripts.pull_readai:main"
 
 [tool.uv.sources]
 wormbase-ledger = { workspace = true }
