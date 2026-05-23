@@ -312,6 +312,7 @@ async def _emit_turn(
     message_id: str,
     turn: Turn,
     platform_ts: datetime,
+    proposed_by: str = "ingest-transcript",
 ) -> Any:
     """Persist one transcript turn via the canonical PEVR cycle.
 
@@ -347,7 +348,7 @@ async def _emit_turn(
             "target_kind": "chat_received",
             "ref_id": str(ref_id),
             "reason": f"transcript inbound from {turn.speaker}",
-            "proposed_by": "ingest-transcript",
+            "proposed_by": proposed_by,
         },
         execute_fn=lambda: {
             "tool": "ingest_transcript.emit_chat_received",
@@ -367,6 +368,54 @@ async def _emit_turn(
         timestamp=platform_ts,
         quadrant="active_probabilistic",
     )
+
+
+# ---------------------------------------------------------------------------
+# Shared turn-emission helper (used by both ingest_transcript and pull_fireflies)
+# ---------------------------------------------------------------------------
+
+async def ingest_turns(
+    ledger: Any,
+    *,
+    company_id: UUID,
+    meeting_id: str,
+    base_dt: datetime,
+    turns: list[Turn],
+    proposed_by: str = "ingest-transcript",
+) -> None:
+    """Emit one ledger PEVR cycle per turn into ``ledger``.
+
+    This is the canonical entry point for writing transcript turns — both
+    ``wormbase-ingest-transcript`` (SRT path) and ``wormbase-pull-fireflies``
+    (Fireflies sentences path) call this function so the per-turn ledger shape
+    is identical across ingestion methods.
+
+    Args:
+        ledger:      Ledger or InMemoryLedger instance.
+        company_id:  Resolved company UUID for the tenant.
+        meeting_id:  Opaque meeting slug (e.g. ``"altis-ff-meet-aaaa-1111"``).
+        base_dt:     UTC datetime that anchors turn offsets (cue start_ts is
+                     added to this to produce ``platform_ts``).
+        turns:       Ordered list of Turn objects to emit.
+        proposed_by: String recorded in the ``proposed_by`` field of each
+                     propose entry. Defaults to ``"ingest-transcript"`` for
+                     backward compatibility.
+    """
+    channel_id = f"meeting:{meeting_id}"
+
+    for turn_idx, turn in enumerate(turns):
+        message_id = f"transcript-{meeting_id}-{turn_idx:04d}"
+        platform_ts = base_dt + turn.start_ts
+        await _emit_turn(
+            ledger,
+            company_id=company_id,
+            session_id=f"meeting-{meeting_id}",
+            channel_id=channel_id,
+            message_id=message_id,
+            turn=turn,
+            platform_ts=platform_ts,
+            proposed_by=proposed_by,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -465,28 +514,20 @@ async def _ingest(
     last_seq: int | None = None
 
     if not dry_run:
-        for turn_idx, turn in enumerate(turns):
-            message_id = f"transcript-{meeting_id}-{turn_idx:04d}"
-            platform_ts = base_dt + turn.start_ts
-            result = await _emit_turn(
-                ledger,
-                company_id=company_id,
-                session_id=session_id,
-                channel_id=channel_id,
-                message_id=message_id,
-                turn=turn,
-                platform_ts=platform_ts,
-            )
-            if result is not None:
-                # WriteResult has entry_ids; extract seq if available.
-                try:
-                    rows = await ledger.fetch(company_id)
-                    if rows:
-                        if first_seq is None:
-                            first_seq = rows[0].get("seq")
-                        last_seq = rows[-1].get("seq")
-                except Exception:  # noqa: BLE001
-                    pass
+        await ingest_turns(
+            ledger,
+            company_id=company_id,
+            meeting_id=meeting_id,
+            base_dt=base_dt,
+            turns=turns,
+        )
+        try:
+            rows = await ledger.fetch(company_id)
+            if rows:
+                first_seq = rows[0].get("seq")
+                last_seq = rows[-1].get("seq")
+        except Exception:  # noqa: BLE001
+            pass
 
     # Print summary.
     if turns:
@@ -660,5 +701,6 @@ __all__ = [
     "Turn",
     "parse_srt",
     "group_turns",
+    "ingest_turns",
     "main",
 ]
