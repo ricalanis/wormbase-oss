@@ -217,13 +217,15 @@ Based on the May 22 call + B2B-consultancy-uses-WhatsApp+Fireflies profile.
 
 | Rank | Source | In catalog? | Effort to wire | Notes |
 |---|---|---|---|---|
-| 1 | **Fireflies** | ❌ no | Sprint 1: CLI exists (`wormbase-pull-fireflies`, see Task A). Sprint 2: ~1h to add `mcp:fireflies` preset IF Fireflies ships a public MCP; otherwise ~4h native driver against the GraphQL API. | Mentioned explicitly on the call. The CLI shipping today is the pragmatic Monday path; native/MCP driver follows once Altis is comfortable. |
-| 2 | **Read.AI (RID)** | ❌ no | ~4-6h native driver (Read.AI has REST API, no public MCP at time of writing). | Mentioned on call. Lower priority than Fireflies (Altis seems Fireflies-primary). |
+| 1 | **Read.AI (RID)** | 🔧 CLI (`wormbase-pull-readai`) shipping in this batch | Sprint 1: CLI exists, needs `READAI_API_KEY` from Poncho. Sprint 2: ~4-6h native `SurfaceDriver` in `lake-surfaces/`. | **PRIMARY for Altis** — Poncho's team runs on Read.AI (confirmed 2026-05-23). Mentioned explicitly on the May 22 call ("nos conectaríamos a RID"). |
+| 2 | **Fireflies** | 🔧 CLI (`wormbase-pull-fireflies`) shipped at `670758b` | Sprint 2: ~1h MCP preset IF Fireflies ships public MCP; else ~4h native driver. | Ricardo's own tool, not Altis's. Useful for Ricardo's dogfooding meetings + future customers on Fireflies. |
 | 3 | **Notion** | ✅ MCP preset `mcp:notion` (real) AND ⚠️ native skeletal | 30 min — use MCP preset; have Altis generate a bearer token via Notion's MCP Auth flow. | Likely to come up if Altis stores client docs in Notion. |
 | 4 | **Google Workspace** | ✅ MCP preset `mcp:gworkspace` | 30 min — OAuth bearer. | Drive/Docs/Sheets/Calendar via one preset. Likely useful for client deliverables. |
 | 5 | **Hubspot** | ✅ both `mcp:hubspot` (real MCP) AND ⚠️ native skeletal | 30 min — prefer MCP preset (vendor maintains schema). | Mentioned as common B2B-consultancy stack. |
 
-**For ranks 1-2 (no driver yet):** when Altis mentions them, lead with "Fireflies-CLI is shipping Monday; native driver lands in week 2-3" — sets expectation honestly.
+**For rank 1 (Read.AI):** CLI ready, just needs the API key from Poncho. Demo it dry-run on the kickoff call to prove the integration is real, then run it weekly until the Sprint 2 SurfaceDriver lands.
+
+**For rank 2 (Fireflies):** Ricardo-internal. Don't lead with it for Altis pitches.
 
 **For ranks 3-5 (in catalog):** when Altis mentions them, you can wire in <1h. Quote that on the call.
 

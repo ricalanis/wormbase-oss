@@ -153,9 +153,9 @@ uv run --directory apps/worm-core wormbase-ledger-recent --tenant altis --kind r
 
 ---
 
-## §5. Ingest the May 22 prep call transcript
+## §5. Ingest the May 22 prep call transcript (demo seed)
 
-This is the demo moment — show Altis that their call has already been processed.
+This is the demo moment — show Altis that their conversations are already being processed. The May 22 call is **YOUR** Fireflies recording (you use Fireflies, Altis uses Read.AI), so ingest via the SRT-file path:
 
 ```bash
 uv run --directory apps/worm-core wormbase-ingest-transcript \
@@ -179,6 +179,30 @@ uv run --directory apps/worm-core wormbase-ledger-recent --tenant altis --limit 
   --kind chat_received | grep transcript-altis-wormbase
 ```
 
+### §5b. Read.AI live pull (Altis's actual stack)
+
+Altis runs on Read.AI — Poncho's team meetings live there. Sample-pull during the kickoff to show the integration is real, not a slideware promise:
+
+```bash
+# Requires a READAI_API_KEY from Poncho's Read.AI workspace.
+# On the call, ask Poncho to generate one (Read.AI: Settings → API → Generate Token).
+READAI_API_KEY=<key> uv run --directory apps/worm-core wormbase-pull-readai \
+  --tenant altis \
+  --since 2026-05-15 \
+  --limit 5 \
+  --dry-run
+
+# Dry-run first to verify the API call works without writing rows.
+# Then drop --dry-run for the live ingestion.
+```
+
+If Poncho can't generate a token live, frame the pitch: "Here's the command — once you drop me a key, I run this weekly until we automate it (Sprint 2)." Show the help output (`--help`) as proof the integration is implemented.
+
+**Live API quirks to be aware of (flagged by the implementer):**
+1. **`--since` filter param name is unverified.** The MCP tool we used to derive the API uses `start_datetime_gte`. If `--since 2026-05-15` returns ALL meetings (filter ignored), the real param name differs. Re-run without `--since` first to confirm any data comes back, then debug filtering.
+2. **Turn timestamps are absolute epoch ms, not relative to meeting start.** Already handled in the code, but if Altis ever asks "why is this turn dated 1970-01-01" we know where to look (timestamp conversion gone wrong).
+3. **Read.AI sometimes returns `speaker.name == "UNKNOWN_SPEAKER"`.** These pass through to the lake as-is. If Altis wants them filtered or remapped to a known participant, add a `--remap-unknown <speaker>` flag in Sprint 2.
+
 ---
 
 ## §6. On the call
@@ -187,9 +211,10 @@ Things to show, in order:
 
 1. **The group exists, the bot is in it, messages flow.** Send a message in front of them.
 2. **Run `wormbase-ledger-recent --tenant altis --limit 10`** in a terminal you share. They see the ingestion.
-3. **Demo the transcript:** "We've already ingested our prep call from Friday. Watch:" then `wormbase-ledger-recent --tenant altis --kind chat_received --limit 60`. Point out the 53 speaker turns.
-4. **Frame the mechanical-turk:** "For week 1 I'm the agent — you'll see ME respond, not the bot. The bot is listening. Weekly reports come from me directly." (You already pitched this on Friday.)
-5. **Next step:** "Start inviting the bot to one client channel today/tomorrow so I can begin ingesting client conversations Monday afternoon." The default policy is `lurker`, so the bot will be silent there too.
+3. **Demo the transcript ingestion:** "We've already ingested our prep call from Friday. Watch:" then `wormbase-ledger-recent --tenant altis --kind chat_received --limit 60`. Point out the 53 speaker turns. Note honestly: "this is from MY Fireflies — you guys use Read.AI, which we'll wire up next."
+4. **Demo the Read.AI integration:** show §5b — `wormbase-pull-readai --help` if you don't have a key yet, or a live `--dry-run` if Poncho gives you one on the call. Ask Poncho to generate a Read.AI API token before we hang up.
+5. **Frame the mechanical-turk:** "For week 1 I'm the agent — you'll see ME respond, not the bot. The bot is listening. Weekly reports come from me directly." (You already pitched this on Friday.)
+6. **Next step:** "Start inviting the bot to one client channel today/tomorrow so I can begin ingesting client conversations Monday afternoon." The default policy is `lurker`, so the bot will be silent there too.
 
 Things to NOT promise on the call:
 

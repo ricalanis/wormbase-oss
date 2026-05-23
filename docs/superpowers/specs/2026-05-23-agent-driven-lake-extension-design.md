@@ -15,27 +15,27 @@ The architecturally consistent answer to "how do I add Fireflies?" is **not** "w
 ### Now (Monday 2026-05-25 — shipped)
 
 - `wormbase-ingest-transcript` — SRT → `chat_received` entries. Operator-run.
-- `wormbase-pull-fireflies` — Fireflies API → `chat_received` via the above. Operator-run, idempotent.
-- Both share `ingest_turns(...)` as the canonical turn-emission helper.
+- `wormbase-pull-readai` — **PRIMARY for Altis.** Read.AI API → `chat_received`. Poncho's team runs on Read.AI; this is the customer-facing meeting-source integration.
+- `wormbase-pull-fireflies` — Ricardo's own dogfooding (Ricardo uses Fireflies). Same shape, vendor delta only.
+- All three share `ingest_turns(...)` as the canonical turn-emission helper.
 
 This is the **mechanical-turk layer**. Ricardo runs the CLIs weekly; the lake grows. Adequate for week 1 of design-partner operation.
 
-### Sprint 2 (weeks 2-3) — formalize Fireflies as a `SurfaceDriver`
+### Sprint 2 (weeks 2-3) — formalize Read.AI as a `SurfaceDriver` (and Fireflies as a follow-up)
 
-Two paths depending on whether Fireflies ships a public MCP server:
+**Read.AI first** — it's the active customer-facing surface. Two paths depending on whether Read.AI ships a public MCP server:
 
-**Path A — Fireflies publishes an MCP server** (current state: not yet, but watch their changelog)
-- Add `packages/lake-surfaces/src/wormbase_lake_surfaces/mcp_presets/fireflies_preset.py` — ~30 lines.
-- `kind="mcp:fireflies"`, `server_url=<from Fireflies docs>`, `required_secrets=("bearer_token",)`.
-- Driver appears in `default_registry()`, the dashboard picker, `/api/v1/connectors`.
-- The Sprint 1 CLI stays as a fallback but becomes the slow path.
+**Path A — Read.AI publishes an MCP server** (current state: unknown, check during the Sprint 2 plan)
+- Add `packages/lake-surfaces/src/wormbase_lake_surfaces/mcp_presets/readai_preset.py` — ~30 lines.
+- `kind="mcp:readai"`, `server_url=<from Read.AI docs>`, `required_secrets=("bearer_token",)`.
 
-**Path B — No MCP, native driver wrapping the GraphQL API**
-- Add `packages/lake-surfaces/src/wormbase_lake_surfaces/fireflies.py` — native `SurfaceDriver` following the `linear.py` (GraphQL) template.
-- ~4-6h of work. The CLI's `_fetch_transcripts` + `_sentences_to_turns` logic lifts straight in.
-- Once landed, the CLI becomes redundant; deprecate but keep one release as a fallback for ops.
+**Path B — No MCP, native driver wrapping the REST API**
+- Add `packages/lake-surfaces/src/wormbase_lake_surfaces/readai.py` — native `SurfaceDriver`. The CLI's `_fetch_transcripts` lifts straight in.
+- ~4-6h of work.
 
-Both paths converge on: **Fireflies becomes addressable to `SourceBuilder.build_full_sequence(...)` like every other source.** No more vendor-specific CLI scripts.
+Then repeat the same exercise for Fireflies (Ricardo's dogfood). Lower priority because no paying customer depends on it (yet).
+
+Both paths converge on: **Read.AI and Fireflies become addressable to `SourceBuilder.build_full_sequence(...)` like every other source.** No more vendor-specific CLI scripts.
 
 ### Sprint 3 (weeks 4+) — the agent decides
 
