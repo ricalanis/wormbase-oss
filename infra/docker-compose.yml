@@ -399,6 +399,18 @@ services:
       # docs/superpowers/notes/2026-04-27-mcp-phase-0-spike.md.
       WORMBASE_MCP_ENABLED: ${WORMBASE_MCP_ENABLED:-0}
       WORMBASE_MCP_PORT: ${WORMBASE_MCP_PORT:-9911}
+      # L1 lake-side-compounding source-candidate discovery — opt-in.
+      # When enabled, the agent gateway runs strategies (channel_mention
+      # / kpi_gap / complementarity) on a tick to surface candidate
+      # sources from existing context. Strategies write `source_candidate_proposed`
+      # to the ledger; promotion/rejection is operator-gated (silent-mode-
+      # compatible). See docs/superpowers/specs/2026-06-08-lake-side-compounding-l1-design.md.
+      WORMBASE_SOURCE_CANDIDATE_DISCOVERY_ENABLED: ${WORMBASE_SOURCE_CANDIDATE_DISCOVERY_ENABLED:-0}
+      WORMBASE_SOURCE_CANDIDATE_CHANNEL_MENTION_ENABLED: ${WORMBASE_SOURCE_CANDIDATE_CHANNEL_MENTION_ENABLED:-0}
+      WORMBASE_SOURCE_CANDIDATE_KPI_GAP_ENABLED: ${WORMBASE_SOURCE_CANDIDATE_KPI_GAP_ENABLED:-0}
+      WORMBASE_SOURCE_CANDIDATE_COMPLEMENTARITY_ENABLED: ${WORMBASE_SOURCE_CANDIDATE_COMPLEMENTARITY_ENABLED:-0}
+      WORMBASE_SOURCE_CANDIDATE_MIN_CONFIDENCE: ${WORMBASE_SOURCE_CANDIDATE_MIN_CONFIDENCE:-}
+      WORMBASE_SOURCE_CANDIDATE_CHANNEL_MENTION_WINDOW: ${WORMBASE_SOURCE_CANDIDATE_CHANNEL_MENTION_WINDOW:-}
       # F6 — object storage for data product / notebook artifact bytes.
       # LocalStack S3 in dev; swap WORMBASE_OBJECT_STORE_URI to a real
       # bucket in prod. AWS_ENDPOINT_URL_S3 redirects boto3 → LocalStack.

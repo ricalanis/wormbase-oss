@@ -53,6 +53,7 @@ wormbase-ledger-recent = "wormbase_core.scripts.ledger_recent:main"
 wormbase-ingest-transcript = "wormbase_core.scripts.ingest_transcript:main"
 wormbase-pull-fireflies = "wormbase_core.scripts.pull_fireflies:main"
 wormbase-pull-readai = "wormbase_core.scripts.pull_readai:main"
+wormbase-source-candidates = "wormbase_core.scripts.source_candidates:main"
 
 [tool.uv.sources]
 wormbase-ledger = { workspace = true }

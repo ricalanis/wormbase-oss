@@ -3795,13 +3795,23 @@ def build_source_candidate_service_from_env(
     # ChannelMention — opt-in via its env knob. Reads recent
     # silver-conversation rows via LedgerSilverConversationReader
     # (fold of chat_received entries within the default 24h window,
-    # capped at 1000 rows).
+    # capped at 1000 rows). The lookback is overridable via
+    # WORMBASE_SOURCE_CANDIDATE_CHANNEL_MENTION_WINDOW (seconds);
+    # e.g. set to 604800 to scan the last 7 days during demo / backfill.
     channel_mention: ChannelMentionAcquisitionStrategy | None = None
     if is_source_candidate_channel_mention_enabled():
-        channel_mention = ChannelMentionAcquisitionStrategy(
-            silver_conversation_reader=LedgerSilverConversationReader(
+        channel_mention_kwargs: dict[str, Any] = {
+            "silver_conversation_reader": LedgerSilverConversationReader(
                 ledger=ledger,
             ),
+        }
+        window_override = _env_int(
+            "WORMBASE_SOURCE_CANDIDATE_CHANNEL_MENTION_WINDOW", 0,
+        )
+        if window_override > 0:
+            channel_mention_kwargs["lookback_seconds"] = window_override
+        channel_mention = ChannelMentionAcquisitionStrategy(
+            **channel_mention_kwargs,
         )
 
     # Complementarity — opt-in via its env knob. Reads

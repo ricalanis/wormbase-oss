@@ -225,6 +225,81 @@ Things to NOT promise on the call:
 
 ---
 
+## §6b. Bonus demo — agent-driven source detection (optional, if time permits)
+
+The L1 lake-side-compounding layer is shipped + gated. Flipping it on for `altis`
+makes the agent scan the prep-call transcript you ingested in §5 and propose
+source candidates (Snowflake / Hubspot / Notion / etc. mentions, plus Read.AI /
+Fireflies from the call itself). Silent-mode compatible: candidates land in the
+ledger as proposals; no autonomous action.
+
+**Only attempt this if §1-§6 are green AND you have ≥15 min before the call.**
+Otherwise skip — the rest of the demo stands on its own.
+
+### Enable
+
+In `.env`:
+
+```diff
++ WORMBASE_SOURCE_CANDIDATE_DISCOVERY_ENABLED=1
++ WORMBASE_SOURCE_CANDIDATE_CHANNEL_MENTION_ENABLED=1
++ # 7-day lookback so the May 22 SRT (ingested ~48h ago) is in scope:
++ WORMBASE_SOURCE_CANDIDATE_CHANNEL_MENTION_WINDOW=604800
+```
+
+Restart worm-core:
+
+```bash
+make worm-restart
+```
+
+Wait one tick interval (`WORM_CORE_LOOP_INTERVAL_S`, default 5s). Then check the
+ledger:
+
+```bash
+uv run --directory apps/worm-core wormbase-source-candidates list --tenant altis
+# Expected: candidates with strategy=channel_mention for any vendor names
+# that matched the regex bank — Read.AI, Fireflies, WhatsApp, etc. mentioned
+# in the prep call.
+```
+
+### Demo the loop on the call
+
+If candidates appeared:
+
+1. **Show the list:** "The agent already detected N source mentions from our prep call. Look — `[seq X]` is the moment Poncho mentioned Read.AI."
+2. **Promote one in front of them:**
+   ```bash
+   uv run --directory apps/worm-core wormbase-source-candidates promote <candidate_id> --tenant altis --yes
+   ```
+3. **Frame the future:** "Today I promote each one manually. In 2-3 weeks, the agent does this autonomously with you in the approval loop. The lake feeds the agent context; the agent proposes; you decide."
+
+### Tune as you learn
+
+If false-positives are noisy: raise `WORMBASE_SOURCE_CANDIDATE_MIN_CONFIDENCE` from the default 0.4 to 0.6.
+
+If the strategy misses obvious mentions: the regex bank is in `packages/wormbase-agent-gateway/src/wormbase_agent_gateway/source_candidates/strategies.py` — extend the patterns or note for Sprint 2.
+
+### CLI vs HTTP promote — behavioral delta (Sprint 2 cleanup)
+
+`wormbase-source-candidates promote` writes the `source_candidate_promoted`
+audit entry correctly, but it does NOT trigger the downstream `source_proposed`
+that kicks off the actual source-pipeline. That dual-write is currently only
+wired in the HTTP handler (`POST /api/v1/source-candidates/{id}/promote`).
+
+For Monday demo purposes this is fine — you're showing *the agent detected
++ you approved*, not *the data started flowing*. But if Altis asks "what
+happens after I promote?", the honest answer is: "the audit entry lands now;
+the actual MCP-driven pull happens via a second step, currently HTTP-only,
+which the Sprint 2 refactor lifts into a shared helper." Don't claim the data
+pull starts automatically from CLI promote.
+
+If you want full pipeline activation on the call, use curl against the HTTP
+endpoint (worm-core port 8910) instead of the CLI — but the CLI is more
+demo-friendly. Pick your demo, narrate accurately.
+
+---
+
 ## §7. After the kickoff
 
 By Friday 2026-05-30:
