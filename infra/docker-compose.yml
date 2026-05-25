@@ -380,7 +380,7 @@ services:
       # WORMBASE_LEDGER_API_TOKEN as the write API.
       - "${WORMBASE_MCP_PORT:-9911}:${WORMBASE_MCP_PORT:-9911}"
     environment:
-      WORMBASE_LEDGER_DSN: postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase
+      WORMBASE_LEDGER_DSN: ${WORMBASE_LEDGER_DSN:-postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase}
       WORMBASE_TENANT_ID: ${WORMBASE_TENANT_ID:-baseworm}
       WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
       WORM_CORE_LOOP_INTERVAL_S: ${WORM_CORE_LOOP_INTERVAL_S:-5}
@@ -455,7 +455,7 @@ services:
     container_name: wormbase-channel-adapter
     restart: unless-stopped
     environment:
-      WORMBASE_LEDGER_DSN: postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase
+      WORMBASE_LEDGER_DSN: ${WORMBASE_LEDGER_DSN:-postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase}
       OPENCLAW_SESSIONS_PATH: /openclaw-state/agents/main/sessions
       WORMBASE_ADAPTER_STATE_PATH: /var/lib/wormbase-channel-adapter/state.json
       WORMBASE_TENANT_ID: baseworm
@@ -508,7 +508,7 @@ services:
     ports:
       - "8090:8090"
     environment:
-      WORMBASE_LEDGER_DSN: postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase
+      WORMBASE_LEDGER_DSN: ${WORMBASE_LEDGER_DSN:-postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase}
       WORMBASE_TENANT_ID: ${WORMBASE_TENANT_ID:-baseworm}
       WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
       # Ollama Cloud — primary route is kimi-k2.6:cloud, fallback gpt-oss:120b.
@@ -539,7 +539,7 @@ services:
     restart: "no"
     command: ["wormbase", "--help"]
     environment:
-      WORMBASE_LEDGER_DSN: postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase
+      WORMBASE_LEDGER_DSN: ${WORMBASE_LEDGER_DSN:-postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase}
       WORMBASE_TENANT_ID: ${WORMBASE_TENANT_ID:-baseworm}
       WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
       WORMBASE_SIM_HARNESS_ROOT: /workspace/apps/sim-harness
