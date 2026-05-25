@@ -62,4 +62,11 @@ HEALTHCHECK --interval=10s --timeout=3s --start-period=60s --retries=5 \
 COPY entrypoint.sh /usr/local/bin/wormbase-entrypoint.sh
 RUN chmod +x /usr/local/bin/wormbase-entrypoint.sh
 
+# Silent-mode gate-6 plugin: baked into the image at a neutral path so
+# `openclaw plugins install --link` (called from entrypoint.sh) can
+# symlink it into the extensions dir at runtime. Was previously a bind
+# mount in docker-compose; moved to COPY 2026-05-25 because the bind
+# mount path didn't resolve correctly under Coolify deploys.
+COPY silent-mode-plugin /opt/wormbase/silent-mode-plugin
+
 ENTRYPOINT ["/usr/local/bin/wormbase-entrypoint.sh"]

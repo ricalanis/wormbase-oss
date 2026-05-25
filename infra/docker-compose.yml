@@ -80,17 +80,15 @@ services:
       # the channel-adapter mounts the same volume read-only and tails
       # that file to derive deterministic per-event channel-admit signals.
       - openclaw-tmp:/tmp/openclaw
-      # Hackathon: mount entrypoint as bind so we can iterate on config
-      # without rebuilding the image. Bake it back into the image once
-      # the config is stable (revert this volume + restore COPY in Dockerfile).
-      # Path is relative to project root (set via Makefile --project-directory .)
-      - ./infra/openclaw/entrypoint.sh:/usr/local/bin/wormbase-entrypoint.sh:ro
-      # Silent-mode gate 6 (true plugin path). Plugin source mounted at
-      # a neutral path; entrypoint copies it into a root-owned dir then
-      # `openclaw plugins install --link` symlinks it into the
-      # extensions dir. Mounting directly under /root/.openclaw/
-      # extensions blocks openclaw from managing the symlink.
-      - ./infra/openclaw/silent-mode-plugin:/opt/wormbase/silent-mode-plugin:ro
+      # Both `entrypoint.sh` and `silent-mode-plugin/` are now baked into
+      # the image via COPY in infra/openclaw/Dockerfile. Earlier hackathon
+      # bind mounts were dropped 2026-05-25 because they broke Coolify
+      # deploys (Coolify's clone path doesn't match the docker-engine view,
+      # so the bind sources were missing → "not a directory" mount errors).
+      # If you need to iterate on the entrypoint locally, edit + rebuild:
+      #   docker compose --profile dev build openclaw && make hermes-restart
+      # (yes, the make target is hermes-restart even though it points at
+      # the openclaw container — relic of the openclaw→hermes naming).
     environment:
       # Admin token for channel-adapter ↔ OpenClaw bridge auth.
       OPENCLAW_ADMIN_TOKEN: ${OPENCLAW_ADMIN_TOKEN:-dev-token}
