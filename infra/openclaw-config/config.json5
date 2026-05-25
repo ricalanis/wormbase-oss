@@ -1,0 +1,156 @@
+// OpenClaw Gateway config — WormBase multi-tenant chat layer.
+//
+// Multi-tenancy strategy (per CLAUDE.md "SaaS-first deployment" +
+// "Channel layer: OpenClaw + Channel Ledger Adapter"):
+//
+//   ONE OpenClaw container serves MANY tenants.
+//   Each tenant = one entry under `channels.slack.accounts.<companyId>`.
+//   The `<companyId>` here is the same string used as `company_id` on every
+//   ledger entry. Channel adapter receives an inbound event tagged with the
+//   account ID, looks it up, and writes ledger entries scoped to that tenant.
+//
+// Adding a new tenant:
+//   1. Append `SLACK_APP_TOKEN_<COMPANY_ID>` and `SLACK_BOT_TOKEN_<COMPANY_ID>`
+//      to `.env`.
+//   2. Add a new `accounts.<companyId>` block below.
+//   3. Restart the gateway: `make openclaw-restart`.
+//
+// Demo tenant for Thursday is `democorp`.
+
+{
+  gateway: {
+    port: 18789,
+    // Headless mode — bypass OpenClaw's interactive auth/pairing step.
+    // Required for containerized / multi-tenant SaaS deployment where
+    // there is no human at the gateway boot. Authentication for
+    // tenant access is done via the bridge protocol's adminToken.
+    mode: "local",
+    // Bridge protocol — channel-adapter container subscribes here.
+    bridge: {
+      enabled: true,
+      // Auth via shared admin token; both sides read from `.env`.
+      adminToken: "${OPENCLAW_ADMIN_TOKEN}",
+    },
+    // Persist nothing locally — the ledger is the source of truth.
+    // OpenClaw's session store is treated as ephemeral cache.
+    sessions: {
+      store: "memory",
+    },
+  },
+
+  // Default channel policies enforce institutional posture even before
+  // talkativeness dials are wired (Phase 4): channel mentions only,
+  // pairing required for DMs.
+  channels: {
+    defaults: {
+      groupPolicy: "allowlist",
+      dmPolicy: "pairing",
+    },
+
+    slack: {
+      enabled: true,
+      mode: "socket", // No public URL needed; tokens carry the connection.
+
+      // Per-tenant accounts. Each key is a `company_id`.
+      accounts: {
+        democorp: {
+          appToken: "${SLACK_APP_TOKEN_DEMOCORP}",
+          botToken: "${SLACK_BOT_TOKEN_DEMOCORP}",
+          // Channel allowlist — added at onboarding (Phase 4).
+          // For demo, allow all #general/#data/#ops channels by name.
+          // Production tenants will be ID-locked.
+          dangerouslyAllowNameMatching: true,
+          channels: {
+            general: { requireMention: true },
+            data: { requireMention: true },
+            ops: { requireMention: true },
+          },
+        },
+
+        // Future tenants append here. Pattern:
+        // <companyId>: {
+        //   appToken: "${SLACK_APP_TOKEN_<COMPANYID>}",
+        //   botToken: "${SLACK_BOT_TOKEN_<COMPANYID>}",
+        //   channels: { ... },
+        // },
+      },
+    },
+
+    // Discord / Teams / WhatsApp / etc. — in scope per PRD §4.3 but not
+    // demoed Thursday. Config templates live alongside this file as
+    // discord.json5.example, msteams.json5.example.
+  },
+
+  // Models.
+  //
+  // Architectural direction: Kimi K2.6 is the canonical primary for
+  // OpenClaw's control plane (PRD §4.1 remote-inference lane).
+  // Ollama Cloud publishes `kimi-k2.6:cloud` (multimodal, tool-use, thinking)
+  // — that's the route we use. Moonshot direct API is staged below as a
+  // commented stub for future strict-direct needs.
+  //
+  // NOTE: per OpenClaw docs, do NOT append /v1 to the baseUrl — it breaks
+  // tool calling.
+  models: {
+    providers: {
+      ollama: {
+        baseUrl: "https://ollama.com",
+        apiKey: "${OLLAMA_API_KEY}",
+        api: "ollama",
+        models: [
+          // PRIMARY — Kimi K2.6 via Ollama Cloud (multimodal, tools, thinking).
+          {
+            id: "kimi-k2.6:cloud",
+            name: "kimi-k2.6:cloud",
+            input: ["text", "image"],
+            contextWindow: 256000,
+            maxTokens: 8192,
+          },
+          // FALLBACK — gpt-oss (open-weight, broadly stable on Ollama Cloud).
+          {
+            id: "gpt-oss:120b",
+            name: "gpt-oss:120b",
+            input: ["text"],
+            contextWindow: 128000,
+            maxTokens: 8192,
+          },
+        ],
+      },
+
+      // Moonshot direct — staged stub for future strict-direct K2.6 needs
+      // (higher rate limits, direct billing). Activate by uncommenting,
+      // adding MOONSHOT_API_KEY to .env, and changing primary to
+      // "moonshot/kimi-k2.6".
+      // moonshot: {
+      //   baseUrl: "https://api.moonshot.ai",
+      //   apiKey: "${MOONSHOT_API_KEY}",
+      //   api: "openai",
+      //   models: [
+      //     {
+      //       id: "kimi-k2.6",
+      //       name: "Kimi K2.6",
+      //       input: ["text", "image"],
+      //       contextWindow: 256000,
+      //       maxTokens: 8192,
+      //     },
+      //   ],
+      // },
+    },
+  },
+
+  // Agents. OpenClaw's built-in agent handles its own control-plane chatter
+  // (slash commands, system events). Worm-core owns business responses via
+  // the bridge; channel-adapter routes inbound chat events through the
+  // relevance gate to worm-core, gating before OpenClaw's default agent.
+  agents: {
+    defaults: {
+      model: {
+        // Primary = Kimi K2.6 via Ollama Cloud (architectural commitment,
+        // PRD §4.1 remote-inference lane). Fallback to gpt-oss for
+        // last-resort availability.
+        primary: "ollama/kimi-k2.6:cloud",
+        fallbacks: ["ollama/gpt-oss:120b"],
+      },
+    },
+  },
+}

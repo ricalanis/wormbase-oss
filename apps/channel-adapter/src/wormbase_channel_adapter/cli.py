@@ -94,16 +94,6 @@ def run_cmd(
     # is wired into the openclaw-log dispatch table; absent, the dispatch
     # logs "no adapter registered" for whatsapp lines (graceful drop).
     whatsapp_account_id = os.environ.get("WHATSAPP_ACCOUNT_ID")
-    # Gateway selection (Phase 4 of the openclaw→hermes migration —
-    # docs/superpowers/specs/2026-04-27-openclaw-to-hermes-migration.md).
-    # Default is now "hermes"; the legacy "openclaw" branch in service.py
-    # is dead-coded but the env-var hook is preserved so a future operator
-    # can resurrect log-tailing against an external OpenClaw without a
-    # code change. --openclaw-log-dir is retained for the same reason.
-    gateway_kind = os.environ.get("WORMBASE_GATEWAY", "hermes")
-    hermes_consumer_port = int(
-        os.environ.get("WORMBASE_HERMES_CONSUMER_PORT", "18790"),
-    )
     from wormbase_core import silent_mode
     silent_mode.log_boot_state("channel-adapter")
     asyncio.run(
@@ -116,8 +106,6 @@ def run_cmd(
             openclaw_log_dir=openclaw_log_dir,
             slack_bot_token=slack_bot_token,
             whatsapp_account_id=whatsapp_account_id,
-            gateway_kind=gateway_kind,
-            hermes_consumer_port=hermes_consumer_port,
         )
     )
 

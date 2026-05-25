@@ -1,4 +1,4 @@
-# WhatsApp pairing for Hermes
+# WhatsApp pairing for OpenClaw
 
 This document is the operator runbook for bringing a WhatsApp account
 online inside the WormBase OpenClaw gateway.
@@ -14,7 +14,7 @@ only on a dedicated test number.
 
 Set `WORMBASE_SILENT_MODE=1` in `.env` before bringing openclaw up if
 you want listen-only behavior — the entrypoint will render
-`"bindings": []` in `/opt/data/openclaw.json`, which means
+`"bindings": []` in `/root/.openclaw/openclaw.json`, which means
 openclaw's embedded `main` agent (kimi-k2.6:cloud) is never invoked
 on inbound chat. Inbound flow is unchanged: Baileys session → openclaw
 runtime log → channel-adapter tailer → `chat_received` ledger entry,
@@ -160,13 +160,13 @@ container is healthy:
 
 ```sh
 # 1. Register a WhatsApp account slot for this tenant.
-docker exec -it wormbase-hermes \
+docker exec -it wormbase-openclaw \
   openclaw channels add --channel whatsapp --account baseworm
 
 # 2. Initiate the QR-pairing handshake. This prints a QR code to the
 #    container logs that you scan with the test number's phone:
 #       WhatsApp → Settings → Linked Devices → Link a Device.
-docker exec -it wormbase-hermes \
+docker exec -it wormbase-openclaw \
   openclaw channels login --channel whatsapp --account baseworm
 
 # 3. Watch the gateway log until "QR scanned, awaiting approval" appears.
@@ -174,10 +174,10 @@ docker compose logs -f openclaw
 
 # 4. Approve the pairing. The pairing-code list shows pending requests;
 #    approve the one that just arrived.
-docker exec -it wormbase-hermes \
+docker exec -it wormbase-openclaw \
   openclaw pairing list whatsapp
 
-docker exec -it wormbase-hermes \
+docker exec -it wormbase-openclaw \
   openclaw pairing approve whatsapp <CODE>
 ```
 
@@ -194,21 +194,21 @@ Baileys credentials (the auth blob WhatsApp issues after QR scan) are
 written to:
 
 ```
-/opt/data/credentials/whatsapp/<accountId>/creds.json
+/root/.openclaw/credentials/whatsapp/<accountId>/creds.json
 ```
 
 Inside the openclaw container. That path lives under the
-`hermes-state` named volume (declared in `infra/docker-compose.yml`),
+`openclaw-state` named volume (declared in `infra/docker-compose.yml`),
 so credentials survive container restarts and image rebuilds.
 
 To force a re-pair (e.g. after a WhatsApp ban or when rotating the
 test number), delete the credentials and re-run the login flow:
 
 ```sh
-docker exec -it wormbase-hermes \
-  rm -rf /opt/data/credentials/whatsapp/baseworm
+docker exec -it wormbase-openclaw \
+  rm -rf /root/.openclaw/credentials/whatsapp/baseworm
 
-docker exec -it wormbase-hermes \
+docker exec -it wormbase-openclaw \
   openclaw channels login --channel whatsapp --account baseworm
 ```
 
@@ -218,9 +218,9 @@ docker exec -it wormbase-hermes \
 
 ### "QR code expired" before scan
 
-WhatsApp QR codes rotate every ~20s. Re-run `hermes channels login`
+WhatsApp QR codes rotate every ~20s. Re-run `openclaw channels login`
 to get a fresh one. If it still expires before you scan, the
-container's clock may be drifting; check `docker exec wormbase-hermes date -u`
+container's clock may be drifting; check `docker exec wormbase-openclaw date -u`
 against host time.
 
 ### Pairing succeeds but no messages arrive
@@ -274,24 +274,24 @@ Baileys' stored creds desync from the server.
 
 ```sh
 # 1. Log the channel out cleanly so OpenClaw drops its in-memory session.
-docker exec -it wormbase-hermes \
+docker exec -it wormbase-openclaw \
   openclaw channels logout --channel whatsapp --account baseworm
 
 # 2. Back up the existing creds before wiping (see "Creds backup +
 #    restore" below). This preserves forensics if you need to diagnose
 #    why the session ended.
-docker cp wormbase-hermes:/opt/data/credentials/whatsapp/baseworm/creds.json \
+docker cp wormbase-openclaw:/root/.openclaw/credentials/whatsapp/baseworm/creds.json \
   ./baseworm-creds-$(date +%Y%m%d).json
 chmod 600 ./baseworm-creds-*.json
 
 # 3. Wipe stale creds inside the volume.
-docker exec -it wormbase-hermes \
-  rm -rf /opt/data/credentials/whatsapp/baseworm
+docker exec -it wormbase-openclaw \
+  rm -rf /root/.openclaw/credentials/whatsapp/baseworm
 
 # 4. Re-run the QR pairing flow from the top of this doc (channels add
 #    is idempotent if the slot already exists; channels login prints a
 #    fresh QR).
-docker exec -it wormbase-hermes \
+docker exec -it wormbase-openclaw \
   openclaw channels login --channel whatsapp --account baseworm
 ```
 
@@ -309,7 +309,7 @@ Either way, `/channels/<id>` shows the new install row in its history.
 ## Creds backup + restore
 
 Baileys persists two files at
-`/opt/data/credentials/whatsapp/<accountId>/`:
+`/root/.openclaw/credentials/whatsapp/<accountId>/`:
 
 | File | Role |
 |---|---|
@@ -322,7 +322,7 @@ torn write. If you need a real backup, take it manually.
 **Manual backup:**
 
 ```sh
-docker cp wormbase-hermes:/opt/data/credentials/whatsapp/baseworm/creds.json \
+docker cp wormbase-openclaw:/root/.openclaw/credentials/whatsapp/baseworm/creds.json \
   ./baseworm-creds-$(date +%Y%m%d).json
 chmod 600 ./baseworm-creds-*.json
 ```
@@ -335,12 +335,12 @@ docker compose -f infra/docker-compose.yml stop openclaw
 
 # 2. Copy the backup back into the credentials volume.
 docker cp ./baseworm-creds-<date>.json \
-  wormbase-hermes:/opt/data/credentials/whatsapp/baseworm/creds.json
+  wormbase-openclaw:/root/.openclaw/credentials/whatsapp/baseworm/creds.json
 
 # 3. Fix ownership inside the container (Baileys runs as root in the
 #    openclaw image; the docker cp may have stamped host uid).
 docker compose -f infra/docker-compose.yml run --rm --entrypoint sh openclaw \
-  -c "chown root:root /opt/data/credentials/whatsapp/baseworm/creds.json && chmod 600 /opt/data/credentials/whatsapp/baseworm/creds.json"
+  -c "chown root:root /root/.openclaw/credentials/whatsapp/baseworm/creds.json && chmod 600 /root/.openclaw/credentials/whatsapp/baseworm/creds.json"
 
 # 4. Start the container and watch for connection_open.
 docker compose -f infra/docker-compose.yml start openclaw
@@ -464,7 +464,7 @@ uv run pytest tests/integration/test_openclaw_whatsapp_log_lines.py -v -s
 **5-minute feedback loop on failure:**
 
 1. The failure message embeds the actual observed line (and the full
-   set is dumped to `/tmp/wormbase-hermes-whatsapp-loglines-<ts>.txt`).
+   set is dumped to `/tmp/wormbase-openclaw-whatsapp-loglines-<ts>.txt`).
 2. Paste the observed line into the next conversation.
 3. Update the regex `_ALLOW_CHANNEL_RE` in `openclaw_log_tail.py` —
    one-line patch.
@@ -535,10 +535,10 @@ exclusively through the gateway's WebSocket protocol via the
 ```sh
 # Discovery: the CLI's message-send subcommand is the documented
 # outbound surface for every channel OpenClaw supports.
-docker exec wormbase-hermes openclaw message send --help
+docker exec wormbase-openclaw openclaw message send --help
 
 # Dry-run smoke (no actual send):
-docker exec wormbase-hermes openclaw message send \
+docker exec wormbase-openclaw openclaw message send \
   --channel whatsapp \
   --target "+5511999999999" \
   --message "C1 probe" \
@@ -551,7 +551,7 @@ docker exec wormbase-hermes openclaw message send \
 
 Live invocation requires the calling device to hold operator-write
 scopes on the gateway. Today's pre-paired device (registered at
-`/opt/data/devices/paired.json`) holds only `operator.read`,
+`/root/.openclaw/devices/paired.json`) holds only `operator.read`,
 so any non-dry-run send fails with:
 
 ```
@@ -571,7 +571,7 @@ C2 implements `_do_send` via `asyncio.create_subprocess_exec`:
 ```python
 argv = [
     "docker", "exec", os.environ.get(
-        "WORMBASE_WHATSAPP_OPENCLAW_CONTAINER", "wormbase-hermes",
+        "WORMBASE_WHATSAPP_OPENCLAW_CONTAINER", "wormbase-openclaw",
     ),
     "openclaw", "message", "send",
     "--channel", "whatsapp",
@@ -595,7 +595,7 @@ backoff retries.
 
 ```sh
 # Once the operator approves write scopes on the paired CLI device:
-docker exec wormbase-hermes openclaw message send \
+docker exec wormbase-openclaw openclaw message send \
   --channel whatsapp \
   --account default \
   --target "+5511999999999" \
