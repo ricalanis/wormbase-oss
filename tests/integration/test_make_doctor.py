@@ -82,14 +82,14 @@ def test_doctor_all_required_keys_unset_reports_red(tmp_path: Path) -> None:
     env_path.write_text(
         "SLACK_BOT_TOKEN_BASEWORM=\n"
         "SLACK_BOT_TOKEN_SIM_BASEWORM=\n"
-        "HERMES_ADMIN_TOKEN=\n"
+        "OPENCLAW_ADMIN_TOKEN=\n"
         "OLLAMA_API_KEY=\n",
         encoding="utf-8",
     )
     result = _run_doctor(script)
 
     assert "SLACK_BOT_TOKEN_BASEWORM unset" in result.stdout
-    assert "HERMES_ADMIN_TOKEN unset" in result.stdout
+    assert "OPENCLAW_ADMIN_TOKEN unset" in result.stdout
     assert "all required .env keys are unset" in result.stdout
     assert result.returncode == 1
 
@@ -103,7 +103,7 @@ def test_doctor_all_required_keys_set_no_red(tmp_path: Path) -> None:
     env_path.write_text(
         "SLACK_BOT_TOKEN_BASEWORM=xoxb-fake-for-test\n"
         "SLACK_BOT_TOKEN_SIM_BASEWORM=xoxb-fake-for-test\n"
-        "HERMES_ADMIN_TOKEN=test-token\n"
+        "OPENCLAW_ADMIN_TOKEN=test-token\n"
         "OLLAMA_API_KEY=test-key\n",
         encoding="utf-8",
     )
@@ -113,7 +113,7 @@ def test_doctor_all_required_keys_set_no_red(tmp_path: Path) -> None:
     for key in (
         "SLACK_BOT_TOKEN_BASEWORM",
         "SLACK_BOT_TOKEN_SIM_BASEWORM",
-        "HERMES_ADMIN_TOKEN",
+        "OPENCLAW_ADMIN_TOKEN",
         "OLLAMA_API_KEY",
     ):
         assert f"[ok]     {key} set" in result.stdout, (
@@ -142,7 +142,7 @@ def test_doctor_runs_quickly(tmp_path: Path) -> None:
 
     script = _write_doctor_sandbox(tmp_path)
     env_path = tmp_path / ".env"
-    env_path.write_text("HERMES_ADMIN_TOKEN=t\n", encoding="utf-8")
+    env_path.write_text("OPENCLAW_ADMIN_TOKEN=t\n", encoding="utf-8")
 
     started = time.monotonic()
     _run_doctor(script)

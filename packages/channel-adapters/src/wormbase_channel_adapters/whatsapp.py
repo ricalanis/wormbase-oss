@@ -48,7 +48,7 @@ adapter ships at ``status="preview"``:
 
   Config envs (all optional, sane defaults):
 
-  * ``WORMBASE_WHATSAPP_HERMES_CONTAINER`` (default
+  * ``WORMBASE_WHATSAPP_OPENCLAW_CONTAINER`` (default
     ``wormbase-openclaw``): container name to ``docker exec`` into.
   * ``WORMBASE_WHATSAPP_OPENCLAW_TOKEN``: gateway token (the master
     ``gateway.auth.token``). When set, passed to the CLI via
@@ -639,11 +639,11 @@ class WhatsAppChannelAdapter(ChannelAdapter):
             )
 
         container = os.environ.get(
-            "WORMBASE_WHATSAPP_HERMES_CONTAINER", "wormbase-openclaw",
+            "WORMBASE_WHATSAPP_OPENCLAW_CONTAINER", "wormbase-openclaw",
         )
-        token = os.environ.get("WORMBASE_WHATSAPP_HERMES_TOKEN")
+        token = os.environ.get("WORMBASE_WHATSAPP_OPENCLAW_TOKEN")
         account_id = (
-            os.environ.get("WORMBASE_WHATSAPP_HERMES_ACCOUNT")
+            os.environ.get("WORMBASE_WHATSAPP_OPENCLAW_ACCOUNT")
             or handle.extra.get("account_id")
             or "default"
         )

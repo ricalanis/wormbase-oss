@@ -107,7 +107,7 @@ else
     REQUIRED_KEYS=(
         SLACK_BOT_TOKEN_BASEWORM
         SLACK_BOT_TOKEN_SIM_BASEWORM
-        HERMES_ADMIN_TOKEN
+        OPENCLAW_ADMIN_TOKEN
         OLLAMA_API_KEY
     )
     missing_required=0

@@ -93,9 +93,9 @@ services:
     #
     # ORIGINAL spike rationale (kept as record):
     # Per docs/superpowers/specs/2026-04-27-openclaw-to-hermes-migration.md
-    # §5 Phase 0: stand up alongside the Hermes service so we
+    # §5 Phase 0: stand up alongside the existing OpenClaw service so we
     # can verify pre-agent hook firing without disturbing the production
-    # capture path. Hermes is ADDITIVE here — Hermes is the canonical
+    # capture path. Hermes is ADDITIVE here — OpenClaw stays the canonical
     # ingest until H2/H3 land. Stopping this service rolls the spike back
     # cleanly.
     #
@@ -106,7 +106,7 @@ services:
     # Multi-tenancy: Hermes uses ONE app token + per-workspace bot
     # tokens (comma-separated SLACK_BOT_TOKEN list, or
     # ~/.hermes/slack_tokens.json). The spike is single-tenant
-    # (`baseworm`); we pass the same SLACK_*_BASEWORM env vars Hermes
+    # (`baseworm`); we pass the same SLACK_*_BASEWORM env vars OpenClaw
     # uses today.
     #
     # Hooks: ~/.hermes/hooks/ is rendered into the named volume by the
@@ -119,7 +119,7 @@ services:
     image: wormbase-hermes:local
     container_name: wormbase-hermes
     restart: unless-stopped
-    # Hermes binds 9120 (chosen distinct from Hermes (9120) and from
+    # Hermes binds 9120 (chosen distinct from OpenClaw's 18789 and from
     # the channel-adapter spike endpoint's 18790). The gateway itself
     # doesn't bind a TCP port unless API_SERVER_HOST is set; this entry
     # is here for healthcheck parity, not to expose Slack-bound traffic.
@@ -135,14 +135,14 @@ services:
       # project-root (Makefile sets --project-directory .).
       - ./infra/hermes/hooks/wire-tap:/opt/hermes/spike-hook:ro
       # Bind entrypoint for iteration during the spike (same pattern as
-      # the Hermes service above).
+      # the OpenClaw service above).
       - ./infra/hermes/entrypoint.sh:/usr/local/bin/wormbase-hermes-entrypoint.sh:ro
     environment:
       # Spike target — the POST destination for the wire-tap hook. The
       # `channel-adapter-hermes-spike` sidecar (defined below) exposes
       # /hermes-spike on port 18790. We use the sidecar's service name
       # directly to avoid a DNS-alias collision with the production
-      # `channel-adapter` container (which runs theHermes consumer
+      # `channel-adapter` container (which runs the OpenClaw consumer
       # and does NOT bind 18790).
       #
       # Under the `hermes` profile (Phase 2 production path), point at
@@ -328,7 +328,7 @@ services:
     restart: unless-stopped
     environment:
       WORMBASE_LEDGER_DSN: ${WORMBASE_LEDGER_DSN:-postgresql+asyncpg://wormbase:wormbase@postgres:5432/wormbase}
-      HERMES_SESSIONS_PATH: /hermes-state/agents/main/sessions
+      OPENCLAW_SESSIONS_PATH: /openclaw-state/agents/main/sessions
       WORMBASE_ADAPTER_STATE_PATH: /var/lib/wormbase-channel-adapter/state.json
       WORMBASE_TENANT_ID: baseworm
       WORMBASE_SILENT_MODE: ${WORMBASE_SILENT_MODE:-0}
@@ -339,7 +339,7 @@ services:
       WORMBASE_HERMES_CONSUMER_PORT: ${WORMBASE_HERMES_CONSUMER_PORT:-18790}
       # Path 3 capture path — directory is the openclaw-tmp shared volume
       # mounted below. OpenClaw writes openclaw-YYYY-MM-DD.log here.
-      HERMES_LOG_DIR: /hermes-runtime-log
+      OPENCLAW_LOG_DIR: /openclaw-runtime-log
       # Slack Bot Token for the openclaw-log capture path. The adapter
       # uses this to call conversations.history when it sees a
       # `slack: allow channel <CID>` line — the log line only carries
@@ -439,8 +439,8 @@ services:
       WORMBASE_LEDGER_API_BASE: ${WORMBASE_LEDGER_API_BASE:-http://worm-core:8910}
       WORMBASE_LEDGER_API_TOKEN: ${WORMBASE_LEDGER_API_TOKEN:-dev-only-token-rotate-in-prod}
       OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
-      HERMES_HOST: hermes
-      HERMES_PORT: "9120"
+      OPENCLAW_HOST: openclaw
+      OPENCLAW_PORT: "18789"
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
     volumes:
