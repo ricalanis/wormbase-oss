@@ -49,7 +49,7 @@ def main(verbose: bool) -> None:
 @click.option(
     "--sessions-path",
     default=lambda: os.environ.get(
-        "OPENCLAW_SESSIONS_PATH", "/openclaw-state/agents/main/sessions"
+        "HERMES_SESSIONS_PATH", "/openclaw-state/agents/main/sessions"
     ),
     show_default=True,
 )
@@ -67,8 +67,8 @@ def main(verbose: bool) -> None:
 )
 @click.option("--poll-interval", default=0.5, type=float, show_default=True)
 @click.option(
-    "--openclaw-log-dir",
-    default=lambda: os.environ.get("OPENCLAW_LOG_DIR"),
+    "--hermes-log-dir",
+    default=lambda: os.environ.get("HERMES_LOG_DIR"),
     show_default=True,
     help="Path to OpenClaw's global log directory (e.g. /tmp/openclaw).",
 )

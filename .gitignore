@@ -125,9 +125,3 @@ tmp/
 node_modules
 .next
 
-# openclaw plugins follow a `dist/index.js` convention (matches the
-# upstream whatsapp plugin layout). The wormbase silent-mode plugin
-# is hand-written, not a build artifact, so exempt it from the
-# project-wide `dist/` ignore.
-!infra/openclaw/silent-mode-plugin/dist/
-!infra/openclaw/silent-mode-plugin/dist/*

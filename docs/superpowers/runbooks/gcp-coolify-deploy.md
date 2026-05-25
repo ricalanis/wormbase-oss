@@ -40,7 +40,7 @@
 └──────────────────────┘
 ```
 
-External SaaS (unchanged by this deploy): Slack, WhatsApp (via OpenClaw),
+External SaaS (unchanged by this deploy): Slack, WhatsApp (via Hermes),
 Kimi/Ollama Cloud, ElevenLabs, Fireflies, Read.AI.
 
 ---
@@ -383,7 +383,7 @@ Toggle **Exclude from Deployment** on:
 | `sim-harness` | Dev/test only |
 | `tunnel` | Coolify owns ingress |
 
-Keep enabled: `openclaw`, `worm-core`, `channel-adapter`, `voice-agent`, `dashboard`.
+Keep enabled: `hermes`, `worm-core`, `channel-adapter`, `voice-agent`, `dashboard`.
 
 ### 11b — Set environment variables
 
@@ -398,7 +398,7 @@ WORMBASE_TENANT_ID=<your-tenant-slug>
 WORMBASE_SILENT_MODE=1
 
 # Required — operational tokens
-OPENCLAW_ADMIN_TOKEN=<generate-strong-random>
+HERMES_ADMIN_TOKEN=<generate-strong-random>
 WORMBASE_LEDGER_API_TOKEN=<generate-strong-random>
 OLLAMA_API_KEY=<your-ollama-cloud-key>
 
@@ -440,7 +440,7 @@ terminal (or `gcloud compute ssh wormbase-prod --tunnel-through-iap`):
 
 ```bash
 docker ps
-# Should list: wormbase-openclaw, wormbase-worm-core, wormbase-channel-adapter,
+# Should list: wormbase-hermes, wormbase-worm-core, wormbase-channel-adapter,
 # wormbase-voice-agent, dashboard
 
 docker exec wormbase-worm-core uv run wormbase-ledger-recent --tenant <slug> --limit 5
@@ -469,7 +469,7 @@ webhook). Otherwise click **Redeploy** in the dashboard.
 
 - Cloud SQL: daily backups at 08:00 UTC + point-in-time recovery to any moment in the last 7 days. Configured in Step 3.
 - VM disk: no automatic snapshots. If the VM dies, re-run Steps 7-9 and re-deploy via Coolify; the ledger data is safe in Cloud SQL.
-- WhatsApp pairing: lives in the `openclaw-state` Docker volume on the VM. If the VM dies, you re-pair — which means scanning a QR code on your bot phone. Plan accordingly.
+- WhatsApp pairing: lives in the `hermes-state` Docker volume on the VM. If the VM dies, you re-pair — which means scanning a QR code on your bot phone. Plan accordingly.
 
 ### Costs
 
@@ -488,7 +488,7 @@ With standard GCP $300 trial credit: ~7 months free.
 ### When to scale up
 
 - **>10 tenants on this VM** — split. Move worm-core to its own machine; bump Cloud SQL tier; consider regional read replicas.
-- **WhatsApp scaling** — OpenClaw 2026.5.x is single-account-WhatsApp per process. Each WhatsApp tenant needs its own OpenClaw container, which means either multiple compose stacks on the VM or multiple VMs.
+- **WhatsApp scaling** — Hermes 2026.5.x is single-account-WhatsApp per process. Each WhatsApp tenant needs its own Hermes container, which means either multiple compose stacks on the VM or multiple VMs.
 - **Heavy transcript ingestion** (hundreds/day) — embedding-backfill becomes the hot path; bump VM to e2-standard-2.
 
 ---

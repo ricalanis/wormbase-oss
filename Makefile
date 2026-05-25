@@ -16,7 +16,7 @@ QA_AGGREGATOR := uv run python -m tests._aggregator.qa_report
 .PHONY: up down logs ps test test-all demo demo-virtual seed verify help \
         doctor tutorial \
         sim-build sim-test \
-        openclaw-build openclaw-restart openclaw-logs openclaw-status \
+        hermes-build hermes-restart hermes-logs hermes-status \
         adapter-test adapter-build adapter-restart adapter-logs adapter-inspect \
         worm-build worm-restart worm-logs worm-test worm-inspect \
         dashboard-build dashboard-restart dashboard-logs dashboard-test dashboard-typecheck \
@@ -56,13 +56,13 @@ help:
 	@echo "  make test-down         — tear down the TEST docker compose"
 	@echo "  make test-logs         — tail logs from the TEST stack"
 	@echo ""
-	@echo "OpenClaw (chat gateway, multi-tenant):"
-	@echo "  make openclaw-build    — rebuild the OpenClaw image after Dockerfile changes"
-	@echo "  make openclaw-restart  — restart OpenClaw to pick up config.json5 + .env changes"
-	@echo "  make openclaw-logs     — follow OpenClaw gateway logs"
-	@echo "  make openclaw-status   — show OpenClaw channel status (--probe)"
+	@echo "Hermes (chat gateway, multi-tenant):"
+	@echo "  make hermes-build    — rebuild the Hermes image after Dockerfile changes"
+	@echo "  make hermes-restart  — restart Hermes to pick up .env changes"
+	@echo "  make hermes-logs     — follow Hermes gateway logs"
+	@echo "  make hermes-status   — show Hermes channel status (--probe)"
 	@echo ""
-	@echo "Channel adapter (OpenClaw → ledger):"
+	@echo "Channel adapter (Hermes → ledger):"
 	@echo "  make adapter-test      — run channel-adapter unit tests (pytest)"
 	@echo "  make adapter-build     — rebuild the channel-adapter image"
 	@echo "  make adapter-restart   — restart the channel-adapter container"
@@ -172,44 +172,44 @@ refresh-inference-cache:
 	uv run --package wormbase-inference-router --extra dev \
 		python scripts/refresh_inference_cache.py
 
-# ─── OpenClaw ──────────────────────────────────────────────────
+# ─── Hermes ───────────────────────────────────────────────────
 
-openclaw-build:
-	$(COMPOSE) build openclaw
+hermes-build:
+	$(COMPOSE) build hermes
 
 # W7.A2 — one-command recovery from `unhealthy`. Captures pre-restart
-# state to .openclaw-pre-restart.log (last 100 lines + container status)
+# state to .hermes-pre-restart.log (last 100 lines + container status)
 # so forensics is preserved before the restart wipes the in-container
 # state. Then restarts and re-runs the doctor's openclaw block to
 # verify recovery — exit code propagates from doctor (1 if still
 # unhealthy after the restart window).
-openclaw-restart:
-	@echo "[openclaw-restart] capturing pre-restart state to .openclaw-pre-restart.log"
+hermes-restart:
+	@echo "[hermes-restart] capturing pre-restart state to .hermes-pre-restart.log"
 	@( \
-		echo "=== openclaw-restart triggered at $$(date -u +%FT%TZ) ==="; \
+		echo "=== hermes-restart triggered at $$(date -u +%FT%TZ) ==="; \
 		echo; \
 		echo "--- docker compose ps openclaw ---"; \
-		$(COMPOSE) ps openclaw 2>&1 || true; \
+		$(COMPOSE) ps hermes 2>&1 || true; \
 		echo; \
 		echo "--- docker inspect health ---"; \
-		docker inspect -f '{{json .State.Health}}' wormbase-openclaw 2>&1 || true; \
+		docker inspect -f '{{json .State.Health}}' wormbase-hermes 2>&1 || true; \
 		echo; \
 		echo "--- last 100 log lines ---"; \
-		$(COMPOSE) logs --tail 100 openclaw 2>&1 || true; \
-	) > .openclaw-pre-restart.log
-	$(COMPOSE) restart openclaw
-	@echo "[openclaw-restart] restarted; waiting up to 120s for healthy…"
+		$(COMPOSE) logs --tail 100 hermes 2>&1 || true; \
+	) > .hermes-pre-restart.log
+	$(COMPOSE) restart hermes
+	@echo "[hermes-restart] restarted; waiting up to 120s for healthy…"
 	@bash -c 'deadline=$$(( $$(date +%s) + 120 )); while [ $$(date +%s) -lt $$deadline ]; do \
-		s="$$(docker inspect -f "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}" wormbase-openclaw 2>/dev/null || echo missing)"; \
-		case "$$s" in healthy) echo "[openclaw-restart] healthy"; exit 0 ;; unhealthy|exited|dead) echo "[openclaw-restart] state=$$s — see .openclaw-pre-restart.log"; exit 1 ;; esac; \
+		s="$$(docker inspect -f "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}" wormbase-hermes 2>/dev/null || echo missing)"; \
+		case "$$s" in healthy) echo "[hermes-restart] healthy"; exit 0 ;; unhealthy|exited|dead) echo "[hermes-restart] state=$$s — see .hermes-pre-restart.log"; exit 1 ;; esac; \
 		sleep 3; \
-	done; echo "[openclaw-restart] timed out waiting for healthy state"; exit 1'
+	done; echo "[hermes-restart] timed out waiting for healthy state"; exit 1'
 	@bash scripts/doctor.sh
 
-openclaw-logs:
-	$(COMPOSE) logs -f openclaw
+hermes-logs:
+	$(COMPOSE) logs -f hermes
 
-openclaw-status:
+hermes-status:
 	$(COMPOSE) exec openclaw openclaw channels status --probe
 
 # ─── Sim harness (Phase 5) ─────────────────────────────────────
@@ -221,7 +221,7 @@ sim-test:
 	uv run --package wormbase-sim-harness --extra dev \
 	    pytest apps/sim-harness/tests -q
 
-# ─── Channel adapter (OpenClaw → ledger) ───────────────────────
+# ─── Channel adapter (Hermes → ledger) ───────────────────────
 
 adapter-test:
 	uv run --package wormbase-channel-adapter --extra dev \

@@ -152,13 +152,13 @@ async def test_send_uses_env_overrides_for_container_token_account(
     """Env overrides flow into the argv."""
     monkeypatch.setenv("WORMBASE_WHATSAPP_BOT_PHONE_T1", "5511888888888")
     monkeypatch.setenv(
-        "WORMBASE_WHATSAPP_OPENCLAW_CONTAINER", "custom-openclaw",
+        "WORMBASE_WHATSAPP_HERMES_CONTAINER", "custom-openclaw",
     )
     monkeypatch.setenv(
-        "WORMBASE_WHATSAPP_OPENCLAW_TOKEN", "test-master-token-123",
+        "WORMBASE_WHATSAPP_HERMES_TOKEN", "test-master-token-123",
     )
     monkeypatch.setenv(
-        "WORMBASE_WHATSAPP_OPENCLAW_ACCOUNT", "tenant-special",
+        "WORMBASE_WHATSAPP_HERMES_ACCOUNT", "tenant-special",
     )
 
     captured_argv: list[list[str]] = []

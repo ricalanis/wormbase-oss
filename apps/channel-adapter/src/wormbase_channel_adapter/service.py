@@ -832,131 +832,19 @@ async def run_service(
     # follow-up commit) doesn't require structural edits.
     log_tailer: Any = None
     log_tailer_task: asyncio.Task[None] | None = None
-    # The Slack admit-channel dispatch table is preserved (and the
-    # SlackClient initialization below) so the existing tests that
-    # construct a service WITH slack_bot_token can still authenticate;
-    # without the OpenClawLogTailer the admit channel events simply
-    # never fire and the dispatch table sits idle.
-    if False and openclaw_log_dir and slack_bot_token:  # noqa: SIM223 — see comment
-        # Load the Slack adapter from the registry (Protocol-driven).
-        from wormbase_channel_adapters import (
-            SecretBundle as _SecretBundle,
-            default_registry as _default_registry,
-        )
-        adapter_cls = _default_registry().get("slack")
-        if adapter_cls is not None:
-            adapter = adapter_cls()
-            await adapter.authenticate(_SecretBundle(
-                payload={"bot_token": slack_bot_token},
-            ))
-            log.info(
-                "SlackChannelAdapter loaded from registry "
-                "(B6 refactor — every Slack-API call now flows through it)",
-            )
-        slack = SlackClient(slack_bot_token)
-        # auth.test once at startup; non-fatal if it fails.
-        await slack.resolve_bot_id()
-        capture = GlobalLogCapture(
-            ledger=ledger, company_id=company_id, slack=slack,
-        )
-
-        def _on_signal_extra(*_: Any) -> None:
-            if log_tailer is not None:
-                log_tailer.stop()
-
-        for sig in (signal.SIGINT, signal.SIGTERM):
-            try:
-                loop.add_signal_handler(sig, _on_signal_extra)
-            except NotImplementedError:
-                pass
-
-        # Platform dispatch table. The OpenClawLogTailer surfaces every
-        # ``<platform>: allow channel <id>`` line as ``(platform, channel_id)``;
-        # we route by platform here. Phase 3 (2026-05-05) added the WhatsApp
-        # handler — gated on ``whatsapp_account_id`` being configured so
-        # Slack-only deployments stay byte-identical with prior behavior.
-        # Unknown platforms hit the "no adapter registered" branch and are
-        # dropped gracefully.
-        platform_admit_handlers: dict[
-            str, Callable[[str], Awaitable[None]]
-        ] = {
-            "slack": capture.on_channel_admit,
-        }
-
-        # Optional WhatsApp wire-up. Activates when ``whatsapp_account_id``
-        # is provided (sourced from ``WHATSAPP_ACCOUNT_ID`` env in __main__).
-        # Loads the WhatsAppChannelAdapter from the registry, authenticates
-        # against the configured account, and threads the writer's
-        # emit_conversation_sync as the sync_emitter so completed
-        # history-sync sessions land in the ledger as conversation_sync
-        # entries.
-        if whatsapp_account_id:
-            wa_cls = _default_registry().get("whatsapp")
-            if wa_cls is None:
-                log.warning(
-                    "whatsapp adapter requested but not registered "
-                    "(WHATSAPP_ACCOUNT_ID=%r ignored)",
-                    whatsapp_account_id,
-                )
-            else:
-                # Wave B3.1 (2026-05-06): wire install_emitter so the
-                # adapter's pairing-complete signal lands an
-                # ``install_completed`` ledger entry on the FIRST
-                # connection_open per (tenant, bot_jid). The writer's
-                # method enforces idempotency via ledger fold; the
-                # adapter's in-process LRU is the fast path.
-                wa_adapter = wa_cls(
-                    sync_emitter=writer.emit_conversation_sync,
-                    install_emitter=writer.emit_whatsapp_install,
-                    install_id=whatsapp_account_id,
-                    tenant_id=tenant_slug,
-                )
-                wa_handle = await wa_adapter.authenticate(_SecretBundle(
-                    payload={
-                        "account_id": whatsapp_account_id,
-                        "tenant_id": tenant_slug,
-                    },
-                ))
-                wa_capture = WhatsAppLogCapture(
-                    adapter=wa_adapter,
-                    handle=wa_handle,
-                    writer=writer,
-                    company_id=company_id,
-                )
-                platform_admit_handlers["whatsapp"] = (
-                    wa_capture.on_channel_admit
-                )
-                log.info(
-                    "WhatsAppChannelAdapter wired: account_id=%s "
-                    "(preview status — see status_note for caveats)",
-                    whatsapp_account_id,
-                )
-
-        async def _on_admit(platform: str, channel_id: str) -> None:
-            handler = platform_admit_handlers.get(platform)
-            if handler is None:
-                log.warning(
-                    "openclaw-log: no adapter registered for platform=%r, "
-                    "dropping admit channel_id=%r",
-                    platform,
-                    channel_id,
-                )
-                return
-            await handler(channel_id)
-
-        # Phase 4: OpenClawLogTailer deleted. The block above is
-        # `if False` so the body never runs; preserved as a placeholder
-        # for the spec-described "two-phase" rollback (re-add the
-        # tailer + drop `if False` if you need to roll back to a
-        # hybrid OpenClaw+Hermes state).
-        pass
-    else:
-        log.info(
-            "openclaw-log capture path retired (Phase 4 of "
-            "openclaw→hermes migration). Inbound now flows via "
-            "HermesEventConsumer; envelope_watcher still owns "
-            "WhatsApp ingest correlation."
-        )
+    # Phase 4 (openclaw→hermes) deleted the OpenClawLogTailer + Slack
+    # admit-dispatch path. Inbound now flows via HermesEventConsumer;
+    # the envelope-watcher still owns WhatsApp ingest correlation.
+    # The legacy openclaw-log branch is no longer dead-coded — it is
+    # gone. If you need it back, see commit aea9480 (the merge of
+    # feat/hermes-migration) and the retirement burn-down at
+    # docs/superpowers/notes/2026-05-21-openclaw-retirement.md.
+    log.info(
+        "openclaw-log capture path retired (Phase 4 of "
+        "openclaw→hermes migration). Inbound now flows via "
+        "HermesEventConsumer; envelope_watcher still owns "
+        "WhatsApp ingest correlation."
+    )
 
     try:
         await pump(tailer, state, handler)

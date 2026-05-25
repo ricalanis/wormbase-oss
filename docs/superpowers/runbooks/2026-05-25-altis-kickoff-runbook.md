@@ -23,15 +23,15 @@ The May 21 incident left `+${WORMBASE_WHATSAPP_BOT_PHONE}` (your bot number) in 
 
 ```bash
 # From your phone, send a WhatsApp message to +${WORMBASE_WHATSAPP_BOT_PHONE} ("kickoff prep test 1").
-# Watch the openclaw logs:
-make openclaw-logs | grep -E "messagesHandled|lastInboundAt|chat_received"
+# Watch the hermes logs:
+make hermes-logs | grep -E "messagesHandled|lastInboundAt|chat_received"
 
 # Expected within ~10s: messagesHandled increments, lastInboundAt updates,
 # a chat_received line appears for the message you sent.
 #
 # If NOTHING arrives in 30s: throttle still active. Two options:
 #   (a) Wait another 30-60min, retry. (Typical recovery window 1-24h since 2026-05-21.)
-#   (b) Pair a fresh SIM — see infra/openclaw/WHATSAPP_PAIRING.md for the procedure.
+#   (b) Pair a fresh SIM — see infra/hermes/WHATSAPP_PAIRING.md for the procedure.
 #
 # Do NOT proceed to §2-§7 until ONE test inbound succeeds.
 ```
@@ -42,7 +42,15 @@ If the throttle is still hot, escalate: the kickoff can still go ahead, but you'
 
 ## §2. Switch the WhatsApp tenant binding to `altis`
 
-The repo currently wires WhatsApp to the `baseworm` tenant. OpenClaw 2026.5.6 is single-account-WhatsApp (see comment in `infra/openclaw/entrypoint.sh:119-124`), so we **switch** rather than add. This loses the baseworm WhatsApp surface for the kickoff window.
+> **POST-MIGRATION NOTE (2026-05-24):** OpenClaw was retired in Phase 4 of the
+> openclaw→hermes migration (merge commit `aea9480`). The Hermes service in
+> `infra/docker-compose.yml` is now the single-account WhatsApp host; the
+> tenant-rendering logic that lived in `infra/openclaw/entrypoint.sh` no longer
+> exists. The env-var SHAPE is preserved (`WHATSAPP_*_<TENANT>` /
+> `WORMBASE_WHATSAPP_BOT_PHONE_<TENANT>`), so the .env edits below still apply
+> as-is — but the entrypoint diff is obsolete. Rerunning §3-§7 should still
+> work because the channel-adapter consumes those env vars directly via the
+> Hermes service env block (no per-tenant rendering required).
 
 ### Edits
 
@@ -61,43 +69,25 @@ The repo currently wires WhatsApp to the `baseworm` tenant. OpenClaw 2026.5.6 is
 + WORMBASE_WHATSAPP_BOT_PHONE_ALTIS=${WORMBASE_WHATSAPP_BOT_PHONE}
 ```
 
-**`infra/openclaw/entrypoint.sh:147`** —
+**`infra/docker-compose.yml`** — confirm the Hermes service env block passes
+through the ALTIS-suffixed vars (add them if missing, alongside any BASEWORM
+ones still present):
 
 ```diff
-- WHATSAPP_INNER=$(render_whatsapp_block baseworm)
-+ WHATSAPP_INNER=$(render_whatsapp_block altis)
-```
-
-(Leave `render_tenant_block baseworm` on line 141 alone — Slack stays bound to baseworm for now; Altis is WhatsApp-only.)
-
-**`infra/docker-compose.yml`** — the OpenClaw service env block currently passes through the BASEWORM-suffixed vars (lines 111-115). Add the ALTIS-suffixed equivalents alongside (don't remove BASEWORM yet — harmless if both present):
-
-```diff
-       WHATSAPP_ENABLED_BASEWORM: ${WHATSAPP_ENABLED_BASEWORM:-}
-       WHATSAPP_DM_POLICY_BASEWORM: ${WHATSAPP_DM_POLICY_BASEWORM:-pairing}
-       WHATSAPP_GROUP_POLICY_BASEWORM: ${WHATSAPP_GROUP_POLICY_BASEWORM:-allowlist}
-       WHATSAPP_ALLOW_FROM_BASEWORM: ${WHATSAPP_ALLOW_FROM_BASEWORM:-}
-       WHATSAPP_GROUP_ALLOW_FROM_BASEWORM: ${WHATSAPP_GROUP_ALLOW_FROM_BASEWORM:-}
 +      WHATSAPP_ENABLED_ALTIS: ${WHATSAPP_ENABLED_ALTIS:-}
 +      WHATSAPP_DM_POLICY_ALTIS: ${WHATSAPP_DM_POLICY_ALTIS:-pairing}
 +      WHATSAPP_GROUP_POLICY_ALTIS: ${WHATSAPP_GROUP_POLICY_ALTIS:-allowlist}
 +      WHATSAPP_ALLOW_FROM_ALTIS: ${WHATSAPP_ALLOW_FROM_ALTIS:-}
 +      WHATSAPP_GROUP_ALLOW_FROM_ALTIS: ${WHATSAPP_GROUP_ALLOW_FROM_ALTIS:-}
-```
-
-Also (line 463-ish) add the bot-phone passthrough for altis next to baseworm:
-
-```diff
-       WORMBASE_WHATSAPP_BOT_PHONE_BASEWORM: ${WORMBASE_WHATSAPP_BOT_PHONE_BASEWORM:-}
 +      WORMBASE_WHATSAPP_BOT_PHONE_ALTIS: ${WORMBASE_WHATSAPP_BOT_PHONE_ALTIS:-}
 ```
 
 ### Restart
 
 ```bash
-make openclaw-restart      # pick up the entrypoint + env changes
-make adapter-restart       # pick up WORMBASE_TENANT_ID=altis
-make openclaw-logs | head -30  # confirm "tenant altis: whatsapp enabled (...)"
+make hermes-restart      # pick up the env changes
+make adapter-restart     # pick up WORMBASE_TENANT_ID=altis
+make hermes-logs | head -30  # confirm "tenant altis: whatsapp enabled (...)"
 ```
 
 ---
@@ -110,10 +100,10 @@ On YOUR phone, in WhatsApp:
 2. Add: Poncho Garciga, Ruben Madiedo (you have Ruben's number from the May 22 call — `Ricardo Alanís: Rubén, ¿Me pasas tu teléfono, por favor?`), and the WormBase bot contact (`+${WORMBASE_WHATSAPP_BOT_PHONE}` (your bot number)).
 3. Send one message: `kickoff smoke test`.
 
-Capture the group JID from openclaw logs:
+Capture the group JID from hermes logs:
 
 ```bash
-make openclaw-logs | grep -E "group.*@g\.us|chat_received" | tail -10
+make hermes-logs | grep -E "group.*@g\.us|chat_received" | tail -10
 # Look for: "channel_id":"120363XXXXXXXXXXXXX@g.us"
 ```
 
@@ -124,10 +114,10 @@ Add the JID to `.env`:
 + WHATSAPP_GROUP_ALLOW_FROM_ALTIS=120363XXXXXXXXXXXXX@g.us
 ```
 
-Restart openclaw one more time so the allowlist picks up the JID:
+Restart hermes one more time so the allowlist picks up the JID:
 
 ```bash
-make openclaw-restart
+make hermes-restart
 ```
 
 ---
@@ -314,7 +304,7 @@ By Friday 2026-05-30:
 
 **§1 fails (no inbound delivery):** throttle still active. Demo via Slack (baseworm Slack workspace is still wired). Apologize, schedule a "WhatsApp goes live" follow-up call Tuesday.
 
-**§2 fails (openclaw restart errors):** check the rendered config — `docker exec wormbase-openclaw cat /root/.openclaw/openclaw.json | jq .channels.whatsapp`. If shape is wrong, the entrypoint logs the issue.
+**§2 fails (hermes restart errors):** check the rendered config — `docker exec wormbase-hermes cat /root/.hermes/config.json | jq .channels.whatsapp`. If shape is wrong, the entrypoint logs the issue.
 
 **§3 fails (no group JID in logs):** the bot may have been added but the group hasn't been activated for it yet. Have someone send a message in the group — that's what triggers the first inbound and the JID logging.
 
