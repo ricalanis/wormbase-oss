@@ -14,6 +14,7 @@ name: wormbase
 
 services:
   postgres:
+    profiles: ["dev"]
     # pgvector image is a drop-in replacement for postgres:16 with the
     # `vector` extension preinstalled. Migrations v016 and v017
     # (projection_query_outcomes / projection_query_templates) run
@@ -36,6 +37,7 @@ services:
       retries: 10
 
   vault:
+    profiles: ["dev"]
     image: hashicorp/vault:1.18
     container_name: wormbase-vault
     restart: unless-stopped
@@ -171,6 +173,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
 
   hermes:
     # Hermes Agent — H1 spike (DEFERRED 2026-04-27: NO-GO).
@@ -258,6 +261,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
 
   channel-adapter-hermes-spike:
     # H1 spike sidecar — runs the channel-adapter image with the
@@ -291,6 +295,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
 
   dashboard:
     # WormBase dashboard — Next.js 15 App Router, Field Notebook design system.
@@ -350,6 +355,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
     healthcheck:
       test: ["CMD-SHELL", "wget --quiet --spider http://127.0.0.1:3000/api/health || exit 1"]
       interval: 15s
@@ -441,6 +447,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
 
   channel-adapter:
     # WormBase channel-ledger adapter — tails OpenClaw session JSONL
@@ -486,6 +493,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
       openclaw:
         condition: service_started
 
@@ -524,8 +532,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
 
   sim-harness:
+    profiles: ["dev"]
     # WormBase sim harness — scenario-driven multi-persona Slack poster.
     # Does NOT auto-run; the default command prints help so `make up`
     # never kicks off a demo unintentionally. Invoke via `make demo`
@@ -571,6 +581,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+        required: false
 
   tunnel:
     # Cloudflared quick-tunnel sidecar (W1.A2).
@@ -626,6 +637,7 @@ services:
   #   s3://wormbase-dev/{tenant_id}/data-products/{artifact_id}/{run_id}.{ext}
   # The init container creates the bucket on first boot.
   localstack:
+    profiles: ["dev"]
     image: localstack/localstack:3
     container_name: wormbase-localstack
     restart: unless-stopped
@@ -645,6 +657,7 @@ services:
 
   # Init: ensure the wormbase-dev bucket exists. Runs once and exits.
   localstack-init:
+    profiles: ["dev"]
     image: amazon/aws-cli:2.17.0
     container_name: wormbase-localstack-init
     depends_on:

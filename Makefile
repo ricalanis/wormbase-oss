@@ -84,17 +84,22 @@ help:
 	@echo "  make dashboard-typecheck — pnpm typecheck the dashboard + design"
 	@echo "  make visual-baselines  — regenerate Playwright PNG baselines against canonical rich seed"
 
+# Local-dev brings up the `dev` profile too — adds postgres, vault, localstack,
+# sim-harness alongside the always-on services (openclaw, worm-core,
+# channel-adapter, voice-agent, dashboard). Without `--profile dev`, those
+# four are skipped — which is what remote deploys (Coolify, etc.) want, since
+# they substitute Cloud SQL / Secret Manager / GCS / etc.
 up:
-	$(COMPOSE) up -d
+	$(COMPOSE) --profile dev up -d
 
 down:
-	$(COMPOSE) down
+	$(COMPOSE) --profile dev down
 
 logs:
-	$(COMPOSE) logs -f
+	$(COMPOSE) --profile dev logs -f
 
 ps:
-	$(COMPOSE) ps
+	$(COMPOSE) --profile dev ps
 
 test:
 	uv run --package wormbase-ledger --extra dev pytest packages/ledger/tests -q
