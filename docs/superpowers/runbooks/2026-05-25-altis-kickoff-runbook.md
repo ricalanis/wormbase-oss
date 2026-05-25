@@ -19,10 +19,10 @@ By 09:00 Monday you can:
 
 ## §1. Verify the shadow-throttle is cleared (CRITICAL — do FIRST)
 
-The May 21 incident left `+5218114822051` in WhatsApp's soft-throttle state: heartbeats fire, but inbound delivery is silently dropped. **Per `docs/known_issues.md`, re-pairing the same SIM does NOT clear the throttle — it's number-scoped.**
+The May 21 incident left `+${WORMBASE_WHATSAPP_BOT_PHONE}` (your bot number) in WhatsApp's soft-throttle state: heartbeats fire, but inbound delivery is silently dropped. **Per `docs/known_issues.md`, re-pairing the same SIM does NOT clear the throttle — it's number-scoped.**
 
 ```bash
-# From your phone, send a WhatsApp message to +5218114822051 ("kickoff prep test 1").
+# From your phone, send a WhatsApp message to +${WORMBASE_WHATSAPP_BOT_PHONE} ("kickoff prep test 1").
 # Watch the openclaw logs:
 make openclaw-logs | grep -E "messagesHandled|lastInboundAt|chat_received"
 
@@ -54,11 +54,11 @@ The repo currently wires WhatsApp to the `baseworm` tenant. OpenClaw 2026.5.6 is
 - WHATSAPP_ENABLED_BASEWORM=true
 - WHATSAPP_GROUP_POLICY_BASEWORM=allowlist
 - WHATSAPP_GROUP_ALLOW_FROM_BASEWORM=<old jid>
-- WORMBASE_WHATSAPP_BOT_PHONE_BASEWORM=5218114822051
+- WORMBASE_WHATSAPP_BOT_PHONE_BASEWORM=${WORMBASE_WHATSAPP_BOT_PHONE}
 + WHATSAPP_ENABLED_ALTIS=true
 + WHATSAPP_GROUP_POLICY_ALTIS=allowlist
 + WHATSAPP_GROUP_ALLOW_FROM_ALTIS=    # left blank until §3 captures the JID
-+ WORMBASE_WHATSAPP_BOT_PHONE_ALTIS=5218114822051
++ WORMBASE_WHATSAPP_BOT_PHONE_ALTIS=${WORMBASE_WHATSAPP_BOT_PHONE}
 ```
 
 **`infra/openclaw/entrypoint.sh:147`** —
@@ -107,7 +107,7 @@ make openclaw-logs | head -30  # confirm "tenant altis: whatsapp enabled (...)"
 On YOUR phone, in WhatsApp:
 
 1. Create new group: **"WormBase × Altis (Kickoff)"**.
-2. Add: Poncho Garciga, Ruben Madiedo (you have Ruben's number from the May 22 call — `Ricardo Alanís: Rubén, ¿Me pasas tu teléfono, por favor?`), and the WormBase bot contact (`+5218114822051`).
+2. Add: Poncho Garciga, Ruben Madiedo (you have Ruben's number from the May 22 call — `Ricardo Alanís: Rubén, ¿Me pasas tu teléfono, por favor?`), and the WormBase bot contact (`+${WORMBASE_WHATSAPP_BOT_PHONE}` (your bot number)).
 3. Send one message: `kickoff smoke test`.
 
 Capture the group JID from openclaw logs:
